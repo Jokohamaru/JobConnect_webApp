@@ -17,12 +17,12 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center gap-6 text-blue-800 font-medium">
-            <p className="cursor-pointer hover:text-blue-600">Việc làm ▾</p>
-            <p className="cursor-pointer hover:text-blue-600">Công cụ ▾</p>
-            <p className="cursor-pointer hover:text-blue-600">
+            <p className="font-semibold cursor-pointer hover:text-blue-600">Việc làm ▾</p>
+            <p className="font-semibold cursor-pointer hover:text-blue-600">Công cụ ▾</p>
+            <p className="font-semibold cursor-pointer hover:text-blue-600">
               Cẩm nang nghề nghiệp ▾
             </p>
-            <p className="cursor-pointer hover:text-blue-600">
+            <p className="font-semibold cursor-pointer hover:text-blue-600">
               Tạo CV bằng AI ▾
             </p>
           </div>
@@ -30,14 +30,14 @@ export default function Navbar() {
 
         <div className="flex items-center gap-4">
           <Link
-            className="bg-[#D2D2D2] text-blue-800 px-4 py-2 rounded-full cursor-pointer hover:bg-gray-400"
+            className="bg-[#D2D2D2] text-blue-800 px-4 py-2 rounded-full cursor-pointer hover:bg-gray-400 font-semibold"
             href=""
           >
             Đăng tuyển & tìm hồ sơ
           </Link>
 
           <Link
-            className="bg-[#1F84C5] text-white px-4 py-2 rounded-full cursor-pointer hover:bg-blue-900"
+            className="bg-[#1F84C5] text-white px-4 py-2 rounded-full cursor-pointer hover:bg-blue-900 font-semibold"
             href="/auth/login"
           >
             Đăng nhập/Đăng Ký

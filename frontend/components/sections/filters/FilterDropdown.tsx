@@ -22,7 +22,7 @@ export default function FilterDropdown({
         className="flex items-center gap-2 px-10 py-6 bg-white border border-gray-300 rounded-lg hover:border-blue-500 transition-colors"
       >
         <Grid className="w-4 h-4 text-gray-600" />
-        <span className="text-gray-700 font-medium">Dựa trên: {selected}</span>
+        <span className="text-gray-700  font-semibold">Dựa trên: {selected}</span>
         <ChevronDown
           className={`w-4 h-4 text-gray-600 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />

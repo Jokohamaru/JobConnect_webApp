@@ -24,7 +24,7 @@ export function SearchBar() {
           placeholder="Vị trí muốn tuyển dụng hoặc tên công ty"
         />
 
-        <Button className="h-12.5 px-10 rounded-full bg-[#1F84C5] hover:bg-blue-900 text-white cursor-pointer">
+        <Button className="h-12.5 px-10 rounded-full bg-[#1F84C5] hover:bg-blue-900 text-white cursor-pointer font-semibold">
           Tìm kiếm
         </Button>
       </div>

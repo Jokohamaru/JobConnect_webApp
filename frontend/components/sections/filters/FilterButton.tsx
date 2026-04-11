@@ -13,7 +13,7 @@ export default function FilterButton({ label, active = false, onClick }: FilterB
     <Button
       onClick={onClick}
       className={`
-        px-6 py-6 rounded-full font-medium transition-all whitespace-nowrap
+        px-6 py-6 rounded-full transition-all whitespace-nowrap font-semibold
         ${active 
           ? 'bg-[#0E7BC3] text-white shadow-md' 
           : 'bg-white text-gray-700 border border-gray-300 hover:border-[#0E7BC3] hover:text-[#0E7BC3]'
