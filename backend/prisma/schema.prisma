@@ -18,9 +18,9 @@ model User {
   user_role       Int       @default(1)
   created_time    DateTime  @default(now())
   last_login_time DateTime?
-  posts Post[] @relation("UserPosts")
-
-  @@map("user")
+  posts           Post[]    @relation("UserPosts")
+  
+  @@map("User")
 }
 
 model Post {
@@ -29,5 +29,5 @@ model Post {
   content   String?
   published Boolean? @default(false)
   authorId  Int?
-  author User? @relation("UserPosts", fields: [authorId], references: [id])
+  author    User?    @relation("UserPosts", fields: [authorId], references: [id])
 }
