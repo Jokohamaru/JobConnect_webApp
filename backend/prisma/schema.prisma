@@ -10,8 +10,13 @@ datasource db {
 
 model User {
 <<<<<<< HEAD
+<<<<<<< HEAD
   id    Int     @default(autoincrement()) @id
+=======
+  id    Int     @id @default(autoincrement())
+>>>>>>> trieu/jwt
   email String  @unique
+  password  String
   name  String?
 =======
   id              Int       @id @default(autoincrement())

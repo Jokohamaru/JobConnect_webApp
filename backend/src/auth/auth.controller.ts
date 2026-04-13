@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller,Get, Post, HttpCode, HttpStatus, Patch, Param, Delete } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+
 
 @Controller('auth')
 export class AuthController {
@@ -30,5 +31,18 @@ export class AuthController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.authService.remove(+id);
+  }
+
+  // ------------------------------------------------------------
+
+  @Post('register')
+  async register(@Body() createDto: CreateAuthDto) {
+    return this.authService.register(createDto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('login')
+  async login(@Body() loginDto: UpdateAuthDto) {
+    return this.authService.login(loginDto);
   }
 }
