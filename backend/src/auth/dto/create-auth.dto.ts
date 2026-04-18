@@ -1,5 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
-
+import { IsEmail, IsInt, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
 export class CreateAuthDto {
   @IsEmail({}, { message: 'Email không đúng định dạng' })
@@ -11,9 +10,13 @@ export class CreateAuthDto {
   @MinLength(6, { message: 'Mật khẩu phải có ít nhất 6 ký tự' })
   password!: string;
 
-  @IsString()
-  @IsOptional()
-  name?: string;
+@IsString()
+@IsNotEmpty({ message: 'Tên không được để trống' })
+name!: string;
+
+  @IsInt()
+  @IsNotEmpty()
+  role!: number;
 
   // @IsString()
   // @IsOptional()

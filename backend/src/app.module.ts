@@ -1,30 +1,21 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-<<<<<<< HEAD
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './modules/user/user.module';
-import { ConfigModule } from '@nestjs/config';
-
-@Module({
-<<<<<<< HEAD
-  imports: [AuthModule],
-=======
-import { UserModule } from './modules/user/user.module';
-import { ConfigModule } from '@nestjs/config/dist/config.module';
+import { ConfigModule } from '@nestjs/config'; // Dùng bản import chuẩn này nhé
 
 @Module({
   imports: [
-  ConfigModule.forRoot({ isGlobal: true }),
-  UserModule
-],
->>>>>>> nam
-=======
-  imports: [
+    // Giữ nguyên logic của Nam: Load biến môi trường cho toàn app
     ConfigModule.forRoot({ isGlobal: true }),
+    
+    // Giữ UserModule của Nam
+    UserModule,
+    
+    // Thêm AuthModule của Triệu để chạy Đăng nhập/Đăng ký
     AuthModule,
-    UserModule],
->>>>>>> trieu/jwt
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

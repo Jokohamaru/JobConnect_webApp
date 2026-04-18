@@ -46,10 +46,11 @@ export class AuthService {
 
     return this.prisma.user.create({
       data: {
-        email: dto.email,
-        password: hashedPassword,
-        name: dto.name,
-      },
+          email: dto.email,
+          hash_password: hashedPassword, 
+          full_name: dto.name,
+          user_role: dto.role,           
+        },
     });
   }
 
@@ -58,11 +59,11 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (!user) throw new UnauthorizedException('Thông tin tài khoản không chính xác');
 
-    const isMatch = await bcrypt.compare(dto.password, user.password);
+    const isMatch = await bcrypt.compare(dto.password, user.hash_password);
     if (!isMatch) throw new UnauthorizedException('Thông tin tài khoản không chính xác');
 
     // Tạo JWT Payload (không có role theo ý bạn)
-    const payload = { sub: user.id, email: user.email };
+    const payload = { sub: user.id, email: user.email,role: user.user_role };
     
     return {
       access_token: await this.jwtService.signAsync(payload),
