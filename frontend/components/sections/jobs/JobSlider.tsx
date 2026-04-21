@@ -29,39 +29,19 @@ function chunkArray(arr: Job[], size: number) {
 }
 
 export default function JobSlider({ jobs }: { jobs: Job[] }) {
-  const itemsPerPage = 9; // 👉 chỉnh tại đây
-
+  const itemsPerPage = 9;
   const pages = chunkArray(jobs, itemsPerPage);
-
   const [currentPage, setCurrentPage] = useState(0);
-
-  const handleNext = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, pages.length - 1));
-  };
-
-  const handlePrev = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 0));
-  };
+  const handleNext = () => setCurrentPage((prev) => Math.min(prev + 1, pages.length - 1));
+  const handlePrev = () => setCurrentPage((prev) => Math.max(prev - 1, 0));
 
   return (
     <div className="relative w-full">
-      {/* SLIDER */}
-      <div className="overflow-hidden  pt-10  ">
-        <div
-          className="flex transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] "
-          style={{
-            transform: `translateX(-${currentPage * 100}%)`,
-          }}
-        >
-          {pages.map((page, index) => (
-            <div
-              key={index}
-              className="min-w-full grid grid-cols-3 gap-4 mt-4"
-            >
-              {page.map((job, i) => (
-                <JobCard key={i} {...job} />
-              ))}
-            </div>
+      {/* SLIDER - bỏ overflow-hidden, chỉ render page hiện tại */}
+      <div className="pt-10">
+        <div className="grid grid-cols-3 gap-4 mt-4">
+          {pages[currentPage]?.map((job, i) => (
+            <JobCard key={i} {...job} />
           ))}
         </div>
       </div>
@@ -76,9 +56,7 @@ export default function JobSlider({ jobs }: { jobs: Job[] }) {
           <ChevronLeft />
         </Button>
 
-        <span>
-          {currentPage + 1} / {pages.length}
-        </span>
+        <span>{currentPage + 1} / {pages.length}</span>
 
         <Button
           onClick={handleNext}

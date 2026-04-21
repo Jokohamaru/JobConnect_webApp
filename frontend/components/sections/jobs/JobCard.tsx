@@ -41,7 +41,7 @@ export default function JobCard({
     if (cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect();
       const spaceRight = window.innerWidth - rect.right;
-
+  
       if (spaceRight < 520) {
         setPosition("left");
       } else {

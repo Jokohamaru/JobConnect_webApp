@@ -7,7 +7,7 @@ import TopCareersSection from "@/components/sections/careers/TopCareersSection";
 import JobSlider from "@/components/sections/jobs/JobSlider";
 
 export default function HomePage() {
-  const jobs: JobCardProps[] = Array.from({ length: 18 }).map((_, i) => ({
+  const jobs: JobCardProps[] = Array.from({ length: 27 }).map((_, i) => ({
   nameJob: `Công việc ${i + 1}`,
   nameCompany: "Công ty ABC",
   logoCompanyURL: "",

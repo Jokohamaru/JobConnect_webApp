@@ -39,7 +39,7 @@ export default function JobDetailHover({
     <div
       className={`absolute -top-15 ${
         position === "right" ? "left-[88%] ml-4" : "right-[70%] mr-4"
-      } w-[500px] bg-white rounded-xl shadow-xl p-4 z-50`}
+      } w-[500px] bg-white rounded-xl shadow-xl p-4 z-60`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >

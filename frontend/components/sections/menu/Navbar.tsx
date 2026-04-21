@@ -7,7 +7,7 @@ import { User } from 'lucide-react';
 import UserInfo from "./UserInfo";
 export default function Navbar() {
   return (
-    <div className="w-full border-b font-sans sticky top-0 z-9999 bg-white ">
+    <div className="w-full border-b font-sans sticky top-0 z-50 bg-white ">
       <div className="flex items-center justify-between h-17.5 px-10">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center">
