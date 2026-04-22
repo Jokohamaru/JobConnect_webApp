@@ -9,7 +9,7 @@ import { useState } from "react";
 export function SearchBar() {
   const [input, setInput] = useState("");
   return (
-    <div className="bg-linear-to-b  from-[#2e7ab1] via-[#79C2ED] to-[#B0E6FF] to-90% flex flex-col items-center gap-8 py-15">
+    <div className="bg-linear-to-r  from-[#9358f7] via-[#6197ee] to-[#10d7e2] to-90% flex flex-col items-center gap-8 py-15">
       <p className="text-3xl text-white font-bold text-center">
         Job Connect - Tạo CV bằng AI, Tìm Việc Làm, Tuyển dụng hiệu quả
       </p>
@@ -20,7 +20,7 @@ export function SearchBar() {
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className="h-12.5 w-100 rounded-full bg-white border-none px-6  text-[18px] font-semibold"
+          className="h-12.5 w-100 rounded-full bg-white border-none px-6  text-[15px] font-semibold"
           placeholder="Vị trí muốn tuyển dụng hoặc tên công ty"
         />
 

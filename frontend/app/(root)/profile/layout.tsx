@@ -11,7 +11,7 @@ export default function ProfileLayout({
   return (
     <div className="flex justify-center py-8 px-20 bg-[#F3F5F7] ">
       {/* Sidebar */}
-      <div className="w-[20%] flex flex-col gap-6">
+      <div className="w-[20%] flex flex-col gap-6  sticky top-20 h-fit">
         <ProfileHeader nameUser={"Thịnh Zuy"} />
         <ProfileMenu/>
       </div>

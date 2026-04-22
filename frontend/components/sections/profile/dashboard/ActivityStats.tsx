@@ -5,7 +5,7 @@ interface Stat {
   id: number;
   label: string;
   value: number;
-  icon: string;
+  icon: ReactNode;
   bgColor: string;
   iconColor: string;
   link: ReactNode
@@ -16,7 +16,7 @@ const stats: Stat[] = [
     id: 1,
     label: 'Việc làm đã ứng tuyển',
     value: 0,
-    icon: '✈️',
+    icon: <img src="/images/ll.png"/>,
     bgColor: 'bg-blue-50',
     iconColor: 'text-blue-500',
     link: <Link href="/profile/my-jobs"></Link>
@@ -25,7 +25,7 @@ const stats: Stat[] = [
     id: 2,
     label: 'Việc làm đã lưu',
     value: 1,
-    icon: '❤️',
+    icon: <img src="/images/tym.png"/>,
     bgColor: 'bg-pink-50',
     iconColor: 'text-pink-500',
     link: <Link href="/profile/my-jobs"></Link>
@@ -34,7 +34,7 @@ const stats: Stat[] = [
     id: 3,
     label: 'Lời mời công việc',
     value: 2,
-    icon: '✉️',
+    icon: <img src="/images/letter.png"/>,
     bgColor: 'bg-green-50',
     iconColor: 'text-green-500',
     link: <Link href="/profile/invites"></Link>
@@ -52,14 +52,14 @@ export default function ActivityStats() {
         {stats.map((stat) => (
           <div
             key={stat.id}
-            className={`${stat.bgColor} rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer`}
+            className={`${stat.bgColor} relative rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer min-h-[150px]`}
           >
-            <p className="text-xs text-gray-600 mb-2">{stat.label}</p>
+            <p className="text-sm text-gray-600 mb-2">{stat.label}</p>
             <div className="flex items-center justify-between">
               <span className="text-2xl font-bold text-gray-800">
                 {stat.value} 
               </span>
-              <span className="text-3xl">{stat.icon}</span>
+              <span className="text-3xl absolute w-15 h-15 left-60 bottom-5">{stat.icon}</span>
             </div>
           </div>
         ))}

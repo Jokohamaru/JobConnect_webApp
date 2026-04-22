@@ -50,7 +50,7 @@ export default function MenuList({ onClose }: MenuListProps) {
         icon={<User size={18} />}
         label="Hồ sơ của tôi"
         onClick={() => {
-          router.push("/my-file");
+          router.push("/profile/my-file");
           onClose();
         }}
 
@@ -60,7 +60,7 @@ export default function MenuList({ onClose }: MenuListProps) {
         icon={<Briefcase size={18} />}
         label="Việc làm của tôi"
         onClick={() => {
-          router.push("/my-jobs")
+          router.push("/profile/my-jobs")
           onClose()
         }}
     
@@ -70,7 +70,7 @@ export default function MenuList({ onClose }: MenuListProps) {
         icon={<FileText size={18} />}
         label="Hồ sơ đính kèm"
         onClick={() => {
-          router.push("/cv-attachment")
+          router.push("/profile/cv-attachment")
           onClose()
         }}
 
@@ -80,7 +80,7 @@ export default function MenuList({ onClose }: MenuListProps) {
         icon={<Mail size={18} />}
         label="Lời mời công việc"
         onClick={() => {
-          router.push("/invites")
+          router.push("/profile/invites")
           onClose()
         }}
 
@@ -90,7 +90,7 @@ export default function MenuList({ onClose }: MenuListProps) {
         icon={<Settings size={18} />}
         label="Cài đặt"
         onClick={() => {
-          router.push("/settings")
+          router.push("/profile/settings")
           onClose()
         }}
 

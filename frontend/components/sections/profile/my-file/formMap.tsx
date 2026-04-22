@@ -8,23 +8,21 @@ import ProjForm from "./forms/ProJForm";
 import SkillForm from "./forms/SkillForm";
 import { SectionKey } from "./sections/types";
 
-export interface CVData {
-  intro: { title: string };
-  edu: { school: string };
-  exp: { company: string; position: string };
-  skill: { skills: string[] };
-  lang: { language: string };
-  proj: { name: string };
-  cert: { name: string };
-  award: { name: string };
-}
-export const FORM_MAP: Record<SectionKey, React.ReactNode> = {
-  intro: <IntroForm />,
-  edu: <EduForm />,
-  exp: <ExpForm />,
-  skill: <SkillForm />,
-  lang: <LangForm />,
-  proj: <ProjForm />,
-  cert: <CertForm />,
-  award: <AwardForm />,
+type FormProps = {
+  data: any;
+  setData: (val: any) => void;
+};
+
+export const FORM_MAP: Record<
+  SectionKey,
+  (props: FormProps) => React.ReactNode
+> = {
+  intro: (props) => <IntroForm {...props} />,
+  edu: (props) => <EduForm {...props} />,
+  exp: (props) => <ExpForm {...props} />,
+  skill: (props) => <SkillForm {...props} />,
+  lang: (props) => <LangForm {...props} />,
+  proj: (props) => <ProjForm {...props} />,
+  cert: (props) => <CertForm {...props} />,
+  award: (props) => <AwardForm {...props} />,
 };

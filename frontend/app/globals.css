@@ -57,3 +57,16 @@ textarea::placeholder {
 .animate-fade {
   animation: fade 0.3s ease;
 }
+/* scrollbar toàn trang */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #64748b; /* slate-500 */
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569; /* slate-600 */
+}

@@ -1,7 +1,10 @@
 import { User, GraduationCap, Briefcase, Zap, Globe, LayoutGrid, Award, Medal } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-
+export type FormProps = {
+  data: any;
+  setData: (val: any) => void;
+};
 export type SectionKey =
   | "intro"
   | "edu"
