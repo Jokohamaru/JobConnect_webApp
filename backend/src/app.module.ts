@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { ConfigModule } from '@nestjs/config'; // Dùng bản import chuẩn này nhé
+import { CityModule } from './modules/city/city.module';
 
 @Module({
   imports: [
@@ -15,6 +16,8 @@ import { ConfigModule } from '@nestjs/config'; // Dùng bản import chuẩn nà
     
     // Thêm AuthModule của Triệu để chạy Đăng nhập/Đăng ký
     AuthModule,
+    
+    CityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

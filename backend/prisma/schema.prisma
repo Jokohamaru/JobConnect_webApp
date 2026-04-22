@@ -1,33 +1,191 @@
 generator client {
   provider     = "prisma-client-js"
-  output       = "../generated/prisma"
-  moduleFormat = "cjs"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+enum User_role {
+  CANDIDATE
+  RECRUITER
+  ADMIN
+}
+
+enum User_status {
+  ACTIVE
+  PENDING
+  BANNED
+  DELETED
+}
+
+enum Job_status {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum CV_status {
+  DONE
+  DRAFT
+  DELETED
+}
+
+enum Application_status {
+  APPLIED
+  REVIEWING
+  ACCEPTED
+  REJECTED
+}
+
 model User {
-  id              Int       @id @default(autoincrement())
-  email           String    @unique @db.VarChar(30)
-  full_name       String    @db.VarChar(100)
-  hash_password   String    @db.VarChar(255)
-  ava_url         String?
-  is_active       Boolean   @default(true)
-  user_role       Int       @default(1)
-  created_time    DateTime  @default(now())
-  last_login_time DateTime?
-  posts           Post[]    @relation("UserPosts")
-  
+  id              Int          @id @default(autoincrement())
+  email           String       @unique @db.VarChar(255)
+  hash_password   String       @db.VarChar(255)
+  ava_url         String?      @db.Text
+  status          User_status  @default(ACTIVE)
+  role            User_role    @default(CANDIDATE)
+  created_at      DateTime     @default(now())
+  update_at       DateTime     @updatedAt
+
+  admin           Admin?
+  candidate       Candidate?
+  recruiter       Recruiter?
+
   @@map("User")
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean? @default(false)
-  authorId  Int?
-  author    User?    @relation("UserPosts", fields: [authorId], references: [id])
+model Admin {
+  id      Int  @id @default(autoincrement())
+  user_id Int  @unique
+  user    User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("Admin")
+}
+
+model Candidate {
+  id           Int      @id @default(autoincrement())
+  user_id      Int      @unique
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  first_name   String   @db.VarChar(20)
+  last_name    String   @db.VarChar(20)
+  phone_number String?  @db.VarChar(10)
+  career_role  String?  @db.VarChar(100)
+  
+  cvs          CV[]
+
+  @@map("CANDIDATE")
+}
+
+model Recruiter {
+  id           Int      @id @default(autoincrement())
+  user_id      Int      @unique
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  first_name   String   @db.VarChar(20)
+  last_name    String   @db.VarChar(20)
+  phone_number String?  @db.VarChar(10)
+  
+  company      Company?
+
+  @@map("Recruiter")
+}
+
+model CompanyType {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(20)
+  companies Company[]
+
+  @@map("Company_type")
+}
+
+model City {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(20)
+  jobs Job[]
+
+  @@map("City")
+}
+
+model TAG {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(100)
+  jobs Job[] 
+
+  @@map("TAG")
+}
+
+model RequirementSkill {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(100)
+  jobs Job[] 
+
+  @@map("Requirement_skill")
+}
+
+model Company {
+  id                   Int         @id @default(autoincrement())
+  recruiter_id         Int         @unique
+  recruiter            Recruiter   @relation(fields: [recruiter_id], references: [id])
+  salary_rangename     String?     @db.VarChar(100)
+  company_type         Int
+  type                 CompanyType @relation(fields: [company_type], references: [id])
+  company_size         String?     @db.VarChar(20)
+  nation               String?     @db.VarChar(100) 
+  description          String?     @db.Text
+  address              String?     @db.VarChar(200)
+  logo_url             String?     @db.VarChar(100)
+  official_website_url String?     @db.VarChar(100)
+  created_at           DateTime    @default(now())
+  update_at            DateTime    @updatedAt
+
+  jobs                 Job[]
+
+  @@map("Company")
+}
+
+model Job {
+  id                 Int                @id @default(autoincrement())
+  company_id         Int
+  company            Company            @relation(fields: [company_id], references: [id])
+  title              String             @db.VarChar(20)
+  status             Job_status         @default(DRAFT)
+  Location           Int
+  city               City               @relation(fields: [Location], references: [id])
+  salary_range       String?            @db.VarChar(20)
+  number             Int?               
+  requirement_skills RequirementSkill[] 
+  tags               TAG[]              
+  created_at         DateTime           @default(now())
+  update_at          DateTime           @updatedAt
+
+  applications       Application[]
+
+  @@map("Job")
+}
+
+model CV {
+  id           Int        @id @default(autoincrement())
+  cadidate_id  Int        
+  candidate    Candidate  @relation(fields: [cadidate_id], references: [id])
+  title        String     @db.VarChar(100)
+  CV_url       String     @db.VarChar(100)
+  status       CV_status  @default(DRAFT)
+  created_at   DateTime   @default(now())
+  update_at    DateTime   @updatedAt
+
+  applications Application[]
+
+  @@map("CV")
+}
+
+model Application {
+  id         Int                @id @default(autoincrement())
+  job_id     Int
+  job        Job                @relation(fields: [job_id], references: [id])
+  CV_id      Int
+  cv         CV                 @relation(fields: [CV_id], references: [id])
+  status     Application_status @default(APPLIED)
+  applied_at DateTime           @default(now())
+
+  @@map("APPLICATION")
 }
