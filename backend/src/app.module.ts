@@ -8,10 +8,15 @@ import { ConfigModule } from '@nestjs/config';
 
 @Module({
 <<<<<<< HEAD
-  imports: [AuthModule],
+  imports: [AuthModule, AiModule],
 =======
 import { UserModule } from './modules/user/user.module';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
+import { AiService } from './ai/ai.service';
+import { AiModule } from './ai/ai.module';
+import { AiController } from './ai/ai.controller';
+import { AiService } from './ai/ai.service';
+import { AiService } from './ai/ai.service';
 
 @Module({
   imports: [
@@ -25,7 +30,7 @@ import { ConfigModule } from '@nestjs/config/dist/config.module';
     AuthModule,
     UserModule],
 >>>>>>> trieu/jwt
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, AiController],
+  providers: [AppService, AiService],
 })
 export class AppModule {}
