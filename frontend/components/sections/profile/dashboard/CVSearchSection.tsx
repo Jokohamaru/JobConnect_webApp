@@ -5,7 +5,7 @@ import Link from 'next/link';
 export default function CVSearchSection() {
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-      <h3 className="text-2xl font-bold text-gray-800 mb-4">
+      <h3 className="text-xl font-bold text-gray-800 mb-4">
         Hồ sơ đính kèm của bạn
       </h3>
 

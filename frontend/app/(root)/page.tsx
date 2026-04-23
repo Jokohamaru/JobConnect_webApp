@@ -8,6 +8,8 @@ import JobSlider from "@/components/sections/jobs/JobSlider";
 
 export default function HomePage() {
   const jobs: JobCardProps[] = Array.from({ length: 27 }).map((_, i) => ({
+  slugJob: `senior-frontend-engineer`,
+  slugCompany: `techcorp-vietnam`,
   nameJob: `Công việc ${i + 1}`,
   nameCompany: "Công ty ABC",
   logoCompanyURL: "",

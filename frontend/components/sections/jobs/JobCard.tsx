@@ -1,18 +1,20 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { useRef, useState } from "react";
 import JobDetailHover from "./JobDetailHover";
-import { Heart } from 'lucide-react';
+import { Heart } from "lucide-react";
+import Link from "next/link";
 export interface JobCardProps {
+  slugJob: string;
+  slugCompany: string;
   nameJob: string;
   nameCompany: string;
   logoCompanyURL: string;
   salary: string;
   locate: string;
   deadline: string;
-  experience: string,
+  experience: string;
   descriptions: string[];
   requests: string[];
   benefits: string[];
@@ -20,6 +22,8 @@ export interface JobCardProps {
 }
 
 export default function JobCard({
+  slugJob,
+  slugCompany,
   nameJob,
   nameCompany,
   logoCompanyURL,
@@ -30,7 +34,7 @@ export default function JobCard({
   requests,
   benefits,
   address,
-  experience
+  experience,
 }: JobCardProps) {
   const [hover, setHover] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
@@ -41,7 +45,7 @@ export default function JobCard({
     if (cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect();
       const spaceRight = window.innerWidth - rect.right;
-  
+
       if (spaceRight < 520) {
         setPosition("left");
       } else {
@@ -50,9 +54,10 @@ export default function JobCard({
     }
   };
   return (
-    <div ref={cardRef} className="relative w-[440px] py-1 ">
-      {/* CARD */}
-      <div className="bg-white rounded-xl shadow px-1 py-4">
+    <div ref={cardRef} className="relative w-[440px] py-1">
+      {/* CARD – click anywhere to open job detail */}
+
+      <div className="bg-white rounded-xl shadow px-1 py-4 hover:shadow-md hover:border-blue-200 border border-transparent transition-all duration-200">
         <div className="flex gap-2 items-center justify-center">
           <div className="w-[60px] h-[60px]">
             <img
@@ -62,17 +67,18 @@ export default function JobCard({
             />
           </div>
           <div className="flex flex-col w-[70%]">
-            {/* Hover trigger */}
-            <p
-              className="font-bold text-center cursor-pointer hover:text-blue-600 transition-colors  line-clamp-2"
+            {/* Hover trigger + Link sang trang chi tiết */}
+            <Link
+              href={`/jobs/${slugJob}`}
+              className="font-bold text-center cursor-pointer hover:text-blue-600 transition-colors line-clamp-2"
               onMouseEnter={handleHover}
               onMouseLeave={() => setHover(false)}
             >
               {nameJob}
-            </p>
-            <p className="text-[12px] text-[#5E70AB] text-center">
+            </Link>
+            <Link href={`/company/${slugCompany}`} className="text-[12px] text-[#5E70AB] text-center">
               {nameCompany}
-            </p>
+            </Link>
           </div>
         </div>
         <div className="flex items-center px-5 pt-4 justify-between">
@@ -83,7 +89,6 @@ export default function JobCard({
             <Button className="px-3 py-3 bg-[#9BDBFB] rounded-2xl text-sm">
               {locate}
             </Button>
-
           </div>
           <div className="p-2 rounded-full border border-[#1B84B7]">
             <Heart className="text-[#1B84B7]" />
@@ -94,6 +99,8 @@ export default function JobCard({
       {/* HOVER PANEL - Component riêng */}
       {hover && (
         <JobDetailHover
+          slugJob={slugJob}
+          slugCompany={slugCompany}
           nameJob={nameJob}
           nameCompany={nameCompany}
           logoCompanyURL={logoCompanyURL}
@@ -105,7 +112,10 @@ export default function JobCard({
           benefits={benefits}
           address={address}
           onMouseEnter={handleHover}
-          onMouseLeave={() => setHover(false)} position={position} experience={experience}        />
+          onMouseLeave={() => setHover(false)}
+          position={position}
+          experience={experience}
+        />
       )}
     </div>
   );

@@ -16,7 +16,7 @@ export default function ProfileMenu() {
   ];
 
   return (
-    <div className=" bg-white rounded-2xl p-2 shadow-sm">
+    <div className=" bg-white rounded-2xl p-2 shadow-sm ">
       {menu.map((item) => {
         const isActive = pathname === item.href;
         const Icon = item.icon;

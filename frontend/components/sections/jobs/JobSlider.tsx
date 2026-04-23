@@ -2,25 +2,11 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import JobCard from "./JobCard";
+import JobCard, { JobCardProps } from "./JobCard";
 import { Button } from "@/components/ui/button";
 
-interface Job {
-  nameJob: string;
-  nameCompany: string;
-  logoCompanyURL: string;
-  salary: string;
-  locate: string;
-  deadline: string;
-  experience: string;
-  descriptions: string[];
-  requests: string[];
-  benefits: string[];
-  address: string[];
-}
-
 // 👉 chia page
-function chunkArray(arr: Job[], size: number) {
+function chunkArray(arr: JobCardProps[], size: number) {
   const result = [];
   for (let i = 0; i < arr.length; i += size) {
     result.push(arr.slice(i, i + size));
@@ -28,7 +14,7 @@ function chunkArray(arr: Job[], size: number) {
   return result;
 }
 
-export default function JobSlider({ jobs }: { jobs: Job[] }) {
+export default function JobSlider({ jobs }: { jobs: JobCardProps[] }) {
   const itemsPerPage = 9;
   const pages = chunkArray(jobs, itemsPerPage);
   const [currentPage, setCurrentPage] = useState(0);

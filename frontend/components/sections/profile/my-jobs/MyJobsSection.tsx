@@ -37,24 +37,23 @@ export default function MyJobsSection() {
       emptyText: "Bạn chưa xem công việc nào",
     },
   ];
-  const getCount = (key: TabKey) =>
-    JOBS.filter((i) => i.status === key).length;
+  const getCount = (key: TabKey) => JOBS.filter((i) => i.status === key).length;
 
   const filtered = JOBS.filter((i) => i.status === activeTab);
   const currentTab = tabs.find((t) => t.key === activeTab)!;
   return (
-    <div className="px-4 flex flex-col gap-3">
+    <div className="px-4 flex flex-col gap-3 ">
       {/* HEADER */}
       <div className="bg-white p-6 rounded-2xl shadow-sm">
         <div className="flex items-center justify-between mb-4 ">
-          <h2 className="text-2xl font-semibold">Việc làm của tôi</h2>
+          <h2 className="text-xl font-semibold">Việc làm của tôi</h2>
           <p className="text-sm text-gray-500">
             Bạn có thể lưu tối đa 20 công việc.
           </p>
         </div>
 
         {/* TABS */}
-        <div className="flex items-center gap-6 pb-2">
+        <div className="flex items-center gap-6 pb-2 border-b border-gray-200">
           {tabs.map((tab) => (
             <div
               key={tab.key}
@@ -62,8 +61,8 @@ export default function MyJobsSection() {
               className={`cursor-pointer flex items-center gap-2 pb-2 transition
               ${
                 activeTab === tab.key
-                  ? "text-blue-500 border-b-2 border-blue-500 font-medium"
-                  : "text-gray-500 hover:text-black"
+                  ? "border-blue-500 text-blue-500 font-medium"
+                  : "border-transparent text-gray-500 hover:text-gray-800"
               }`}
             >
               <span>{tab.label}</span>
@@ -71,7 +70,7 @@ export default function MyJobsSection() {
                 className={`text-xs px-2 py-0.5 rounded-full
                 ${
                   activeTab === tab.key
-                    ? "bg-blue-100 text-blue-500"
+                    ? "bg-blue-500 text-white"
                     : "bg-gray-200 text-gray-600"
                 }`}
               >
@@ -93,7 +92,7 @@ export default function MyJobsSection() {
       </div>
 
       {/* EMPTY STATE */}
-      <div className="bg-white rounded-2xl shadow-sm">
+      <div className="bg-white rounded-2xl shadow-sm py-20 ">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">

@@ -44,7 +44,7 @@ const stats: Stat[] = [
 export default function ActivityStats() {
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
-      <h3 className="text-2xl font-bold text-gray-800 mb-4">
+      <h3 className="text-xl font-bold text-gray-800 mb-4">
         Hoạt động của bạn
       </h3>
 

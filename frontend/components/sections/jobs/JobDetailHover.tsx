@@ -1,25 +1,29 @@
 import { Button } from "@/components/ui/button";
-import { MapPinned ,BriefcaseBusiness, Map } from 'lucide-react';
+import { MapPinned, BriefcaseBusiness } from 'lucide-react';
 import { Hourglass } from 'lucide-react';
-import { createPortal } from "react-dom";
+import Link from "next/link";
 interface JobDetailHoverProps {
+  slugJob: string;
+  slugCompany: string;
   nameJob: string;
   nameCompany: string;
   logoCompanyURL: string;
   salary: string;
   locate: string;
   deadline: string;
-  experience: string,
+  experience: string;
   descriptions: string[];
   requests: string[];
   benefits: string[];
   address: string[];
   onMouseEnter: () => void;
   onMouseLeave: () => void;
-  position: "left" | "right"; 
+  position: "left" | "right";
 }
 
 export default function JobDetailHover({
+  slugJob,
+  slugCompany,
   nameJob,
   nameCompany,
   logoCompanyURL,
@@ -33,7 +37,7 @@ export default function JobDetailHover({
   onMouseEnter,
   onMouseLeave,
   position,
-  experience
+  experience,
 }: JobDetailHoverProps) {
   return (
     <div
@@ -56,11 +60,19 @@ export default function JobDetailHover({
               />
             </div>
             <div className="flex flex-col  w-[70%]">
-              <p className="font-bold text-[20px]">{nameJob}</p>
-              <p className="text-[12px] text-[#5E70AB]">{nameCompany}</p>
-            <p className="text-[#32729A]  font-bold">
-              {salary}
-            </p>
+              <Link
+                href={`/jobs/${slugJob}`}
+                className="font-bold text-[20px] hover:text-blue-600 transition-colors"
+              >
+                {nameJob}
+              </Link>
+              <Link
+                href={`/company/${slugCompany}`}
+                className="text-[12px] text-[#5E70AB] hover:underline"
+              >
+                {nameCompany}
+              </Link>
+              <p className="text-[#32729A] font-bold">{salary}</p>
             </div>
           </div>
 

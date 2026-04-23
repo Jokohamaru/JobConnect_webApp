@@ -21,16 +21,16 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center gap-6 text-blue-800 font-medium">
-            <p className="font-semibold text-[18px] cursor-pointer hover:text-white">
+            <p className="font-semibold text-[16px] cursor-pointer hover:text-white">
               Việc làm ▾
             </p>
-            <p className="font-semibold text-[18px] cursor-pointer hover:text-white">
+            <p className="font-semibold text-[16px] cursor-pointer hover:text-white">
               Công cụ ▾
             </p>
-            <p className="font-semibold text-[18px] cursor-pointer hover:text-white">
+            <p className="font-semibold text-[16px] cursor-pointer hover:text-white">
               Cẩm nang nghề nghiệp ▾
             </p>
-            <p className="font-semibold text-[18px] cursor-pointer hover:text-white">
+            <p className="font-semibold text-[16px] cursor-pointer hover:text-white">
               Tạo CV bằng AI ▾
             </p>
           </div>
