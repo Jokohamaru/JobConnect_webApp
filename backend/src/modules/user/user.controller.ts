@@ -6,10 +6,13 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { User } from 'src/auth/decorators/user.decorator';
 
 @Controller('user')
 export class UserController {
@@ -47,4 +50,22 @@ export class UserController {
     // Gọi đúng hàm 'deleteUser' với object where
     return await this.userService.deleteUser({ id: +id });
   }
+
+
+  @Get('who-am-i')
+@UseGuards(JwtAuthGuard) 
+async whoAmI(@User() user: any) {
+  // Triệu không cần Frontend gửi ID, Triệu tự biết luôn!
+  console.log('Nhóm trưởng ơi, em biết đây là user ID:', user.userId);
+  
+  // Trả về thông tin chi tiết từ DB cho Frontend
+  return await this.userService.user({ id: user.userId });
+}
+
+@Get('profile/me') // Phải có đúng chữ này ở đây
+@UseGuards(JwtAuthGuard)
+async getMyProfile(@User() user: any) {
+  // Ở đây Triệu dùng user.userId hoặc user.sub tùy theo Strategy
+  return await this.userService.user({ id: user.userId });
+}
 }

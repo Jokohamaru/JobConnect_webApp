@@ -1,8 +1,10 @@
+// import { Prisma } from './../../../generated/prisma';
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../modules/prisma/prisma.service'; // Kiểm tra lại đường dẫn này
 import { JwtService } from '@nestjs/jwt';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+import { Prisma } from '@prisma/client'; 
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
