@@ -37,7 +37,7 @@ export default function UserInfo( {avatarUserUrl, nameUser, stateUser, idUser, e
 
 
       {open && (
-        <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-lg  z-50">
+        <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-lg z-100">
           {/* User Info */}
           <div className="flex items-center gap-3 p-4 pb-3">
             <img
@@ -53,7 +53,7 @@ export default function UserInfo( {avatarUserUrl, nameUser, stateUser, idUser, e
             </div>
           </div>
 
-          <MenuList />
+          <MenuList onClose={() => setOpen(false)}/>
         </div>
       )}
     </div>

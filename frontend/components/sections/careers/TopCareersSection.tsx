@@ -12,7 +12,7 @@ interface Career {
   jobCount: number;
 }
 
-// 👉 chia mảng thành page
+// 👉 chia mảng thành page:)))
 function chunkArray(arr: Career[], size: number) {
   const result = [];
   for (let i = 0; i < arr.length; i += size) {

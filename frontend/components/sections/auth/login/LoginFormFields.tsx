@@ -28,7 +28,7 @@ export default function LoginFormFields() {
           />
         </div>
         <Link
-          href="/forgot-password"
+          href="/auth/forgot-password"
           className="my-3 float-right text-[#E94133] hover:underline relative z-10"
         >
           Quên mật khẩu?
