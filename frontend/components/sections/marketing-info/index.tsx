@@ -4,7 +4,7 @@ import Link from "next/link";
 export function MarketingInfo() {
   return (
     <div>
-      <div className="flex items-center justify-center gap-10 p-2">
+      <div className="flex items-center justify-center  gap-10 p-2">
         <div className="flex items-center gap-3">
           <Image
             src="/images/logo-marketing1.png"
@@ -30,7 +30,7 @@ export function MarketingInfo() {
           />
         </div>
       </div>
-      <hr className="w-[90%] m-auto" />
+      <hr className=" m-auto" />
     </div>
   );
 }

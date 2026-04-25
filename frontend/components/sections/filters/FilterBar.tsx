@@ -12,7 +12,7 @@ export default function FilterBar() {
   return (
     <div >
       <SectionHeader />
-      <div className="flex items-center justify-center gap-4 px-20 py-2">
+      <div className="flex items-center justify-center gap-4  py-2">
         <div className="flex items-center  gap-3">
           <FilterDropdown
             label="Địa điểm"

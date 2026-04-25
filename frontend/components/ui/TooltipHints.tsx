@@ -8,7 +8,7 @@ export default function HintBar() {
   return (
     <div>
       {isClose && (
-        <div className="flex justify-between bg-[#EDFBFE] border border-blue-200 items-center w-[90%] m-auto py-3 px-2 mt-7">
+        <div className="flex justify-between bg-[#EDFBFE] border border-blue-200 items-center m-auto py-3 px-2 mt-7">
           <div className="flex ">
             <Lightbulb className="text-blue-500" />
             <p className="font-semibold pl-3">Gợi ý:</p>

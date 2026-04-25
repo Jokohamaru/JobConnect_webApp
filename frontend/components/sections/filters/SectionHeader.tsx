@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function SectionHeader() {
   return (
-    <div className="flex justify-between px-20 items-center">
+    <div className="flex justify-between items-center">
       <div className="relative flex items-center gap-5 py-5">
          <p className="text-3xl text-[#1F84C5] font-bold border-black border-r-2 pr-5 whitespace-nowrap">
           Việc làm trending
