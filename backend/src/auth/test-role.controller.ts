@@ -12,7 +12,7 @@ export class TestRoleController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   testEmployer() {
     return { 
-      message: 'Chúc mừng Triệu! Guard đã cho phép bạn vào vì bạn là Nhà tuyển dụng (Role 2).' 
+      message: 'Chúc mừng bạn! Guard đã cho phép bạn vào vì bạn là Nhà tuyển dụng (Role 2).' 
     };
   }
 
@@ -21,7 +21,7 @@ export class TestRoleController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   testCandidate() {
     return { 
-      message: 'Chào Triệu! Bạn đang ở khu vực dành cho Ứng viên (Role 1).' 
+      message: 'Chào bạn! Bạn đang ở khu vực dành cho Ứng viên (Role 1).' 
     };
   }
 }

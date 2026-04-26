@@ -55,17 +55,13 @@ export class UserController {
   @Get('who-am-i')
 @UseGuards(JwtAuthGuard) 
 async whoAmI(@User() user: any) {
-  // Triệu không cần Frontend gửi ID, Triệu tự biết luôn!
-  console.log('Nhóm trưởng ơi, em biết đây là user ID:', user.userId);
-  
-  // Trả về thông tin chi tiết từ DB cho Frontend
+  console.log('ek, biết đây là user ID:', user.userId);
   return await this.userService.user({ id: user.userId });
 }
 
-@Get('profile/me') // Phải có đúng chữ này ở đây
+@Get('profile/me') 
 @UseGuards(JwtAuthGuard)
 async getMyProfile(@User() user: any) {
-  // Ở đây Triệu dùng user.userId hoặc user.sub tùy theo Strategy
   return await this.userService.user({ id: user.userId });
 }
 }
