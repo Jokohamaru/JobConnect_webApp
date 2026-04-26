@@ -2,9 +2,10 @@ import LoginBenefits from "@/components/sections/auth/login/LoginBenefits";
 import LoginForm from "@/components/sections/auth/login/LoginForm";
 
 export default function LoginPage() {
+  
   return (
     <div className="relative">
-      <div className="container mx-10 px-10  relative z-10">
+      <div className="container mx-10 px-10 relative z-10">
         <div className="grid grid-cols-[minmax(50%,400px)_1fr] gap-10 mx-auto">
           <LoginForm />
           <LoginBenefits />

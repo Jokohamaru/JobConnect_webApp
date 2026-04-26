@@ -32,6 +32,7 @@ async function CompanyPageContent({ slug }: { slug: string }) {
       <div className="pb-6 rounded-none" >
         <CompanyBanner company={company} />
       </div>
+      
       <div className="mx-auto max-w-7xl  py-8 ">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
           {/* ── LEFT COLUMN (65%) ──────────────────────────────────────────────── */}

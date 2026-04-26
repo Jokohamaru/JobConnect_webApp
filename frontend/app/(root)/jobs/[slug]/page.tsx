@@ -27,19 +27,6 @@ export default async function JobDetailPage({ params }: PageProps) {
   return (
     <main className="min-h-screen bg-gray-50 pb-16">
       {/* ── Breadcrumb ─────────────────────────────────────────────────────────── */}
-      <div className="border-b border-gray-200 bg-white px-4 py-3 sm:px-6">
-        <div className="mx-auto max-w-7xl text-xs text-gray-400 flex items-center gap-2">
-          <a href="/" className="hover:text-blue-600 transition-colors">
-            Home
-          </a>
-          <span>/</span>
-          <a href="/jobs" className="hover:text-blue-600 transition-colors">
-            Jobs
-          </a>
-          <span>/</span>
-          <span className="text-gray-700 font-medium">{job.title}</span>
-        </div>
-      </div>
 
       {/* ── Main layout ────────────────────────────────────────────────────────── */}
       <div className="mx-auto max-w-7xl  py-8   ">

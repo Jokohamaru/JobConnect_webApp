@@ -5,13 +5,38 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export default function LoginFormFields() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const handleSubmit = () => {};
+    try {
+      const response = await fetch("http://localhost:8080/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Đăng nhập thành công:", data);
+        // TODO: Xử lý sau khi đăng nhập thành công (lưu token, chuyển hướng...)
+        router.push("/");
+      } else {
+        console.log("Đăng nhập thất bại");
+        // TODO: Hiển thị thông báo lỗi cho người dùng
+      }
+    } catch (error) {
+      console.error("Lỗi khi gửi request:", error);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit}>
@@ -57,10 +82,7 @@ export default function LoginFormFields() {
           )}
         </Button>
       </div>
-      <Button
-        type="submit"
-        className="w-full bg-[#0E7BC3] text-white px-6 py-5 rounded-lg font-medium hover:bg-blue-500 cursor-pointer  my-10"
-      >
+      <Button className="w-full bg-[#0E7BC3] text-white px-6 py-5 rounded-lg font-medium hover:bg-blue-500 cursor-pointer  my-10">
         Đăng nhập bằng Email
       </Button>
     </form>

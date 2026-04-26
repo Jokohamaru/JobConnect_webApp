@@ -14,13 +14,22 @@ export default function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      
+    } catch (error) {
+      
+    }
+    
+  }
   return (
     <div className="bg-white rounded-2xl  w-full flex">
       <div className=" px-20 py-30 w-[70%] max-h-screen ">
         <RegisterHeader />
 
-        <form>
+        <form onSubmit={handleRegister}>
           <RegisterFormFields
             fullName={fullName}
             setFullName={setFullName}
