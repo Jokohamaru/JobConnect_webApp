@@ -1,21 +1,21 @@
-import { IsEmail, IsNotEmpty, MinLength, IsOptional, IsString, IsBoolean } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, IsEnum, IsOptional, MinLength } from 'class-validator';
+
+export enum UserRole {
+  CANDIDATE = 'CANDIDATE',
+  RECRUITER = 'RECRUITER',
+  ADMIN = 'ADMIN',
+}
 
 export class CreateUserDto {
-  @IsEmail()
-  email: string;
-
+  @IsEmail({}, { message: 'Email không hợp lệ' })
   @IsNotEmpty()
-  full_name: string;
+  email!: string;
 
-  @IsNotEmpty()
-  @MinLength(6)
-  hash_password: string;
-
-  @IsOptional()
   @IsString()
-  ava_url?: string;
+  @MinLength(6, { message: 'Mật khẩu ít nhất 6 ký tự' })
+  hash_password!: string;
 
+  @IsEnum(UserRole)
   @IsOptional()
-  @IsBoolean()
-  is_active?: boolean;
+  role?: UserRole = UserRole.CANDIDATE;
 }

@@ -157,6 +157,7 @@ model Job {
   tags               TAG[]              
   created_at         DateTime           @default(now())
   update_at          DateTime           @updatedAt
+  
 
   applications       Application[]
 
@@ -165,14 +166,14 @@ model Job {
 
 model CV {
   id           Int        @id @default(autoincrement())
-  cadidate_id  Int        
-  candidate    Candidate  @relation(fields: [cadidate_id], references: [id])
+  candidate_id Int
+  candidate   Candidate @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
   title        String     @db.VarChar(100)
   CV_url       String     @db.VarChar(100)
   status       CV_status  @default(DRAFT)
   created_at   DateTime   @default(now())
   update_at    DateTime   @updatedAt
-
+  
   applications Application[]
 
   @@map("CV")
@@ -183,7 +184,7 @@ model Application {
   job_id     Int
   job        Job                @relation(fields: [job_id], references: [id])
   CV_id      Int
-  cv         CV                 @relation(fields: [CV_id], references: [id])
+  cv         CV                 @relation(fields: [CV_id], references: [id], onDelete: Cascade)
   status     Application_status @default(APPLIED)
   applied_at DateTime           @default(now())
 
