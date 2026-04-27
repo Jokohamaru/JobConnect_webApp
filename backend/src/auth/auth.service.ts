@@ -4,7 +4,6 @@ import { PrismaService } from '../modules/prisma/prisma.service'; // Kiểm tra 
 import { JwtService } from '@nestjs/jwt';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { Prisma } from '@prisma/client'; 
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -64,8 +63,8 @@ export class AuthService {
     const isMatch = await bcrypt.compare(dto.password, user.hash_password);
     if (!isMatch) throw new UnauthorizedException('Thông tin tài khoản không chính xác');
 
-    // Tạo JWT Payload (không có role theo ý bạn)
-    const payload = { sub: user.id, email: user.email,role: user.user_role };
+    // Tạo JWT Payload
+    const payload = { sub: user.id, email: user.email, role: user.user_role, name: user.full_name };
     
     return {
       access_token: await this.jwtService.signAsync(payload),

@@ -9,6 +9,8 @@ import {
   LogOut,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+
 interface MenuItemProps {
   icon: any;
   label: string;
@@ -33,6 +35,7 @@ function MenuItem({ icon, label, onClick }: MenuItemProps) {
 
 export default function MenuList({ onClose }: MenuListProps) {
   const router = useRouter();
+  const { logout } = useAuth();
 
   return (
     <div className="relative z-100">
@@ -99,8 +102,11 @@ export default function MenuList({ onClose }: MenuListProps) {
       <MenuItem
         icon={<LogOut size={18} />}
         label="Đăng xuất"
-        onClick={() => {}}
-
+        onClick={() => {
+          logout();
+          onClose();
+          router.push("/auth/login");
+        }}
       />
     </div>
   );

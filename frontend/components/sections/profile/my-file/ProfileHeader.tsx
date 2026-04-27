@@ -12,11 +12,19 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { ProfileEditDialog } from "./ProfileEditDialog";
-export default function ProfileHeader() {
+interface ProfileHeaderProps {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    avatarUrl?: string;
+  };
+}
+export default function ProfileHeader({ user }: ProfileHeaderProps) {
   const [profile, setProfile] = useState({
     avatar: "https://i.pravatar.cc/40",
-    id: "12345678",
-    name: "Trịnh Zuy",
+    id: "",
+    name: "",
     email: "",
     phone: "",
     dob: "",
@@ -38,8 +46,8 @@ export default function ProfileHeader() {
 
         {/* Info */}
         <div className="flex-1">
-          <div className="text-2xl font-bold text-gray-800">{profile.name}</div>
-          <p>ID: {profile.id}</p>
+          <div className="text-2xl font-bold text-gray-800">{user.name}</div>
+          <p>ID: {user.id}</p>
           <div className="grid grid-cols-2 gap-3 my-5 border-l border-r border-gray-300 px-1 w-[80%]  ">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Mail className="w-4 h-4" />

@@ -13,9 +13,9 @@ export default function LoginForm(){
 
             <LoginFormField />
 
-            <div className="text-center ">
+            <div className="text-center mt-3">
                 <p>Bạn chưa có tài khoản? <Link className="text-[#E94133] hover:underline" href="/auth/register">Đăng ký ngay!</Link></p>
             </div>
         </div>
     )
-}
+}   

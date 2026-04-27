@@ -19,6 +19,7 @@ interface RegisterFormFieldsProps {
   setConfirmPassword: (value: string) => void;
   agreedToTerms: boolean;
   setAgreedToTerms: (value: boolean) => void;
+  errors?: Record<string, string>;
 }
 
 export default function RegisterFormFields({
@@ -31,29 +32,31 @@ export default function RegisterFormFields({
   confirmPassword,
   setConfirmPassword,
   agreedToTerms,
-  setAgreedToTerms
+  setAgreedToTerms,
+  errors = {}
 }: RegisterFormFieldsProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
 
       <div>
         <Label className="block text-gray-700 text-sm font-medium mb-2">
           Họ và tên
         </Label>
         <div className="relative">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-500" />
+          <User className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${errors.fullName ? 'text-red-500' : 'text-blue-500'}`} />
           <Input
             type="text"
             placeholder="Nhập Họ và tên"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="w-full px-6 py-5 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-6 py-5 pl-12 border ${errors.fullName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'} rounded-lg focus:outline-none focus:ring-2 focus:border-transparent`}
             required
           />
         </div>
+        {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
       </div>
 
 
@@ -62,16 +65,17 @@ export default function RegisterFormFields({
           Email
         </Label>
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-500" />
+          <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${errors.email ? 'text-red-500' : 'text-blue-500'}`} />
           <Input
             type="email"
             placeholder="Nhập Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-6 py-5 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-6 py-5 pl-12 border ${errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'} rounded-lg focus:outline-none focus:ring-2 focus:border-transparent`}
             required
           />
         </div>
+        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>} 
       </div>
 
    
@@ -80,18 +84,19 @@ export default function RegisterFormFields({
           Mật khẩu
         </Label>
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-500" />
+          <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${errors.password ? 'text-red-500' : 'text-blue-500'}`} />
           <Input
             type={showPassword ? 'text' : 'password'}
             placeholder="Nhập mật khẩu"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-6 py-5 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-6 py-5 pl-12 border ${errors.password ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'} rounded-lg focus:outline-none focus:ring-2 focus:border-transparent`}
             required
           />
           <Button
+            type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-transparent hover:bg-transparent"
           >
             {showPassword ? (
               <EyeOff className="w-5 h-5" />
@@ -100,6 +105,7 @@ export default function RegisterFormFields({
             )}
           </Button>
         </div>
+        {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
       </div>
 
 
@@ -108,18 +114,19 @@ export default function RegisterFormFields({
           Xác nhận mật khẩu
         </Label>
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-500" />
+          <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${errors.confirmPassword ? 'text-red-500' : 'text-blue-500'}`} />
           <Input
             type={showConfirmPassword ? 'text' : 'password'}
             placeholder="Xác nhận lại mật khẩu"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full px-6 py-5 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-6 py-5 pl-12 border ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'} rounded-lg focus:outline-none focus:ring-2 focus:border-transparent`}
             required
           />
           <Button
+            type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-transparent hover:bg-transparent"
           >
             {showConfirmPassword ? (
               <EyeOff className="w-5 h-5" />
@@ -128,29 +135,33 @@ export default function RegisterFormFields({
             )}
           </Button>
         </div>
+        {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
       </div>
 
 
-      <div className="flex items-start gap-2">
-        <Input
-          type="checkbox"
-          id="terms"
-          checked={agreedToTerms}
-          onChange={(e) => setAgreedToTerms(e.target.checked)}
-          className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          required
-        />
-        <Label htmlFor="terms" className="text-sm text-gray-600">
-          Tôi đã đọc và đồng ý với{' '}
-          <Link href="/terms" className="text-blue-500 underline">
-            Điều khoản dịch vụ
-          </Link>{' '}
-          và{' '}
-          <Link href="/privacy" className="text-blue-500 underline">
-            Chính sách bảo mật
-          </Link>{' '}
-          của JobConnect
-        </Label>
+      <div>
+        <div className="flex items-start gap-2">
+          <Input
+            type="checkbox"
+            id="terms"
+            checked={agreedToTerms}
+            onChange={(e) => setAgreedToTerms(e.target.checked)}
+            className={`mt-1 w-4 h-4 text-blue-600 ${errors.agreedToTerms ? 'border-red-500' : 'border-gray-300'} rounded focus:ring-blue-500`}
+            required
+          />
+          <Label htmlFor="terms" className="text-sm text-gray-600">
+            Tôi đã đọc và đồng ý với{' '}
+            <Link href="/terms" className="text-blue-500 underline">
+              Điều khoản dịch vụ
+            </Link>{' '}
+            và{' '}
+            <Link href="/privacy" className="text-blue-500 underline">
+              Chính sách bảo mật
+            </Link>{' '}
+            của JobConnect
+          </Label>
+        </div>
+        {errors.agreedToTerms && <p className="text-red-500 text-sm mt-1">{errors.agreedToTerms}</p>}
       </div>
     </div>
   );

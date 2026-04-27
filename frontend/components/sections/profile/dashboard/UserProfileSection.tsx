@@ -9,6 +9,7 @@ interface UserProfileSectionProps {
     name: string;
     email: string;
     avatarUrl?: string;
+    id: string;
   };
 }
 
@@ -20,6 +21,7 @@ export default function UserProfileSection({ user }: UserProfileSectionProps) {
         name={user.name}
         email={user.email}
         avatarUrl={user.avatarUrl}
+        id={user.id}
       />
 
       {/* CV Search/Upload */}
