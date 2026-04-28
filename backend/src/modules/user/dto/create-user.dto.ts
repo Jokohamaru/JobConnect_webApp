@@ -1,21 +1,20 @@
-import { IsEmail, IsNotEmpty, MinLength, IsOptional, IsString, IsBoolean } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { UserRole } from '@prisma/client'; // Dùng chuẩn UserRole viết hoa
 
 export class CreateUserDto {
-  @IsEmail()
+  @IsEmail({}, { message: 'Email không đúng định dạng' })
+  @IsNotEmpty()
   email: string;
 
-  @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty({ message: 'Họ tên không được để trống' })
   full_name: string;
 
-  @IsNotEmpty()
-  @MinLength(6)
-  hash_password: string;
-
-  @IsOptional()
   @IsString()
-  ava_url?: string;
+  @MinLength(8, { message: 'Mật khẩu phải có ít nhất 8 ký tự' })
+  password: string;
 
-  @IsOptional()
-  @IsBoolean()
-  is_active?: boolean;
+  @IsEnum(UserRole)
+  @IsNotEmpty()
+  role: UserRole;
 }
