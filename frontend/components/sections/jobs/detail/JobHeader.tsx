@@ -75,7 +75,7 @@ export default function JobHeader({ job }: JobHeaderProps) {
         <Button
           variant="outline"
           size="lg"
-          className="border-blue-300 text-blue-600 hover:bg-blue-50 font-semibold"
+          className="border-blue-300 text-blue-600 bg-blue-50 hover:bg-blue-50 font-semibold"
         >
           Save Job
         </Button>

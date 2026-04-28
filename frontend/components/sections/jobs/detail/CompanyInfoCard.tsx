@@ -97,7 +97,7 @@ export default function CompanyInfoCard({ company }: CompanyInfoCardProps) {
         <Button
           variant="outline"
           size="lg"
-          className="w-full gap-2 border-blue-200 text-blue-600 hover:bg-blue-50 font-semibold"
+          className="w-full gap-2 border-blue-200 text-white bg-blue-500 hover:bg-[#0E7BC3] font-semibold"
         >
           View Company Profile
           <ArrowRight className="size-4" />

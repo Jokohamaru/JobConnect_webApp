@@ -10,7 +10,7 @@ export function TrendingTag() {
           <Link
             href=""
             key={item}
-            className="bg-white px-4 py-2 rounded-full text-gray-700 hover:bg-blue-400 hover:text-white font-semibold"
+            className="bg-white px-4 py-2 rounded-full text-gray-700 hover:bg-[#0E7BC3] hover:text-white font-semibold"
           >
             {item}
           </Link>

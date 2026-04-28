@@ -52,15 +52,17 @@ export default function RegisterForm() {
         // Thêm name (gửi lên từ fullName) và role mặc định là 1 (Ứng viên)
         body: JSON.stringify({ email, password, name: fullName, role: 1 }),
       });
+
       if (!response.ok) {
-        throw new Error("Đăng ký thất bại");
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || "Đăng ký thất bại");
       }
 
       startTransition(() => {
         router.push("/auth/login");
       });
-    } catch (error) {
-
+    } catch (error: any) {
+      setErrors({ email: error.message || "Có lỗi xảy ra khi đăng ký" });
     } finally {
       setLoading(false);
     }

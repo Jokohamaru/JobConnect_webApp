@@ -29,7 +29,7 @@ export default function ForgotFormField({email, setEmail, loading, setLoading}: 
           <Link className="text-blue-500 hover:underline" href="#">Chính sách bảo mật</Link> của chúng tôi
         </p>
         <div className="flex justify-center">
-          <Button disabled={loading} className="w-full bg-blue-500 text-white px-6 py-5 hover:bg-blue-600 cursor-pointer">{loading ? "Đang xử lý..." : "Tạo lại mật khẩu"}</Button>
+          <Button disabled={loading} className="w-full bg-[#0E7BC3] text-white px-6 py-5 hover:bg-blue-600 cursor-pointer">{loading ? "Đang xử lý..." : "Tạo lại mật khẩu"}</Button>
         </div>
         <div className="text-center flex justify-between">
           <Link href="/auth/login" className="text-blue-500 hover:underline">
