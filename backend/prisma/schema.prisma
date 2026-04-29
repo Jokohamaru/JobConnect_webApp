@@ -1,44 +1,207 @@
 generator client {
-  provider     = "prisma-client"
-  output       = "../generated/prisma"
-  moduleFormat = "cjs"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-model User {
-<<<<<<< HEAD
-<<<<<<< HEAD
-  id    Int     @default(autoincrement()) @id
-=======
-  id    Int     @id @default(autoincrement())
->>>>>>> trieu/jwt
-  email String  @unique
-  password  String
-  name  String?
-=======
-  id              Int       @id @default(autoincrement())
-  email           String    @unique @db.VarChar(30)
-  full_name       String    @db.VarChar(100)
-  hash_password   String    @db.VarChar(50)
-  ava_url         String?
-  is_active       Boolean   @default(true)
-  user_role       Int       @default(1)
-  created_time    DateTime  @default(now())
-  last_login_time DateTime?
-  posts           Post[]    @relation("UserPosts")
-  
-  @@map("User")
+model admins {
+  id         String   @id
+  user_id    String   @unique
+  created_at DateTime @default(now())
+  updated_at DateTime
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean? @default(false)
-  authorId  Int?
-  author    User?    @relation("UserPosts", fields: [authorId], references: [id])
->>>>>>> nam
+model applications {
+  id           String            @id
+  candidate_id String
+  job_id       String
+  cv_id        String
+  status       ApplicationStatus @default(APPLIED)
+  deleted_at   DateTime?
+  created_at   DateTime          @default(now())
+  updated_at   DateTime
+  candidates   candidates        @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+  cvs          cvs               @relation(fields: [cv_id], references: [id], onDelete: Cascade)
+  jobs         jobs              @relation(fields: [job_id], references: [id], onDelete: Cascade)
+
+  @@unique([candidate_id, job_id])
+  @@index([candidate_id])
+  @@index([job_id])
+  @@index([status])
+}
+
+model candidate_skills {
+  id           String     @id
+  candidate_id String
+  skill_id     String
+  candidates   candidates @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+  skills       skills     @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@unique([candidate_id, skill_id])
+}
+
+model candidates {
+  id               String             @id
+  user_id          String             @unique
+  phone_number     String?
+  bio              String?
+  location         String?
+  created_at       DateTime           @default(now())
+  updated_at       DateTime
+  applications     applications[]
+  candidate_skills candidate_skills[]
+  users            users              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  cvs              cvs[]
+}
+
+model cities {
+  id         String   @id
+  name       String   @unique
+  country    String
+  created_at DateTime @default(now())
+}
+
+model companies {
+  id           String      @id
+  name         String
+  description  String?
+  website      String?
+  industry     String
+  company_type CompanyType
+  location     String
+  recruiter_id String      @unique
+  created_at   DateTime    @default(now())
+  updated_at   DateTime
+  recruiters   recruiters  @relation(fields: [recruiter_id], references: [id], onDelete: Cascade)
+  jobs         jobs[]
+}
+
+model cvs {
+  id           String         @id
+  candidate_id String
+  file_name    String
+  file_path    String
+  is_default   Boolean        @default(false)
+  created_at   DateTime       @default(now())
+  updated_at   DateTime
+  applications applications[]
+  candidates   candidates     @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+
+  @@index([candidate_id])
+}
+
+model job_skills {
+  id       String @id
+  job_id   String
+  skill_id String
+  jobs     jobs   @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  skills   skills @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+
+  @@unique([job_id, skill_id])
+}
+
+model job_tags {
+  id     String @id
+  job_id String
+  tag_id String
+  jobs   jobs   @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  tags   tags   @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+
+  @@unique([job_id, tag_id])
+}
+
+model jobs {
+  id           String         @id
+  company_id   String
+  title        String
+  description  String
+  location     String
+  salary_min   Int?
+  salary_max   Int?
+  job_type     String
+  status       JobStatus      @default(ACTIVE)
+  created_at   DateTime       @default(now())
+  updated_at   DateTime
+  applications applications[]
+  job_skills   job_skills[]
+  job_tags     job_tags[]
+  companies    companies      @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@index([company_id])
+  @@index([status])
+}
+
+model recruiters {
+  id         String     @id
+  user_id    String     @unique
+  created_at DateTime   @default(now())
+  updated_at DateTime
+  companies  companies?
+  users      users      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model skills {
+  id               String             @id
+  name             String             @unique
+  created_at       DateTime           @default(now())
+  candidate_skills candidate_skills[]
+  job_skills       job_skills[]
+}
+
+model tags {
+  id         String     @id
+  name       String     @unique
+  created_at DateTime   @default(now())
+  job_tags   job_tags[]
+}
+
+model users {
+  id            String      @id
+  email         String      @unique
+  full_name     String
+  password_hash String
+  role          UserRole    @default(CANDIDATE)
+  is_active     Boolean     @default(true)
+  created_at    DateTime    @default(now())
+  updated_at    DateTime
+  last_login    DateTime?
+  admins        admins?
+  candidates    candidates?
+  recruiters    recruiters?
+
+  @@index([email])
+  @@index([role])
+}
+
+enum ApplicationStatus {
+  APPLIED
+  REVIEWING
+  ACCEPTED
+  REJECTED
+}
+
+enum CVStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum CompanyType {
+  STARTUP
+  SMALL_BUSINESS
+  MEDIUM_ENTERPRISE
+  LARGE_ENTERPRISE
+}
+
+enum JobStatus {
+  ACTIVE
+  CLOSED
+}
+
+enum UserRole {
+  CANDIDATE
+  RECRUITER
+  ADMIN
 }

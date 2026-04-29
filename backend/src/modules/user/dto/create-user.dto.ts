@@ -1,21 +1,18 @@
-import { IsEmail, IsNotEmpty, MinLength, IsOptional, IsString, IsBoolean } from 'class-validator';
+import { IsString, IsEnum } from 'class-validator';
+import { UserRole } from '@prisma/client';
+import { IsRFC5322Email, IsValidPassword } from '../../../common/validators';
 
 export class CreateUserDto {
-  @IsEmail()
+  @IsRFC5322Email({ message: 'Email must be a valid RFC 5322 email address' })
   email: string;
 
-  @IsNotEmpty()
+  @IsString({ message: 'Password must be a string' })
+  @IsValidPassword({ message: 'Password must be at least 8 characters long' })
+  password: string;
+
+  @IsString()
   full_name: string;
 
-  @IsNotEmpty()
-  @MinLength(6)
-  hash_password: string;
-
-  @IsOptional()
-  @IsString()
-  ava_url?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  is_active?: boolean;
+  @IsEnum(UserRole)
+  role: UserRole;
 }
