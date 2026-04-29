@@ -62,12 +62,15 @@ export default function ExpForm({ data, setData }: any) {
                   )}
                   {item.descrip && <p className="text-xs text-gray-600 mt-1 line-clamp-2">{item.descrip}</p>}
                 </div>
-                <button
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => handleRemove(index)}
-                  className="shrink-0 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                  className="shrink-0 w-6 h-6 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100"
                 >
                   <X className="w-3.5 h-3.5" />
-                </button>
+                </Button>
               </div>
             ))}
           </div>
@@ -107,10 +110,14 @@ export default function ExpForm({ data, setData }: any) {
               <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Từ tháng/năm</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className={cn("w-full flex items-center justify-between border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white hover:border-violet-300 transition-colors", !expItem.startYear && "text-gray-400")}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn("w-full flex items-center justify-between border-gray-200 rounded-xl px-3 py-2 text-sm bg-white hover:border-violet-300 h-auto font-normal", !expItem.startYear && "text-gray-400")}
+                  >
                     {expItem.startYear ? format(expItem.startYear, "MM/yyyy") : "Chọn thời gian"}
                     <CalendarIcon className="w-4 h-4 opacity-50" />
-                  </button>
+                  </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar mode="single" selected={expItem.startYear} onSelect={(d) => setExpItem({ ...expItem, startYear: d })} initialFocus />
@@ -121,17 +128,19 @@ export default function ExpForm({ data, setData }: any) {
               <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Đến tháng/năm</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <button
+                  <Button
+                    type="button"
+                    variant="outline"
                     disabled={isCurrent}
                     className={cn(
-                      "w-full flex items-center justify-between border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white hover:border-violet-300 transition-colors",
+                      "w-full flex items-center justify-between border-gray-200 rounded-xl px-3 py-2 text-sm bg-white hover:border-violet-300 h-auto font-normal",
                       !expItem.endYear && "text-gray-400",
                       isCurrent && "opacity-40 cursor-not-allowed"
                     )}
                   >
                     {isCurrent ? "Hiện tại" : expItem.endYear ? format(expItem.endYear, "MM/yyyy") : "Chọn thời gian"}
                     <CalendarIcon className="w-4 h-4 opacity-50" />
-                  </button>
+                  </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar mode="single" selected={expItem.endYear} onSelect={(d) => setExpItem({ ...expItem, endYear: d })} initialFocus />

@@ -105,7 +105,7 @@ export default function MenuList({ onClose }: MenuListProps) {
         onClick={() => {
           logout();
           onClose();
-          router.push("/auth/login");
+          router.push("/");
         }}
       />
     </div>

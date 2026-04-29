@@ -7,6 +7,7 @@ import RegisterFormFields from "./RegisterFormField";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -94,6 +95,9 @@ export default function RegisterForm() {
           >
             {loading || isPending ? "Đang xử lý..." : "Đăng Ký"}
           </Button>
+          <div className="text-center mt-3 text-sm">
+                <p>Bạn đã có tài khoản? <Link className="text-[#E94133] hover:underline" href="/auth/login">Đăng nhập ngay!</Link></p>
+            </div>
         </form>
       </div>
       <div className="w-1/2 relative max-h-screen">

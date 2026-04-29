@@ -69,16 +69,18 @@ export default function SkillForm({ data, setData }: FormProps) {
               >
                 <span>{s}</span>
                 {/* Button X riêng biệt với stopPropagation */}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={(e) => {
                     e.stopPropagation();
                     removeSkillCore(s);
                   }}
-                  className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-emerald-200 hover:text-red-500 transition-colors"
+                  className="w-4 h-4 rounded-full hover:bg-emerald-200 hover:text-red-500 p-0"
                 >
                   <X className="w-3 h-3" />
-                </button>
+                </Button>
               </div>
             ))}
           </div>
@@ -118,16 +120,18 @@ export default function SkillForm({ data, setData }: FormProps) {
               >
                 <span>{s}</span>
                 {/* Button X riêng biệt với stopPropagation */}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={(e) => {
                     e.stopPropagation();
                     removeSkillSoft(s);
                   }}
-                  className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-teal-200 hover:text-red-500 transition-colors"
+                  className="w-4 h-4 rounded-full hover:bg-teal-200 hover:text-red-500 p-0"
                 >
                   <X className="w-3 h-3" />
-                </button>
+                </Button>
               </div>
             ))}
           </div>

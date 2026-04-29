@@ -8,11 +8,11 @@ import {
   User,
   Globe,
   Camera,
-  Pencil,
   BadgeCheck,
 } from "lucide-react";
 import { useState } from "react";
 import { ProfileEditDialog } from "./ProfileEditDialog";
+import { Button } from "@/components/ui/button";
 
 interface ProfileHeaderProps {
   user: {
@@ -76,9 +76,14 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
                 <span className="text-white text-2xl font-bold">{initials}</span>
               )}
             </div>
-            <button className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center shadow-md transition-colors">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-md p-0"
+            >
               <Camera className="w-3 h-3" />
-            </button>
+            </Button>
           </div>
 
           {/* Name + badge */}

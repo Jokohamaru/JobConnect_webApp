@@ -13,11 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { FormProps } from "../sections/types";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import { CalendarIcon, X, Plus, GraduationCap } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+
 
 const emptyItem = {
   school: "",
@@ -71,12 +72,15 @@ export default function EduForm({ data, setData }: FormProps) {
                   )}
                   {item.descrip && <p className="text-xs text-gray-600 mt-1 line-clamp-2">{item.descrip}</p>}
                 </div>
-                <button
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => handleRemove(index)}
-                  className="shrink-0 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                  className="shrink-0 w-6 h-6 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100"
                 >
                   <X className="w-3.5 h-3.5" />
-                </button>
+                </Button>
               </div>
             ))}
           </div>
@@ -130,10 +134,14 @@ export default function EduForm({ data, setData }: FormProps) {
               <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Năm bắt đầu</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className={cn("w-full flex items-center justify-between border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white hover:border-indigo-300 transition-colors", !eduItem.startYear && "text-gray-400")}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn("w-full flex items-center justify-between border-gray-200 rounded-xl px-3 py-2 text-sm bg-white hover:border-indigo-300 h-auto font-normal", !eduItem.startYear && "text-gray-400")}
+                  >
                     {eduItem.startYear ? format(eduItem.startYear, "MM/yyyy") : "Chọn thời gian"}
                     <CalendarIcon className="w-4 h-4 opacity-50" />
-                  </button>
+                  </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar mode="single" selected={eduItem.startYear} onSelect={(d) => setEduItem({ ...eduItem, startYear: d })} initialFocus />
@@ -144,10 +152,14 @@ export default function EduForm({ data, setData }: FormProps) {
               <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Năm kết thúc</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className={cn("w-full flex items-center justify-between border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white hover:border-indigo-300 transition-colors", !eduItem.endYear && "text-gray-400")}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn("w-full flex items-center justify-between border-gray-200 rounded-xl px-3 py-2 text-sm bg-white hover:border-indigo-300 h-auto font-normal", !eduItem.endYear && "text-gray-400")}
+                  >
                     {eduItem.endYear ? format(eduItem.endYear, "MM/yyyy") : "Chọn thời gian"}
                     <CalendarIcon className="w-4 h-4 opacity-50" />
-                  </button>
+                  </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar mode="single" selected={eduItem.endYear} onSelect={(d) => setEduItem({ ...eduItem, endYear: d })} initialFocus />

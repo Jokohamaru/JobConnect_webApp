@@ -58,12 +58,15 @@ export default function AwardForm({ data, setData }: FormProps) {
                   )}
                   {item.descrip && <p className="text-xs text-gray-600 mt-1 line-clamp-2">{item.descrip}</p>}
                 </div>
-                <button
-                  onClick={() => handleRemove(index)}
-                  className="shrink-0 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => { e.stopPropagation(); handleRemove(index); }}
+                  className="shrink-0 w-6 h-6 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100"
                 >
                   <X className="w-3.5 h-3.5" />
-                </button>
+                </Button>
               </div>
             ))}
           </div>
@@ -102,10 +105,14 @@ export default function AwardForm({ data, setData }: FormProps) {
             <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Thời gian nhận giải</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <button className={cn("w-full flex items-center justify-between border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white hover:border-yellow-300 transition-colors", !awardItem.year && "text-gray-400")}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn("w-full flex items-center justify-between border-gray-200 rounded-xl px-3 py-2 text-sm bg-white hover:border-yellow-300 h-auto font-normal", !awardItem.year && "text-gray-400")}
+                >
                   {awardItem.year ? format(awardItem.year, "MM/yyyy") : "Chọn thời gian"}
                   <CalendarIcon className="w-4 h-4 opacity-50" />
-                </button>
+                </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <Calendar

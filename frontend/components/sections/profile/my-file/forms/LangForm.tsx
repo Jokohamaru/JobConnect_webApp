@@ -75,16 +75,18 @@ export default function LangForm({ data, setData }: FormProps) {
                   </>
                 )}
                 {/* Nút X - dùng button riêng, stopPropagation để tránh conflict */}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={(e) => {
                     e.stopPropagation();
                     removeLang(index);
                   }}
-                  className="ml-1 w-4 h-4 flex items-center justify-center rounded-full text-cyan-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                  className="ml-1 w-4 h-4 rounded-full hover:bg-red-50 hover:text-red-500 p-0"
                 >
                   <X className="w-3 h-3" />
-                </button>
+                </Button>
               </div>
             ))}
           </div>

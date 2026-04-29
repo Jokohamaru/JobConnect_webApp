@@ -37,12 +37,14 @@ export default function JobHeader({ job }: JobHeaderProps) {
         </div>
 
         {/* Heart icon */}
-        <button
+        <Button
+          variant="outline"
+          size="icon"
           aria-label="Save job"
-          className="shrink-0 rounded-full border border-blue-300 p-2.5 text-blue-500 transition-colors hover:bg-blue-50 hover:border-blue-500"
+          className="shrink-0 rounded-full border-blue-300 text-blue-500 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-600"
         >
           <Heart className="size-5" />
-        </button>
+        </Button>
       </div>
 
       <Separator className="my-4" />

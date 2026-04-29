@@ -132,14 +132,16 @@ export function CVSearchCard({
                   className="flex items-center gap-1.5 pr-1.5 text-sm"
                 >
                   {company}
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => removeCompany(company)}
-                    className="rounded-full hover:bg-muted-foreground/20 p-0.5 transition-colors"
+                    className="rounded-full h-5 w-5 hover:bg-muted-foreground/20 p-0.5"
                     aria-label={`Xoá ${company}`}
                   >
                     <X className="w-3 h-3" />
-                  </button>
+                  </Button>
                 </Badge>
               ))}
             </div>
