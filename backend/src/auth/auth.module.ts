@@ -6,7 +6,7 @@ import { PrismaModule } from '../modules/prisma/prisma.module';
 import { TestRoleController } from './test-role.controller';
 import { RolesGuard } from './guards/roles.guard';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { ConfigModule, ConfigService } from '@nestjs/config'; 
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [

@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -20,48 +11,39 @@ export class UserController {
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
-    // Gọi đúng tên hàm 'createUser' trong service của bạn
-    return await this.userService.createUser(createUserDto);
+    return await this.userService.create(createUserDto);
   }
 
   @Get()
   async findAll() {
-    // Gọi đúng tên hàm 'users' với object rỗng (theo params của service)
-    return await this.userService.users({});
+    return await this.userService.findAll();
+  }
+
+  // Dời các Route cố định (như who-am-i) lên trên các Route động (:id) để tránh bị bắt nhầm
+  @Get('who-am-i')
+  @UseGuards(JwtAuthGuard) 
+  async whoAmI(@User() user: any) {
+    return await this.userService.findOne(user.userId); // user.userId giờ là chuỗi (cuid)
+  }
+
+  @Get('profile/me') 
+  @UseGuards(JwtAuthGuard)
+  async getMyProfile(@User() user: any) {
+    return await this.userService.findOne(user.userId);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    // Gọi đúng tên hàm 'user' và truyền object where
-    return await this.userService.user({ id: +id });
+    return await this.userService.findOne(id); // Bỏ dấu +
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    // Gọi đúng hàm 'updateUser' với cấu trúc params { where, data }
-    return await this.userService.updateUser({
-      where: { id: +id },
-      data: updateUserDto,
-    });
+    return await this.userService.update(id, updateUserDto); // Bỏ dấu +
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    // Gọi đúng hàm 'deleteUser' với object where
-    return await this.userService.deleteUser({ id: +id });
+    return await this.userService.remove(id); // Bỏ dấu +
   }
-
-
-  @Get('who-am-i')
-@UseGuards(JwtAuthGuard) 
-async whoAmI(@User() user: any) {
-  console.log('ek, biết đây là user ID:', user.userId);
-  return await this.userService.user({ id: user.userId });
-}
-
-@Get('profile/me') 
-@UseGuards(JwtAuthGuard)
-async getMyProfile(@User() user: any) {
-  return await this.userService.user({ id: user.userId });
-}
 }

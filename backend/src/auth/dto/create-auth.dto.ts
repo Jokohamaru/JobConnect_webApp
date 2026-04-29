@@ -1,4 +1,6 @@
-import { IsEmail, IsInt, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
+// Sửa thành:
+import { UserRole } from '@prisma/client';
 
 export class CreateAuthDto {
   @IsEmail({}, { message: 'Email không đúng định dạng' })
@@ -10,15 +12,10 @@ export class CreateAuthDto {
   @MinLength(6, { message: 'Mật khẩu phải có ít nhất 6 ký tự' })
   password!: string;
 
-@IsString()
-@IsNotEmpty({ message: 'Tên không được để trống' })
-name!: string;
+  @IsString()
+  full_name: string; // Thêm dòng này để fix lỗi AuthService dòng 24
 
-  @IsInt()
-  @IsNotEmpty()
-  role!: number;
-
-  // @IsString()
-  // @IsOptional()
-  // role?: string; // Ví dụ: 'CANDIDATE' hoặc 'EMPLOYER'
+  @IsEnum(UserRole, { message: 'Role phải là CANDIDATE, RECRUITER hoặc ADMIN' })
+  @IsNotEmpty({ message: 'Role không được để trống' })
+  role!: UserRole;
 }

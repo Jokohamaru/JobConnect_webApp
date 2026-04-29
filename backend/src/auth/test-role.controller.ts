@@ -7,8 +7,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 @Controller('test-role')
 export class TestRoleController {
 
-  @Get('employer-only')
-  @Roles(Role.EMPLOYER) // Chỉ Role 2 (Nhà tuyển dụng) mới được vào
+  @Get('recruiter-only')
+  @Roles(Role.RECRUITER) // Thay EMPLOYER bằng RECRUITER
   @UseGuards(JwtAuthGuard, RolesGuard)
   testEmployer() {
     return { 

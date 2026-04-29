@@ -1,10 +1,9 @@
-// import { Prisma } from './../../../generated/prisma';
 import {
   Injectable,
   UnauthorizedException,
   ConflictException,
 } from '@nestjs/common';
-import { PrismaService } from '../modules/prisma/prisma.service'; // Kiểm tra lại đường dẫn này
+import { PrismaService } from '../modules/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
@@ -17,49 +16,24 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
-  }
-
-  findAll() {
-    return `This action returns all auth`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
-
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
-  }
-  // ---------------------------------------------------------------------------------------------
-
-  // 1. Đăng ký tài khoản mới
   async register(dto: CreateAuthDto) {
-    // Kiểm tra email đã tồn tại chưa
     const userExist = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
     if (userExist) throw new ConflictException('Email này đã được sử dụng!');
 
-    // Mã hóa mật khẩu trước khi lưu
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
     return this.prisma.user.create({
       data: {
         email: dto.email,
-        hash_password: hashedPassword,
-        full_name: dto.name,
-        user_role: dto.role,
+        full_name: dto.full_name || '',
+        password_hash: hashedPassword, // Đã sửa tên cột
+        role: dto.role,
       },
     });
   }
 
-  // 2. Đăng nhập và trả về Token
   async login(dto: UpdateAuthDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
@@ -67,20 +41,20 @@ export class AuthService {
     if (!user)
       throw new UnauthorizedException('Thông tin tài khoản không chính xác');
 
-    const isMatch = await bcrypt.compare(dto.password, user.hash_password);
+    const isMatch = await bcrypt.compare(dto.password, user.password_hash); // Đã sửa tên cột
     if (!isMatch)
       throw new UnauthorizedException('Thông tin tài khoản không chính xác');
 
-    // Tạo JWT Payload
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      role: user.user_role,
-      name: user.full_name,
-    };
+    const payload = { sub: user.id, email: user.email, role: user.role };
 
     return {
       access_token: await this.jwtService.signAsync(payload),
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        role: user.role,
+      },
     };
   }
 }
