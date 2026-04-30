@@ -1,5 +1,7 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
-import { UserRole } from '@prisma/client'; // Dùng chuẩn UserRole viết hoa
+import { $Enums } from '@prisma/client';
+
+const { UserRole } = $Enums;
 
 export class CreateUserDto {
   @IsEmail({}, { message: 'Email không đúng định dạng' })

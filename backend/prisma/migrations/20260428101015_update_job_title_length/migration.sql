@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Job" ALTER COLUMN "title" SET DATA TYPE VARCHAR(100);
