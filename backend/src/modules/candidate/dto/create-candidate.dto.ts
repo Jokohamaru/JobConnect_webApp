@@ -1,23 +1,27 @@
-import { IsArray, IsOptional, IsPhoneNumber, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateCandidateDto {
   @IsString()
-  user_id: string; // Bắt buộc phải có để link với bảng User
+  @IsNotEmpty({ message: 'Họ tên không được để trống' })
+  firstName: string;
 
-  @IsOptional()
-  @IsString() // Dùng tạm IsString thay cho IsPhoneNumber để tránh lỗi validate định dạng quốc tế lúc dev
-  phone_number?: string;
-
-  @IsOptional()
   @IsString()
-  bio?: string;
+  @IsNotEmpty({ message: 'Họ tên không được để trống' })
+  lastName: string;
 
-  @IsOptional()
+  @IsEmail({}, { message: 'Email không đúng định dạng' })
+  @IsNotEmpty()
+  email: string;
+
   @IsString()
-  location?: string;
+  @MinLength(8, { message: 'Mật khẩu phải có ít nhất 8 ký tự' })
+  password: string;
 
+  @IsString()
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  skill_ids?: string[];
+  phoneNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  careerRole?: string;
 }

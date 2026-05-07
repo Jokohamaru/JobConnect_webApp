@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -6,39 +6,42 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+
+  constructor(private prisma: PrismaService) { }
 
   async create(createUserDto: CreateUserDto) {
-    try {
-      const { password, ...userData } = createUserDto;
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
 
-      return await this.prisma.user.create({
-        data: {
-          ...userData,
-          password_hash: hashedPassword, // Sửa tên cột cho chuẩn Database
-        },
-      });
-    } catch (error: any) {
-      if (error.code === 'P2002') {
-        throw new BadRequestException('Email này đã được đăng ký!');
-      }
-      throw new BadRequestException('Lỗi khi tạo người dùng: ' + error.message);
+    // Kiểm tra Tài khoản available
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: createUserDto.email }
+    })
+
+    if (existingUser) {
+      throw new ConflictException('Tài khoản đã tồn tại');
     }
+
+    // Thêm User - Candidate
+    const unhashPassword = createUserDto.password;
+    const hashedPassword = await bcrypt.hash(unhashPassword, 10);
+
+    return await this.prisma.user.create({
+      data: {
+        email: createUserDto.email,
+        password: hashedPassword,
+        role: createUserDto.role
+      }
+    })
   }
 
   async findAll() {
     return await this.prisma.user.findMany({
-      orderBy: { created_at: 'desc' },
-      select: { // Ẩn password_hash khi trả về danh sách cho an toàn
+      orderBy: { createdAt: 'desc' },
+      select: {
         id: true,
         email: true,
-        full_name: true,
         role: true,
-        is_active: true,
-        created_at: true,
-        last_login: true
+        status: true,
+        createdAt: true,
       }
     });
   }
@@ -46,15 +49,15 @@ export class UserService {
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException(`Không tìm thấy người dùng!`);
-    
+
     // Xóa password_hash trước khi ném dữ liệu ra ngoài
-    const { password_hash, ...safeUser } = user;
+    const { password, ...safeUser } = user;
     return safeUser;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     try {
-      const { password, ...updateData } = updateUserDto;
+      const { password, ...updateData } = updateUserDto as CreateUserDto;
       const dataToUpdate: any = { ...updateData };
 
       if (password) {

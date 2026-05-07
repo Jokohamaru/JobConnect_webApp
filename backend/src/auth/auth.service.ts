@@ -27,8 +27,7 @@ export class AuthService {
     return this.prisma.user.create({
       data: {
         email: dto.email,
-        full_name: dto.full_name || '',
-        password_hash: hashedPassword, // Đã sửa tên cột
+        password: hashedPassword, // Đã sửa tên cột
         role: dto.role,
       },
     });
@@ -41,9 +40,13 @@ export class AuthService {
     if (!user)
       throw new UnauthorizedException('Thông tin tài khoản không chính xác');
 
-    const isMatch = await bcrypt.compare(dto.password, user.password_hash); // Đã sửa tên cột
-    if (!isMatch)
-      throw new UnauthorizedException('Thông tin tài khoản không chính xác');
+    // Nếu đăng ký bằng tk có password
+    if (user.password) {
+
+      const isMatch = await bcrypt.compare(dto.password, user.password);
+      if (!isMatch)
+      throw new UnauthorizedException('Thông tin tài khoản không chính xác'); // Đã sửa tên cột
+    }
 
     const payload = { sub: user.id, email: user.email, role: user.role };
 
@@ -52,7 +55,6 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        full_name: user.full_name,
         role: user.role,
       },
     };

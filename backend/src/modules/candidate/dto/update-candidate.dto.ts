@@ -1,7 +1,20 @@
-import { PartialType, OmitType } from '@nestjs/mapped-types';
-import { CreateCandidateDto } from './create-candidate.dto';
+import { PartialType } from '@nestjs/mapped-types';
+import { IsOptional, IsString } from 'class-validator';
 
-// Khi update sẽ kế thừa CreateCandidateDto nhưng KHÔNG lấy trường user_id
-export class UpdateCandidateDto extends PartialType(
-  OmitType(CreateCandidateDto, ['user_id'] as const)
-) {}
+export class UpdateCandidateDto {
+  @IsString()
+  @IsOptional()
+  firstName?: string;
+
+  @IsString()
+  @IsOptional()
+  lastName?: string;
+
+  @IsString()
+  @IsOptional()
+  phoneNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  careerRole?: string;
+}

@@ -12,6 +12,20 @@ enum UserRole {
   ADMIN
 }
 
+enum UserStatus {
+  ACTIVE
+  PENDING
+  BANNED
+  DELETED
+}
+
+enum JobStatus {
+  DRAFT
+  PENDING_APPROVAL
+  PUBLISHED
+  CLOSED
+}
+
 enum ApplicationStatus {
   APPLIED
   REVIEWING
@@ -19,224 +33,223 @@ enum ApplicationStatus {
   REJECTED
 }
 
-enum JobStatus {
-  ACTIVE
-  CLOSED
-}
-
 enum CVStatus {
-  ACTIVE
-  ARCHIVED
+  DONE
+  DRAFT
+  DELETED
 }
 
-enum CompanyType {
-  STARTUP
-  SMALL_BUSINESS
-  MEDIUM_ENTERPRISE
-  LARGE_ENTERPRISE
+enum Currency {
+  VND
+  USD
 }
+
+// --- MODELS ---
 
 model User {
-  id              String    @id @default(cuid()) // Chuyển sang CUID thay vì Int theo design.md
-  email           String    @unique
-  full_name       String
-  password_hash   String
-  role            UserRole  @default(CANDIDATE)
-  is_active       Boolean   @default(true)
-  created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
-  last_login      DateTime?
+  id            String     @id @default(uuid())
+  email         String     @unique
+  password      String?    // Nullable cho Social Login
+  role          UserRole   @default(CANDIDATE)
+  status        UserStatus @default(ACTIVE)
+  
+  // Quan hệ 1:1 với các Profile chuyên biệt
+  candidate     Candidate?
+  recruiter     Recruiter?
+  adminProfile  Admin?
 
-  candidate       Candidate?
-  recruiter       Recruiter?
-  admin           Admin?
+  // Hỗ trợ Social Login
+  accounts      Account[]
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deletedAt     DateTime?  // Hỗ trợ Soft Delete
 
-  @@index([email])
-  @@index([role])
   @@map("users")
 }
 
-model Candidate {
-  id              String    @id @default(cuid())
-  user_id         String    @unique
-  phone_number    String?
-  bio             String?
-  location        String?
-  created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  provider          String  // "google", "linkedin"
+  providerAccountId String
+  user              User    @relation(fields: [userId], references: [id])
 
-  user            User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  skills          CandidateSkill[]
-  cvs             CV[]
-  applications    Application[]
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Candidate {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  firstName   String
+  lastName    String
+  phoneNumber String?  // Cần mã hóa PII ở tầng Service
+  careerRole  String?
+  
+  cvs         CV[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
 
   @@map("candidates")
 }
 
 model Recruiter {
-  id              String    @id @default(cuid())
-  user_id         String    @unique
-  // XÓA DÒNG NÀY: company_id      String?
-  created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
-
-  user            User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  company         Company?  // CHỈ GIỮ LẠI TÊN BẢNG, XÓA @relation(...) Ở ĐÂY
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  firstName   String
+  lastName    String
+  phoneNumber String?
+  
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id])
+  
+  jobs        Job[]    // Recruiter đăng bài
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
 
   @@map("recruiters")
 }
-model Admin {
-  id              String    @id @default(cuid())
-  user_id         String    @unique
-  created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
 
-  user            User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+model Admin {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  
+  // Phê duyệt Job
+  approvedJobs Job[]   @relation("AdminApprover")
 
   @@map("admins")
 }
 
 model Company {
-  id              String    @id @default(cuid())
-  name            String
-  description     String?
-  website         String?
-  industry        String
-  company_type    CompanyType
-  location        String
-  recruiter_id    String    @unique
-  created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
-
-  recruiter       Recruiter @relation(fields: [recruiter_id], references: [id], onDelete: Cascade)
-  jobs            Job[]
+  id            String      @id @default(uuid())
+  name          String
+  size          String?
+  nation        String?
+  description   String?     @db.Text
+  address       String?
+  logoUrl       String?     // Sẽ lưu link AWS S3
+  websiteUrl    String?
+  
+  typeId        String?
+  type          CompanyType? @relation(fields: [typeId], references: [id])
+  
+  recruiters    Recruiter[]
+  jobs          Job[]
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  deletedAt     DateTime?
 
   @@map("companies")
 }
 
+model CompanyType {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  companies Company[]
+
+  @@map("company_types")
+}
+
 model Job {
-  id              String    @id @default(cuid())
-  company_id      String
-  title           String
-  description     String
-  location        String
-  salary_min      Int?
-  salary_max      Int?
-  job_type        String
-  status          JobStatus @default(ACTIVE)
-  created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
+  id                String       @id @default(uuid())
+  title             String
+  description       String       @db.Text
+  headcount         Int          @default(1)
+  
+  // Tách biệt lương để lọc dữ liệu
+  minSalary         Int?
+  maxSalary         Int?
+  currency          Currency     @default(VND)
+  
+  status            JobStatus    @default(DRAFT)
+  
+  // Phân quyền & Kiểm duyệt
+  companyId         String
+  company           Company      @relation(fields: [companyId], references: [id])
+  recruiterId       String
+  recruiter         Recruiter    @relation(fields: [recruiterId], references: [id])
+  
+  approvedById      String?
+  approvedBy        Admin?       @relation("AdminApprover", fields: [approvedById], references: [id])
+  approvedAt        DateTime?
 
-  company         Company   @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  skills          JobSkill[]
-  tags            JobTag[]
-  applications    Application[]
+  cityId            String
+  city              City         @relation(fields: [cityId], references: [id])
+  
+  tags              Tag[]        @relation("JobTags")
+  skills            RequirementSkill[] @relation("JobSkills")
+  applications      Application[]
+  
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  deletedAt         DateTime?
 
-  @@index([company_id])
-  @@index([status])
   @@map("jobs")
 }
 
 model CV {
-  id              String    @id @default(cuid())
-  candidate_id    String
-  file_name       String
-  file_path       String
-  is_default      Boolean   @default(false)
-  created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
+  id          String      @id @default(uuid())
+  title       String
+  cvUrl       String      // Sẽ lưu link AWS S3
+  status      CVStatus    @default(DONE)
+  
+  candidateId String
+  candidate   Candidate   @relation(fields: [candidateId], references: [id])
+  
+  applications Application[]
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
 
-  candidate       Candidate @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
-  applications    Application[]
-
-  @@index([candidate_id])
   @@map("cvs")
 }
 
 model Application {
-  id              String    @id @default(cuid())
-  candidate_id    String
-  job_id          String
-  cv_id           String
-  status          ApplicationStatus @default(APPLIED)
-  deleted_at      DateTime?
-  created_at      DateTime  @default(now())
-  updated_at      DateTime  @updatedAt
+  id          String            @id @default(uuid())
+  status      ApplicationStatus @default(APPLIED)
+  
+  jobId       String
+  job         Job               @relation(fields: [jobId], references: [id])
+  
+  cvId        String
+  cv          CV                @relation(fields: [cvId], references: [id])
+  
+  appliedAt   DateTime          @default(now())
+  deletedAt   DateTime?
 
-  candidate       Candidate @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
-  job             Job       @relation(fields: [job_id], references: [id], onDelete: Cascade)
-  cv              CV        @relation(fields: [cv_id], references: [id], onDelete: Cascade)
-
-  @@unique([candidate_id, job_id])
-  @@index([candidate_id])
-  @@index([job_id])
-  @@index([status])
   @@map("applications")
 }
 
-model Skill {
-  id              String    @id @default(cuid())
-  name            String    @unique
-  created_at      DateTime  @default(now())
+// --- MASTER DATA TABLES ---
 
-  candidates      CandidateSkill[]
-  jobs            JobSkill[]
+model City {
+  id    String @id @default(uuid())
+  name  String @unique
+  jobs  Job[]
 
-  @@map("skills")
-}
-
-model CandidateSkill {
-  id              String    @id @default(cuid())
-  candidate_id    String
-  skill_id        String
-
-  candidate       Candidate @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
-  skill           Skill     @relation(fields: [skill_id], references: [id], onDelete: Cascade)
-
-  @@unique([candidate_id, skill_id])
-  @@map("candidate_skills")
-}
-
-model JobSkill {
-  id              String    @id @default(cuid())
-  job_id          String
-  skill_id        String
-
-  job             Job       @relation(fields: [job_id], references: [id], onDelete: Cascade)
-  skill           Skill     @relation(fields: [skill_id], references: [id], onDelete: Cascade)
-
-  @@unique([job_id, skill_id])
-  @@map("job_skills")
+  @@map("cities")
 }
 
 model Tag {
-  id              String    @id @default(cuid())
-  name            String    @unique
-  created_at      DateTime  @default(now())
-
-  jobs            JobTag[]
+  id    String @id @default(uuid())
+  name  String @unique
+  jobs  Job[]  @relation("JobTags")
 
   @@map("tags")
 }
 
-model JobTag {
-  id              String    @id @default(cuid())
-  job_id          String
-  tag_id          String
+model RequirementSkill {
+  id    String @id @default(uuid())
+  name  String @unique
+  jobs  Job[]  @relation("JobSkills")
 
-  job             Job       @relation(fields: [job_id], references: [id], onDelete: Cascade)
-  tag             Tag       @relation(fields: [tag_id], references: [id], onDelete: Cascade)
-
-  @@unique([job_id, tag_id])
-  @@map("job_tags")
-}
-
-// Bảng City giữ lại theo nhu cầu riêng của Nam (Không có trong design.md nhưng cần thiết)
-model City {
-  id              String    @id @default(cuid())
-  name            String    @unique
-  country         String
-  created_at      DateTime  @default(now())
-
-  @@map("cities")
+  @@map("requirement_skills")
 }
