@@ -19,10 +19,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en"  >
-      <body className={lexend.className}>
-        <NextTopLoader color="#0E7BC3" showSpinner={true} />
+    <html lang="en" suppressHydrationWarning>
+      <body className={lexend.className} suppressHydrationWarning>
         <AuthProvider>
+          <NextTopLoader color="#0E7BC3" showSpinner={true} />
+
           {children}
         </AuthProvider>
       </body>

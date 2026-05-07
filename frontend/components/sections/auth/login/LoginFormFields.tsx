@@ -13,8 +13,15 @@ export default function LoginFormFields() {
   const router = useRouter();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("remembered_email") ?? "";
+    return "";
+  });
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(() => {
+    if (typeof window !== "undefined") return !!localStorage.getItem("remembered_email");
+    return false;
+  });
   const [isPending, startTransition] = useTransition();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -32,9 +39,11 @@ export default function LoginFormFields() {
       setErrors(newErrors);
       return;
     }
+    
+    setErrors({}); // Clear previous errors
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3001/auth/login", {
+      const response = await fetch("http://localhost:8080/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -45,14 +54,47 @@ export default function LoginFormFields() {
       if (response.ok) {
         const data = await response.json();
         login(data.access_token);
+
+        // Lưu hoặc xoá email theo tuỳ chọn nhớ mật khẩu
+        if (rememberMe) {
+          localStorage.setItem("remembered_email", email);
+        } else {
+          localStorage.removeItem("remembered_email");
+        }
+
+        // Giải mã token để lấy role và redirect đúng trang
+        let role = "CANDIDATE";
+        try {
+          const base64Url = data.access_token.split(".")[1];
+          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+          const payload = JSON.parse(
+            decodeURIComponent(
+              window
+                .atob(base64)
+                .split("")
+                .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+                .join("")
+            )
+          );
+          role = payload.role ?? "CANDIDATE";
+        } catch (_) {
+          // fallback
+        }
+
         startTransition(() => {
-          router.push("/");
+          if (role === "ADMIN") {
+            router.push("/admin/dashboard");
+          } else {
+            router.push("/");
+          }
         });
       } else {
-        throw new Error("Đăng nhập thất bại");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Đăng nhập thất bại");
       }
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      console.error(error);
+      setErrors({ root: error.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại." });
     } finally {
       setLoading(false);
     }
@@ -75,14 +117,6 @@ export default function LoginFormFields() {
         {errors.email && <p className="text-red-500 text-sm absolute bottom-0 left-1">{errors.email}</p>}
       </div>
 
-      <div className="flex justify-end -mt-5">
-          <Link
-            href="/auth/forgot-password"
-            className="text-[#E94133] text-sm hover:underline font-medium"
-          >
-            Quên mật khẩu?
-          </Link>
-        </div>
       {/* Password Field */}
       <div className="w-full relative pb-6">
         <div className="relative">
@@ -110,6 +144,31 @@ export default function LoginFormFields() {
         </div>
         {errors.password && <p className="text-red-500 text-sm absolute bottom-0 left-1">{errors.password}</p>}
       </div>
+
+      <div className="flex items-center justify-between -mt-2">
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            id="rememberMe"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            className="w-4 h-4 accent-[#0E7BC3] cursor-pointer"
+          />
+          <span className="text-sm text-gray-600">Nhớ mật khẩu</span>
+        </label>
+        <Link
+          href="/auth/forgot-password"
+          className="text-[#E94133] text-sm hover:underline font-medium"
+        >
+          Quên mật khẩu?
+        </Link>
+      </div>
+      {/* Error Message */}
+      {errors.root && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm text-center">
+          {errors.root}
+        </div>
+      )}
 
       {/* Submit Button */}
       <Button

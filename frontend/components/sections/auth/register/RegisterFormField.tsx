@@ -9,8 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 interface RegisterFormFieldsProps {
-  fullName: string;
-  setFullName: (value: string) => void;
+  firstName: string;
+  setFirstName: (value: string) => void;
+  lastName: string;
+  setLastName: (value: string) => void;
   email: string;
   setEmail: (value: string) => void;
   password: string;
@@ -23,8 +25,10 @@ interface RegisterFormFieldsProps {
 }
 
 export default function RegisterFormFields({
-  fullName,
-  setFullName,
+  firstName,
+  setFirstName,
+  lastName,
+  setLastName,
   email,
   setEmail,
   password,
@@ -41,22 +45,41 @@ export default function RegisterFormFields({
   return (
     <div className="space-y-3">
 
-      <div>
-        <Label className="block text-gray-700 text-sm font-medium mb-2">
-          Họ và tên
-        </Label>
-        <div className="relative">
-          <User className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${errors.fullName ? 'text-red-500' : 'text-blue-500'}`} />
-          <Input
-            type="text"
-            placeholder="Nhập Họ và tên"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className={`w-full px-6 py-5 pl-12 border ${errors.fullName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'} rounded-lg focus:outline-none focus:ring-2 focus:border-transparent`}
-            required
-          />
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label className="block text-gray-700 text-sm font-medium mb-2">
+            Họ
+          </Label>
+          <div className="relative">
+            <User className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${errors.firstName ? 'text-red-500' : 'text-blue-500'}`} />
+            <Input
+              type="text"
+              placeholder="Nhập Họ"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className={`w-full px-6 py-5 pl-12 border ${errors.firstName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'} rounded-lg focus:outline-none focus:ring-2 focus:border-transparent`}
+              required
+            />
+          </div>
+          {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
         </div>
-        {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
+        <div>
+          <Label className="block text-gray-700 text-sm font-medium mb-2">
+            Tên
+          </Label>
+          <div className="relative">
+            <User className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${errors.lastName ? 'text-red-500' : 'text-blue-500'}`} />
+            <Input
+              type="text"
+              placeholder="Nhập Tên"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              className={`w-full px-6 py-5 pl-12 border ${errors.lastName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'} rounded-lg focus:outline-none focus:ring-2 focus:border-transparent`}
+              required
+            />
+          </div>
+          {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
+        </div>
       </div>
 
 
