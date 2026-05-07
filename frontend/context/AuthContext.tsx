@@ -10,9 +10,9 @@ import React, {
 
 // Cấu trúc dữ liệu User giải mã từ Token
 export interface User {
-  id: number;
+  id: string;
   email: string;
-  role: number;
+  role: string; // "ADMIN" | "CANDIDATE" | "RECRUITER"
   fullName: string;
   // Bạn có thể thêm các field khác nếu backend trả về trong token payload
 }

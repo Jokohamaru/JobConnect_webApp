@@ -16,12 +16,4 @@ export class CreateCandidateDto {
   @IsString()
   @MinLength(8, { message: 'Mật khẩu phải có ít nhất 8 ký tự' })
   password: string;
-
-  @IsString()
-  @IsOptional()
-  phoneNumber?: string;
-
-  @IsString()
-  @IsOptional()
-  careerRole?: string;
 }

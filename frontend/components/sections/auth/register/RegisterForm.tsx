@@ -11,7 +11,8 @@ import Link from "next/link";
 
 export default function RegisterForm() {
   const router = useRouter();
-  const [fullName, setFullName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,7 +25,8 @@ export default function RegisterForm() {
     e.preventDefault();
 
     const newErrors: Record<string, string> = {};
-    if (!fullName) newErrors.fullName = "Vui lòng nhập họ và tên";
+    if (!firstName) newErrors.firstName = "Vui lòng nhập họ";
+    if (!lastName) newErrors.lastName = "Vui lòng nhập tên";
     if (!email) {
       newErrors.email = "Vui lòng nhập email";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -45,13 +47,13 @@ export default function RegisterForm() {
 
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8080/auth/register", {
+      const response = await fetch("http://localhost:3001/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         // Thêm name (gửi lên từ fullName) và role mặc định là 1 (Ứng viên)
-        body: JSON.stringify({ email, password, name: fullName, role: 1 }),
+        body: JSON.stringify({ email, password, firstName, lastName }),
       });
 
       if (!response.ok) {
@@ -75,8 +77,10 @@ export default function RegisterForm() {
 
         <form onSubmit={handleRegister} noValidate>
           <RegisterFormFields
-            fullName={fullName}
-            setFullName={setFullName}
+            firstName={firstName}
+            setFirstName={setFirstName}
+            lastName={lastName}
+            setLastName={setLastName}
             email={email}
             setEmail={setEmail}
             password={password}

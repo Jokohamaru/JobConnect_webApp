@@ -16,7 +16,7 @@ export class CandidateService {
       where: { email: createCandidateDto.email },
     });
     if (existingUser) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException('Tài khoản đã tồn tại');
     }
 
     // 2. Hash mật khẩu

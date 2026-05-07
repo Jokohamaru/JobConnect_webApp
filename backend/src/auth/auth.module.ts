@@ -7,10 +7,12 @@ import { TestRoleController } from './test-role.controller';
 import { RolesGuard } from './guards/roles.guard';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CandidateModule } from 'src/modules/candidate/candidate.module';
 
 @Module({
   imports: [
     PrismaModule,
+    CandidateModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
