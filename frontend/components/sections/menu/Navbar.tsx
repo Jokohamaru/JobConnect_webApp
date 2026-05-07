@@ -12,7 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
   return (
-    <div className="w-full border-b font-sans sticky top-0 z-50 bg-linear-to-r from-[#9358f7] via-[#6197ee] to-[#10d7e2] ">
+    <div className="w-full border-b font-sans sticky top-0 z-50 bg-linear-to-r from-[#1d5b9a]  to-[#5ca8c1] ">
       <div className="flex items-center justify-between h-17.5 px-10">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center">
@@ -25,17 +25,17 @@ export default function Navbar() {
             />
           </Link>
 
-          <div className="flex items-center gap-6 text-blue-800 font-medium">
-            <p className="font-semibold text-[16px] cursor-pointer hover:text-white">
+          <div className="flex items-center gap-6 text-white font-medium">
+            <p className="font-semibold text-[16px] cursor-pointer hover:text-[#00e5ff] transition-colors">
               Việc làm ▾
             </p>
-            <p className="font-semibold text-[16px] cursor-pointer hover:text-white">
+            <p className="font-semibold text-[16px] cursor-pointer hover:text-[#00e5ff] transition-colors">
               Công cụ ▾
             </p>
-            <p className="font-semibold text-[16px] cursor-pointer hover:text-white">
+            <p className="font-semibold text-[16px] cursor-pointer hover:text-[#00e5ff] transition-colors">
               Cẩm nang nghề nghiệp ▾
             </p>
-            <p className="font-semibold text-[16px] cursor-pointer hover:text-white">
+            <p className="font-semibold text-[16px] cursor-pointer hover:text-[#00e5ff] transition-colors">
               Tạo CV bằng AI ▾
             </p>
           </div>

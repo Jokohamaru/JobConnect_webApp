@@ -3,7 +3,7 @@ import Link from "next/link";
 export function TrendingTag() {
   return (
     <div className="flex items-center gap-3 text-sm">
-      <span className="text-blue-800 font-medium">Xu hướng hiện nay:</span>
+      <span className="text-white font-medium">Xu hướng hiện nay:</span>
 
       {["IT", "Tài chính - ngân hàng", "Marketing", "Chăm sóc khách hàng"].map(
         (item) => (
