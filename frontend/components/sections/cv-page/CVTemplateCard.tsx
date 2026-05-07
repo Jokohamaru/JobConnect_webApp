@@ -31,6 +31,7 @@ export default function CVTemplateCard({ template }: CVTemplateCardProps) {
 
   return (
     <div
+      onClick={() => router.push(`/cv-builder/${template.id}`)}
       className={cn(
         "group relative bg-white rounded-2xl overflow-hidden",
         "border border-gray-100 shadow-sm",
