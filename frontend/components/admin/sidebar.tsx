@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
 const menuItems = [
@@ -41,58 +40,75 @@ export function Sidebar() {
   return (  
     <aside 
       className={cn(
-        "bg-[#DFEDF8] border-r border-gray-100 flex flex-col transition-all duration-300",
-        collapsed ? "w-20" : "w-64"
+        "bg-[#DFEDF8] border-r border-gray-100 flex flex-col transition-all duration-300 shrink-0",
+        collapsed ? "w-[72px]" : "w-64"
       )}
     >
       {/* Logo Area */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-gray-100">
-        {!collapsed && (
-          <Link href="/admin" className="font-bold text-xl text-blue-600 truncate mx-auto">
-            <img className="h-full" src="/images/Logo_Job_Connect_3-removebg-preview.png" alt="JobConnect" width={150} height={50} />
-          </Link>
+      <div className={cn(
+        "h-16 flex items-center border-b border-gray-100 px-3",
+        collapsed ? "justify-center" : "justify-between"
+      )}>
+        {collapsed ? (
+          <button
+            onClick={() => setCollapsed(false)}
+            className="flex flex-col items-center gap-0.5 text-blue-700 font-bold text-sm hover:text-blue-900 transition-colors"
+          >
+            <span>JC</span>
+            <ChevronLeft className="h-3 w-3 rotate-180" />
+          </button>
+        ) : (
+          <>
+            <Link href="/admin" className="flex items-center overflow-hidden">
+              <img
+                src="/images/Logo_Job_Connect_3-removebg-preview.png"
+                alt="JobConnect"
+                width={140}
+                height={44}
+                className="object-contain"
+              />
+            </Link>
+            <button
+              onClick={() => setCollapsed(true)}
+              className="ml-2 p-1.5 rounded-md hover:bg-blue-100 text-gray-500 hover:text-blue-700 transition-colors shrink-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          </>
         )}
-        {collapsed && (
-          <Link href="/admin" className="font-bold text-xl text-black mx-auto">
-            JC
-          </Link>
-        )}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="md:hidden lg:flex hidden shrink-0" 
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          <ChevronLeft className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")} />
-        </Button>
       </div>
 
       {/* User Info */}
-      <div className="p-4 border-b border-gray-100 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shrink-0">
+      <div className={cn(
+        "border-b border-gray-100 flex items-center",
+        collapsed ? "justify-center p-3" : "gap-3 p-4"
+      )}>
+        <div className="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold shrink-0 text-sm">
           {user?.fullName?.charAt(0)?.toUpperCase() || "A"}
         </div>
         {!collapsed && (
-          <div className="flex flex-col truncate">
-            <span className="font-semibold text-sm">{user?.fullName || "Admin"}</span>
-            <span className="text-xs text-gray-500">{user?.role || "Admin"}</span>
+          <div className="flex flex-col min-w-0">
+            <span className="font-semibold text-sm truncate">{user?.fullName || "Admin"}</span>
+            <span className="text-xs text-gray-500 truncate uppercase tracking-wide">{user?.role || "Quản trị viên"}</span>
           </div>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
         {menuItems.map((item) => {
-          const isActive = pathname === item.href || (item.href === "/admin" && pathname === "/admin");
+          const isActive = pathname === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
+              title={collapsed ? item.title : undefined}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center rounded-lg text-sm font-medium transition-colors",
+                collapsed ? "justify-center px-2 py-3" : "gap-3 px-3 py-2.5",
                 isActive 
                   ? "bg-[#277CD8] text-white" 
-                  : "text-black hover:bg-gray-100 hover:text-black"
+                  : "text-gray-700 hover:bg-blue-100 hover:text-blue-800"
               )}
             >
               <item.icon className={cn("h-5 w-5 shrink-0", isActive ? "text-white" : "text-blue-600")} />
@@ -104,7 +120,11 @@ export function Sidebar() {
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium w-full transition-colors text-black hover:bg-gray-100 "
+          title={collapsed ? "Đăng xuất" : undefined}
+          className={cn(
+            "flex items-center rounded-lg text-sm font-medium w-full transition-colors text-gray-700 hover:bg-blue-100 hover:text-blue-800",
+            collapsed ? "justify-center px-2 py-3" : "gap-3 px-3 py-2.5"
+          )}
         >
           <LogOut className="h-5 w-5 shrink-0 text-blue-600" />
           {!collapsed && <span>Đăng xuất</span>}

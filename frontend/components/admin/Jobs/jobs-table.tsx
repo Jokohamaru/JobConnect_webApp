@@ -16,7 +16,7 @@ import { Eye, Edit, CheckCircle, RefreshCcw, Trash2 } from "lucide-react";
 
 export function JobsTable() {
   return (
-    <Card className="shadow-sm border-none overflow-hidden">
+    <Card className="shadow-sm border-none overflow-hidden bg-white">
       <CardHeader className="bg-white border-b border-gray-100 pb-4">
         <CardTitle className="text-lg font-bold">Danh sách Việc làm</CardTitle>
       </CardHeader>

@@ -35,7 +35,7 @@ export function StatsCard({
           </div>
         </div>
         <div>
-          <h2 className="text-[32px] font-bold tracking-tight text-black">{value}</h2>
+          <h2 className="text-[24px] font-bold tracking-tight text-black">{value}</h2>
           {subtitle && (
             <p className={cn(
               "text-xs font-medium mt-1",

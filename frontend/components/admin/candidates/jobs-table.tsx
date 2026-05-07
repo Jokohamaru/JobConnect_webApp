@@ -20,7 +20,7 @@ interface JobsTableProps {
 
 export function JobsTable({ onAddUser }: JobsTableProps) {
   return (
-    <Card className="shadow-sm border-none overflow-hidden">
+    <Card className="shadow-sm border-none overflow-hidden bg-white">
       <CardHeader className="bg-white border-b border-gray-100 pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-bold">Kiểm duyệt ứng viên</CardTitle>
@@ -34,8 +34,8 @@ export function JobsTable({ onAddUser }: JobsTableProps) {
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
+        <div className="overflow-x-auto bg-white">
+          <Table className="">
             <TableHeader className="bg-gray-50/50">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="font-semibold text-gray-600">
