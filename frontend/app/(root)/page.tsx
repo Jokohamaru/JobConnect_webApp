@@ -2,26 +2,23 @@ import { SearchBar } from "@/components/sections/hero-section/SearchBar";
 import FilterBar from "@/components/sections/filters/FilterBar";
 import { MarketingInfo } from "@/components/sections/marketing-info";
 import HintBar from "@/components/ui/TooltipHints";
-import JobCard, { JobCardProps } from "@/components/sections/jobs/JobCard";
+import { JobCardProps } from "@/components/sections/jobs/JobCard";
 import TopCareersSection from "@/components/sections/careers/TopCareersSection";
 import JobSlider from "@/components/sections/jobs/JobSlider";
+import { jobService } from "@/services/jobService";
+import { mapJobToJobCard } from "@/utils/jobMapper";
 
-export default function HomePage() {
-  const jobs: JobCardProps[] = Array.from({ length: 27 }).map((_, i) => ({
-  slugJob: `senior-frontend-engineer`,
-  slugCompany: `techcorp-vietnam`,
-  nameJob: `Công việc ${i + 1}`,
-  nameCompany: "Công ty ABC",
-  logoCompanyURL: "",
-  salary: "10 - 15 triệu",
-  locate: "Hà Nội",
-  deadline: "30/12/2026",
-  experience: "1 năm",
-  descriptions: ["Mô tả..."],
-  requests: ["Yêu cầu..."],
-  benefits: ["Quyền lợi..."],
-  address: ["Hà Nội"],
-}));
+export default async function HomePage() {
+  let jobs: JobCardProps[] = [];
+  
+  try {
+    const response = await jobService.getJobs({ pageSize: 27 });
+    jobs = response.data.map(mapJobToJobCard);
+  } catch (error) {
+    console.error('Failed to fetch jobs:', error);
+    // Fallback to empty array or show error message
+  }
+
   return (
     <div className="bg-[#F3F5F7] ">
       <SearchBar />
@@ -31,8 +28,6 @@ export default function HomePage() {
         <HintBar />
         <div className="">
           <JobSlider jobs={jobs} />
-
-          
         </div>
         <div>
           <TopCareersSection />

@@ -5,13 +5,17 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './modules/user/user.module'; // Thêm modules/
 import { ConfigModule } from '@nestjs/config';
 import { CandidateModule } from './modules/candidate/candidate.module';
+import { JobModule } from './modules/job/job.module';
+import { CityModule } from './modules/city/city.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     UserModule,
     AuthModule,
-    CandidateModule
+    CandidateModule,
+    JobModule,
+    CityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

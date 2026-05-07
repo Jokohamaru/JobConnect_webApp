@@ -71,7 +71,7 @@ export function AccountInfoCard({ email, fullName }: AccountInfoCardProps) {
             className="h-auto p-0 text-xs text-blue-600 hover:text-blue-800"
             asChild
           >
-            <Link href="/profile/my-file">
+            <Link href="/profile">
               Cập nhật thông tin hồ sơ
               <ChevronRight className="w-3 h-3 ml-0.5" />
             </Link>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/context/AuthContext";
+import { authService } from "@/lib/auth-service";
 
 export default function LoginFormFields() {
   const router = useRouter();
@@ -28,73 +29,70 @@ export default function LoginFormFields() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
     const newErrors: Record<string, string> = {};
     if (!email) {
       newErrors.email = "Vui lòng nhập email";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = "Email không hợp lệ";
     }
-    if (!password) newErrors.password = "Vui lòng nhập mật khẩu";
+    if (!password) {
+      newErrors.password = "Vui lòng nhập mật khẩu";
+    } else if (password.length < 6) {
+      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
+    }
+    
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
     
     setErrors({}); // Clear previous errors
+    setLoading(true);
+
     try {
-      setLoading(true);
-      const response = await fetch("http://localhost:8080/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      // Call API login
+      const response = await authService.login({ email, password });
 
-      if (response.ok) {
-        const data = await response.json();
-        login(data.access_token);
+      // Save token
+      login(response.access_token);
 
-        // Lưu hoặc xoá email theo tuỳ chọn nhớ mật khẩu
-        if (rememberMe) {
-          localStorage.setItem("remembered_email", email);
-        } else {
-          localStorage.removeItem("remembered_email");
-        }
-
-        // Giải mã token để lấy role và redirect đúng trang
-        let role = "CANDIDATE";
-        try {
-          const base64Url = data.access_token.split(".")[1];
-          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-          const payload = JSON.parse(
-            decodeURIComponent(
-              window
-                .atob(base64)
-                .split("")
-                .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-                .join("")
-            )
-          );
-          role = payload.role ?? "CANDIDATE";
-        } catch (_) {
-          // fallback
-        }
-
-        startTransition(() => {
-          if (role === "ADMIN") {
-            router.push("/admin/dashboard");
-          } else {
-            router.push("/");
-          }
-        });
+      // Save or remove email based on remember me option
+      if (rememberMe) {
+        localStorage.setItem("remembered_email", email);
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Đăng nhập thất bại");
+        localStorage.removeItem("remembered_email");
       }
+
+      // Get user role from token
+      const role = authService.getUserRole() || "CANDIDATE";
+
+      // Redirect based on role
+      startTransition(() => {
+        if (role === "ADMIN") {
+          router.push("/admin/dashboard");
+        } else if (role === "RECRUITER") {
+          router.push("/recruiter/dashboard");
+        } else {
+          router.push("/");
+        }
+      });
     } catch (error: any) {
-      console.error(error);
-      setErrors({ root: error.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại." });
+      console.error("Login error:", error);
+      
+      // Handle specific error messages
+      let errorMessage = "Đăng nhập thất bại. Vui lòng kiểm tra lại.";
+      
+      if (error.message.includes("Thông tin tài khoản không chính xác")) {
+        errorMessage = "Email hoặc mật khẩu không đúng";
+      } else if (error.message.includes("Network")) {
+        errorMessage = "Lỗi kết nối. Vui lòng kiểm tra internet";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setErrors({ root: errorMessage });
     } finally {
       setLoading(false);
     }

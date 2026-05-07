@@ -44,7 +44,7 @@ export default function ProfileHeader({
         {/* Update Profile Link */}
       </div>
         <Link
-          href="/profile/my-file"
+          href="/profile"
           className="mt-4 px-20 text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1 transition-colors"
         >
           Cập nhật hồ sơ

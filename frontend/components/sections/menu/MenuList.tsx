@@ -53,7 +53,7 @@ export default function MenuList({ onClose }: MenuListProps) {
         icon={<User size={18} />}
         label="Hồ sơ của tôi"
         onClick={() => {
-          router.push("/profile/my-file");
+          router.push("/profile");
           onClose();
         }}
 
