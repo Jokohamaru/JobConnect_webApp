@@ -1,9 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { CandidateService } from './candidate.service';
 import { CreateCandidateDto } from './dto/create-candidate.dto';
 import { UpdateCandidateDto } from './dto/update-candidate.dto';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Role } from '../../auth/enums/role.enum';
 
-@Controller('candidate')
+@Controller('candidates')
 export class CandidateController {
   constructor(private readonly candidateService: CandidateService) {}
 
@@ -15,6 +19,14 @@ export class CandidateController {
   @Get()
   findAll() {
     return this.candidateService.findAll();
+  }
+
+  @Get('my-cvs')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.CANDIDATE)
+  async getMyCVs(@Request() req) {
+    const userId = req.user.sub;
+    return this.candidateService.getCVsByUserId(userId);
   }
 
   @Get(':id')

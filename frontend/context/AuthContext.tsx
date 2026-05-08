@@ -21,6 +21,7 @@ export interface User {
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
+  token: string | null;
   isLoading: boolean;
   login: (token: string) => void;
   logout: () => void;
@@ -51,16 +52,18 @@ const decodeJwt = (token: string): User | null => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     // Chạy một lần khi load trang để kiểm tra xem đã có token trong localStorage chưa
-    const token = authService.getToken();
-    if (token) {
-      const decodedUser = decodeJwt(token);
+    const storedToken = authService.getToken();
+    if (storedToken) {
+      const decodedUser = decodeJwt(storedToken);
       if (decodedUser) {
         setIsAuthenticated(true);
         setUser(decodedUser);
+        setToken(storedToken);
       } else {
         // Token không hợp lệ, xóa đi
         authService.removeToken();
@@ -69,12 +72,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(false);
   }, []);
 
-  const login = (token: string) => {
-    authService.saveToken(token);
-    const decodedUser = decodeJwt(token);
+  const login = (newToken: string) => {
+    authService.saveToken(newToken);
+    const decodedUser = decodeJwt(newToken);
     if (decodedUser) {
       setIsAuthenticated(true);
       setUser(decodedUser);
+      setToken(newToken);
     }
   };
 
@@ -82,10 +86,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     authService.removeToken();
     setIsAuthenticated(false);
     setUser(null);
+    setToken(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, token, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

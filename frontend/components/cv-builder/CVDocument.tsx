@@ -634,6 +634,7 @@ export function CVDocument({
 
     return (
       <div
+        data-cv-document
         style={{
           fontFamily,
           // Gradient trick: sidebar màu nền 220px đầu, còn lại trắng
@@ -732,10 +733,14 @@ export function CVDocument({
 
   /* ── One-column layout ── */
   return (
-    <div style={{
-      fontFamily,
-      background: 'white',
-    }} className={fsClass + "my-5"}>
+    <div 
+      data-cv-document
+      style={{
+        fontFamily,
+        background: 'white',
+      }} 
+      className={fsClass + "my-5"}
+    >
       {/* Header bar */}
       <div className="p-6 pb-4 " style={{ backgroundColor: theme.primary }}>
         <div className="flex items-center gap-5">

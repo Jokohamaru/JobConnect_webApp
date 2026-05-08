@@ -4,6 +4,10 @@ import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Cloud, Eye, Send, X, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { jobService } from "@/services/jobService";
+import { authService } from "@/lib/auth-service";
 
 import { StepIndicator } from "@/components/recruiter/post-job/StepIndicator";
 import { BasicInfoSection } from "@/components/recruiter/post-job/BasicInfoSection";
@@ -54,35 +58,35 @@ function FormSection({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function PostJobPage() {
   const [currentStep] = useState(1);
+  const { user } = useAuth();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Basic info
   const [basicInfo, setBasicInfo] = useState({
-    title: "Frontend Developer (ReactJS)",
-    department: "Công nghệ thông tin",
-    level: "Nhân viên",
-    workType: "Hybrid",
-    location: "Hà Nội",
-    salaryMin: "20,000,000",
-    salaryMax: "30,000,000",
-    headcount: 2,
-    deadline: "2026-05-31",
+    title: "",
+    department: "",
+    level: "",
+    workType: "",
+    location: "",
+    salaryMin: "",
+    salaryMax: "",
+    headcount: 1,
+    deadline: "",
   });
 
-  const [description, setDescription] = useState(
-    "• Phát triển giao diện người dùng hiện đại, tối ưu trải nghiệm người dùng.\n• Xây dựng các component tái sử dụng với ReactJS, TypeScript.\n• Tối ưu hiệu năng ứng dụng, đảm bảo tương thích đa trình duyệt.\n• Phối hợp với team backend để tích hợp API.\n• Tham gia code review và cải thiện chất lượng code."
-  );
+  const [description, setDescription] = useState("");
 
   const [requirements, setRequirements] = useState({
-    skills: ["ReactJS", "TypeScript", "JavaScript (ES6+)", "HTML/CSS"],
-    experience: "2 – 4 năm",
-    technologies: ["Redux", "Next.js", "Tailwind CSS", "Git"],
-    education: "Không yêu cầu",
-    languages: ["Tiếng Việt", "Tiếng Anh (Đọc hiểu)"],
+    skills: [] as string[],
+    experience: "",
+    technologies: [] as string[],
+    education: "",
+    languages: [] as string[],
   });
 
-  const [benefits, setBenefits] = useState<string[]>([
-    "bhxh", "bonus", "month13", "hybrid", "laptop", "training", "teambuilding",
-  ]);
+  const [benefits, setBenefits] = useState<string[]>([]);
 
   // Computed checklist
   const completed = useMemo(() => {
@@ -108,6 +112,70 @@ export default function PostJobPage() {
     setBenefits((prev) =>
       prev.includes(id) ? prev.filter((b) => b !== id) : [...prev, id]
     );
+  };
+
+  const handleSubmit = async () => {
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      // Validation
+      if (!basicInfo.title || !basicInfo.location || !description) {
+        setError('Vui lòng điền đầy đủ thông tin bắt buộc');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Get token
+      const token = authService.getToken();
+      if (!token) {
+        setError('Vui lòng đăng nhập lại');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Fetch cities to get city ID
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const citiesResponse = await fetch(`${API_URL}/cities`);
+      const cities = await citiesResponse.json();
+      
+      // Find city by name
+      const city = cities.find((c: any) => c.name === basicInfo.location);
+      if (!city) {
+        setError(`Không tìm thấy thành phố: ${basicInfo.location}`);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Parse salary
+      const minSalary = basicInfo.salaryMin ? parseInt(basicInfo.salaryMin.replace(/,/g, '')) : undefined;
+      const maxSalary = basicInfo.salaryMax ? parseInt(basicInfo.salaryMax.replace(/,/g, '')) : undefined;
+
+      // Create job
+      const jobData = {
+        title: basicInfo.title,
+        description: description,
+        headcount: basicInfo.headcount,
+        minSalary,
+        maxSalary,
+        currency: 'VND' as const,
+        cityId: city.id,
+        // For now, we'll skip tags and skills - you can add them later
+        // tagIds: benefits,
+        // skillIds: requirements.skills,
+      };
+
+      const newJob = await jobService.createJob(jobData, token);
+
+      // Success - redirect to dashboard
+      alert('Đăng tin tuyển dụng thành công!');
+      router.push('/recruiter/dashboard');
+    } catch (err: any) {
+      console.error('Failed to create job:', err);
+      setError(err.message || 'Có lỗi xảy ra khi đăng tin');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -213,38 +281,57 @@ export default function PostJobPage() {
 
       {/* ── Bottom Action Bar ── */}
       <div className="sticky bottom-0 z-30 bg-white border-t border-gray-200 shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          {/* Left */}
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" className="text-gray-500 hover:text-gray-700 gap-1.5 text-sm">
-              <X className="h-4 w-4" />
-              Thoát
-            </Button>
-            <span className="text-xs text-gray-400 hidden sm:block">
-              • Tự động lưu lần nhập
-            </span>
-          </div>
+        <div className="max-w-7xl mx-auto px-6 py-3">
+          {/* Error message */}
+          {error && (
+            <div className="mb-3 bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+          
+          <div className="flex items-center justify-between">
+            {/* Left */}
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                className="text-gray-500 hover:text-gray-700 gap-1.5 text-sm"
+                onClick={() => router.push('/recruiter/dashboard')}
+              >
+                <X className="h-4 w-4" />
+                Thoát
+              </Button>
+              <span className="text-xs text-gray-400 hidden sm:block">
+                • Tự động lưu lần nhập
+              </span>
+            </div>
 
-          {/* Right */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="border-gray-200 text-gray-600 hover:bg-gray-50 text-sm gap-1.5"
-            >
-              <Cloud className="h-4 w-4" />
-              Lưu nháp
-            </Button>
-            <Button
-              variant="outline"
-              className="border-blue-200 text-blue-600 hover:bg-blue-50 text-sm gap-1.5"
-            >
-              <Eye className="h-4 w-4" />
-              Xem trước
-            </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white text-sm gap-1.5 shadow-md shadow-blue-200">
-              <Send className="h-4 w-4" />
-              Đăng tuyển ngay
-            </Button>
+            {/* Right */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                className="border-gray-200 text-gray-600 hover:bg-gray-50 text-sm gap-1.5"
+                disabled={isSubmitting}
+              >
+                <Cloud className="h-4 w-4" />
+                Lưu nháp
+              </Button>
+              <Button
+                variant="outline"
+                className="border-blue-200 text-blue-600 hover:bg-blue-50 text-sm gap-1.5"
+                disabled={isSubmitting}
+              >
+                <Eye className="h-4 w-4" />
+                Xem trước
+              </Button>
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm gap-1.5 shadow-md shadow-blue-200"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+              >
+                <Send className="h-4 w-4" />
+                {isSubmitting ? 'Đang xử lý...' : 'Đăng tuyển ngay'}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

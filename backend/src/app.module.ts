@@ -8,6 +8,9 @@ import { CandidateModule } from './modules/candidate/candidate.module';
 import { JobModule } from './modules/job/job.module';
 import { CityModule } from './modules/city/city.module';
 import { CompanyModule } from './modules/company/company.module';
+import { ApplicationModule } from './modules/application/application.module';
+import { SavedJobModule } from './modules/saved-job/saved-job.module';
+import { CVModule } from './modules/cv/cv.module';
 
 @Module({
   imports: [
@@ -18,6 +21,9 @@ import { CompanyModule } from './modules/company/company.module';
     JobModule,
     CityModule,
     CompanyModule,
+    ApplicationModule,
+    SavedJobModule,
+    CVModule,
   ],
   controllers: [AppController],
   providers: [AppService],

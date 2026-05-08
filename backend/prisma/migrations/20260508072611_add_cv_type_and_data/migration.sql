@@ -1,0 +1,6 @@
+-- CreateEnum
+CREATE TYPE "CVType" AS ENUM ('UPLOADED', 'BUILDER');
+
+-- AlterTable
+ALTER TABLE "cvs" ADD COLUMN     "cvData" JSONB,
+ADD COLUMN     "cvType" "CVType" NOT NULL DEFAULT 'UPLOADED';

@@ -2,11 +2,12 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeft, FileDown, Layers, Palette, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowLeft, FileDown, Layers, Palette, ZoomIn, ZoomOut, Save } from "lucide-react";
 import { CV_TEMPLATES } from "@/lib/cv-templates";
 import { SectionPanel, DEFAULT_SECTIONS, SectionConfig, SectionKey } from "@/components/cv-builder/SectionPanel";
 import { DesignPanel, FONT_FAMILIES, LayoutType } from "@/components/cv-builder/DesignPanel";
 import { CVDocument, CVData } from "@/components/cv-builder/CVDocument";
+import { useAuth } from "@/context/AuthContext";
 
 const uid = () => Math.random().toString(36).slice(2);
 
@@ -36,6 +37,7 @@ type ActiveTab = "sections" | "design";
 export default function CVBuilderPage() {
   const params = useParams();
   const router = useRouter();
+  const { user, token } = useAuth();
   const id = Number(params?.id);
   const template = CV_TEMPLATES.find((t) => t.id === id);
 
@@ -47,8 +49,131 @@ export default function CVBuilderPage() {
   const [layout, setLayout] = useState<LayoutType>("two-column");
   const [cvData, setCvData] = useState<CVData>(defaultData);
   const [zoom, setZoom] = useState(80);
+  const [cvTitle, setCvTitle] = useState("CV cua toi");
+  const [isSaving, setIsSaving] = useState(false);
 
   const enabledSections = sections.filter((s) => s.enabled).map((s) => s.key) as SectionKey[];
+
+  const handleSaveCV = async () => {
+    if (!user || user.role !== 'CANDIDATE') {
+      alert('Vui lòng đăng nhập với tài khoản ứng viên để lưu CV');
+      router.push('/auth/login');
+      return;
+    }
+
+    if (!cvTitle.trim()) {
+      alert('Vui lòng nhập tên CV');
+      return;
+    }
+
+    if (!token) {
+      alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
+      router.push('/auth/login');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Lấy HTML content của CV để generate PDF
+      const cvElement = document.querySelector('[data-cv-document]');
+      if (!cvElement) {
+        throw new Error('Không tìm thấy nội dung CV');
+      }
+
+      // Clone element và convert tất cả computed styles thành inline styles
+      const clonedElement = cvElement.cloneNode(true) as HTMLElement;
+      
+      // Function to inline all computed styles
+      const inlineStyles = (element: HTMLElement) => {
+        const computedStyle = window.getComputedStyle(element);
+        const styleString = Array.from(computedStyle).reduce((str, property) => {
+          return `${str}${property}:${computedStyle.getPropertyValue(property)};`;
+        }, '');
+        element.setAttribute('style', styleString);
+        
+        // Recursively inline styles for children
+        Array.from(element.children).forEach(child => {
+          if (child instanceof HTMLElement) {
+            inlineStyles(child);
+          }
+        });
+      };
+      
+      // Apply inline styles to cloned element
+      inlineStyles(clonedElement);
+
+      // Create clean HTML
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+              @page { size: A4; margin: 0; }
+              * { box-sizing: border-box; }
+            </style>
+          </head>
+          <body style="margin: 0; padding: 0;">
+            ${clonedElement.outerHTML}
+          </body>
+        </html>
+      `;
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      
+      console.log('Sending request...');
+      console.log('HTML length:', htmlContent.length);
+      
+      const response = await fetch(`${API_URL}/cvs/generate-pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: cvTitle,
+          htmlContent: htmlContent,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => null);
+        console.error('Server error:', error);
+        throw new Error(error?.message || 'Không thể lưu CV');
+      }
+
+      const result = await response.json();
+      alert(`Lưu CV thành công!`);
+      router.push('/profile/dashboard');
+    } catch (error: any) {
+      console.error('Failed to save CV:', error);
+      alert(error.message || 'Có lỗi xảy ra khi lưu CV');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Helper function to get computed styles
+  const getComputedStyles = (element: Element): string => {
+    const styles = window.getComputedStyle(element);
+    let cssText = '';
+    
+    // Get all inline styles from the document
+    const styleSheets = Array.from(document.styleSheets);
+    styleSheets.forEach(sheet => {
+      try {
+        const rules = Array.from(sheet.cssRules || []);
+        rules.forEach(rule => {
+          cssText += rule.cssText + '\n';
+        });
+      } catch (e) {
+        // Skip external stylesheets due to CORS
+      }
+    });
+    
+    return cssText;
+  };
 
   if (!template) {
     return (
@@ -70,25 +195,47 @@ export default function CVBuilderPage() {
             <span>Quay lai</span>
           </button>
           <div className="h-5 w-px bg-gray-200" />
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm text-gray-400">CV Builder</span>
-            <span className="text-gray-300">/</span>
-            <span className="text-sm font-semibold text-blue-600">{template.name}</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm text-gray-400">Kieu CV:</span>
+              <span className="text-sm font-semibold text-blue-600">{template.name}</span>
+            </div>
+            <div className="h-5 w-px bg-gray-200" />
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-400">Ten CV:</span>
+              <input
+                type="text"
+                value={cvTitle}
+                onChange={(e) => setCvTitle(e.target.value)}
+                placeholder="Nhap ten CV..."
+                className="text-sm font-medium text-gray-700 border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-48"
+              />
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg px-2 py-1.5">
-          <button onClick={() => setZoom((z) => Math.max(50, z - 10))} className="p-0.5 hover:text-blue-600 rounded">
-            <ZoomOut className="w-4 h-4 text-gray-500" />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 bg-gray-100 rounded-lg px-2 py-1.5">
+            <button onClick={() => setZoom((z) => Math.max(50, z - 10))} className="p-0.5 hover:text-blue-600 rounded">
+              <ZoomOut className="w-4 h-4 text-gray-500" />
+            </button>
+            <span className="text-xs font-medium text-gray-600 w-10 text-center select-none">{zoom}%</span>
+            <button onClick={() => setZoom((z) => Math.min(130, z + 10))} className="p-0.5 hover:text-blue-600 rounded">
+              <ZoomIn className="w-4 h-4 text-gray-500" />
+            </button>
+          </div>
+          <button 
+            onClick={handleSaveCV}
+            disabled={isSaving}
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm"
+          >
+            <Save className="w-4 h-4" />
+            <span>{isSaving ? 'Dang luu...' : 'SAVE CV'}</span>
           </button>
-          <span className="text-xs font-medium text-gray-600 w-10 text-center select-none">{zoom}%</span>
-          <button onClick={() => setZoom((z) => Math.min(130, z + 10))} className="p-0.5 hover:text-blue-600 rounded">
-            <ZoomIn className="w-4 h-4 text-gray-500" />
+          <button onClick={() => window.print()} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm">
+            <FileDown className="w-4 h-4" />
+            <span>Tai PDF</span>
           </button>
         </div>
-        <button onClick={() => window.print()} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm">
-          <FileDown className="w-4 h-4" />
-          <span>Tai PDF</span>
-        </button>
       </header>
 
       <div className="flex flex-1 overflow-hidden print:overflow-visible">

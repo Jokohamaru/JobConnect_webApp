@@ -2,6 +2,18 @@ import { Job, JobsResponse, JobFilters } from '@/types/job';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+export interface CreateJobRequest {
+  title: string;
+  description: string;
+  headcount: number;
+  minSalary?: number;
+  maxSalary?: number;
+  currency?: 'VND' | 'USD';
+  cityId: string;
+  tagIds?: string[];
+  skillIds?: string[];
+}
+
 export const jobService = {
   async getJobs(filters?: JobFilters): Promise<JobsResponse> {
     const params = new URLSearchParams();
@@ -40,6 +52,24 @@ export const jobService = {
 
     if (!response.ok) {
       throw new Error('Failed to fetch job');
+    }
+
+    return response.json();
+  },
+
+  async createJob(data: CreateJobRequest, token: string): Promise<Job> {
+    const response = await fetch(`${API_URL}/jobs`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(error?.message || 'Failed to create job');
     }
 
     return response.json();

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
@@ -12,7 +12,7 @@ import { CandidateModule } from 'src/modules/candidate/candidate.module';
 @Module({
   imports: [
     PrismaModule,
-    CandidateModule,
+    forwardRef(() => CandidateModule),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -24,6 +24,6 @@ import { CandidateModule } from 'src/modules/candidate/candidate.module';
   ],
   providers: [AuthService, JwtStrategy, RolesGuard],
   controllers: [AuthController, TestRoleController],
-  exports: [AuthService], 
+  exports: [AuthService, JwtStrategy, RolesGuard], 
 })
 export class AuthModule {}

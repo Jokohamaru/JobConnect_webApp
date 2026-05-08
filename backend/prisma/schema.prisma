@@ -39,6 +39,11 @@ enum CVStatus {
   DELETED
 }
 
+enum CVType {
+  UPLOADED
+  BUILDER
+}
+
 enum Currency {
   VND
   USD
@@ -91,6 +96,7 @@ model Candidate {
   careerRole  String?
   
   cvs         CV[]
+  savedJobs   SavedJob[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
@@ -188,6 +194,7 @@ model Job {
   tags              Tag[]        @relation("JobTags")
   skills            RequirementSkill[] @relation("JobSkills")
   applications      Application[]
+  savedBy           SavedJob[]
   
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
@@ -199,7 +206,9 @@ model Job {
 model CV {
   id          String      @id @default(uuid())
   title       String
-  cvUrl       String      // Sẽ lưu link AWS S3
+  cvUrl       String      // Link AWS S3 hoặc local path
+  cvType      CVType      @default(UPLOADED) // UPLOADED hoặc BUILDER
+  cvData      Json?       // Lưu CV builder data (nếu là BUILDER type)
   status      CVStatus    @default(DONE)
   
   candidateId String
@@ -228,6 +237,21 @@ model Application {
   deletedAt   DateTime?
 
   @@map("applications")
+}
+
+model SavedJob {
+  id          String    @id @default(uuid())
+  
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  
+  jobId       String
+  job         Job       @relation(fields: [jobId], references: [id])
+  
+  savedAt     DateTime  @default(now())
+
+  @@unique([candidateId, jobId])
+  @@map("saved_jobs")
 }
 
 // --- MASTER DATA TABLES ---

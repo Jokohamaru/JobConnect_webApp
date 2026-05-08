@@ -80,7 +80,28 @@ export class CandidateService {
         }
       })
 
-      return "delete succesfully"
+      return "Xoá thành công người dùng"
+    });
+  }
+
+  async getCVsByUserId(userId: string) {
+    const candidate = await this.prisma.candidate.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (!candidate) {
+      throw new Error('Candidate profile not found');
+    }
+
+    return this.prisma.cV.findMany({
+      where: {
+        candidateId: candidate.id,
+        deletedAt: null,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 }

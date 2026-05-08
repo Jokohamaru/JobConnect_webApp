@@ -15,6 +15,7 @@ import { MapPin, Minus, Plus, CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
 
 interface BasicInfoSectionProps {
   data: {
@@ -32,6 +33,26 @@ interface BasicInfoSectionProps {
 }
 
 export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
+  const [cities, setCities] = useState<Array<{ id: string; name: string }>>([]);
+  const [loadingCities, setLoadingCities] = useState(true);
+
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const response = await fetch(`${API_URL}/cities`);
+        const data = await response.json();
+        setCities(data);
+      } catch (error) {
+        console.error('Failed to fetch cities:', error);
+      } finally {
+        setLoadingCities(false);
+      }
+    };
+
+    fetchCities();
+  }, []);
+
   return (
     <div className="space-y-5">
       {/* Row 1: Tên công việc + Phòng ban */}
@@ -105,15 +126,25 @@ export function BasicInfoSection({ data, onChange }: BasicInfoSectionProps) {
           <Label className="text-sm font-medium text-gray-700">
             Địa điểm làm việc <span className="text-red-500">*</span>
           </Label>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="VD: Hà Nội"
-              value={data.location}
-              onChange={(e) => onChange("location", e.target.value)}
-              className="h-10 pl-9 border-gray-200 focus-visible:ring-blue-500"
-            />
-          </div>
+          <Select 
+            value={data.location} 
+            onValueChange={(v) => onChange("location", v)}
+            disabled={loadingCities}
+          >
+            <SelectTrigger className="h-10 w-full border-gray-200">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-gray-400" />
+                <SelectValue placeholder={loadingCities ? "Đang tải..." : "Chọn địa điểm"} />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {cities.map((city) => (
+                <SelectItem key={city.id} value={city.name}>
+                  {city.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label className="text-sm font-medium text-gray-700">

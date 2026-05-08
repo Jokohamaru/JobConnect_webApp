@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
+  
   return (
     <div className="w-full border-b font-sans sticky top-0 z-50 bg-white ">
       <div className="flex items-center justify-between h-17.5 px-10">
@@ -26,18 +27,21 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center gap-6 text-black font-medium">
-            <p className="font-semibold text-[16px] cursor-pointer hover:text-[#00e5ff] transition-colors">
+            <Link href="/searching-page" className="font-semibold text-[16px] cursor-pointer hover:text-[#00e5ff] transition-colors">
               Việc làm ▾
-            </p>
+            </Link>
             <p className="font-semibold text-[16px] cursor-pointer hover:text-[#00e5ff] transition-colors">
               Công cụ ▾
             </p>
             <p className="font-semibold text-[16px] cursor-pointer hover:text-[#00e5ff] transition-colors">
               Cẩm nang nghề nghiệp ▾
             </p>
-            <p className="font-semibold text-[16px] cursor-pointer hover:text-[#00e5ff] transition-colors">
-              Tạo CV bằng AI ▾
-            </p>
+            <Link 
+              className="font-semibold text-[16px] cursor-pointer hover:text-[#00e5ff] transition-colors"
+              href="/cv"
+            >
+              Tạo CV ▾
+            </Link>
           </div>
         </div>
 

@@ -28,7 +28,7 @@ export default function UserProfileSection({ user }: UserProfileSectionProps) {
       <CVSearchSection />
 
       {/* User CVs */}
-      <UserCVSection id={0} title={''} thumbnail={''} />
+      <UserCVSection />
 
       {/* Activity Stats */}
       <ActivityStats />

@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Helper function to decode JWT and get role
+function getUserRoleFromToken(token: string): string | null {
+  try {
+    const payload = JSON.parse(
+      Buffer.from(token.split('.')[1], 'base64').toString()
+    );
+    return payload.role || null;
+  } catch {
+    return null;
+  }
+}
+
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('access_token')?.value || 
                 request.headers.get('authorization')?.replace('Bearer ', '');
@@ -19,6 +31,7 @@ export function middleware(request: NextRequest) {
     '/profile',
     '/dashboard',
     '/admin',
+    '/recruiter',
     '/candidate',
   ];
 
@@ -35,9 +48,50 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // If route is public (login/register) and user has token, redirect to home
+  // Role-based access control
+  if (token) {
+    const userRole = getUserRoleFromToken(token);
+
+    // Recruiter routes - only RECRUITER can access
+    if (pathname.startsWith('/recruiter')) {
+      if (userRole !== 'RECRUITER') {
+        // Not a recruiter, redirect to home with error
+        const homeUrl = new URL('/', request.url);
+        homeUrl.searchParams.set('error', 'access_denied');
+        return NextResponse.redirect(homeUrl);
+      }
+    }
+
+    // Admin routes - only ADMIN can access
+    if (pathname.startsWith('/admin')) {
+      if (userRole !== 'ADMIN') {
+        const homeUrl = new URL('/', request.url);
+        homeUrl.searchParams.set('error', 'access_denied');
+        return NextResponse.redirect(homeUrl);
+      }
+    }
+
+    // Candidate routes - only CANDIDATE can access
+    if (pathname.startsWith('/candidate')) {
+      if (userRole !== 'CANDIDATE') {
+        const homeUrl = new URL('/', request.url);
+        homeUrl.searchParams.set('error', 'access_denied');
+        return NextResponse.redirect(homeUrl);
+      }
+    }
+  }
+
+  // If route is public (login/register) and user has token, redirect based on role
   if (isPublicRoute && token) {
-    return NextResponse.redirect(new URL('/', request.url));
+    const userRole = getUserRoleFromToken(token);
+    
+    if (userRole === 'RECRUITER') {
+      return NextResponse.redirect(new URL('/recruiter/dashboard', request.url));
+    } else if (userRole === 'ADMIN') {
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+    } else {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
   }
 
   return NextResponse.next();
