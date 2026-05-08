@@ -1,10 +1,59 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JobStatus } from '@prisma/client';
+import { CreateJobDto } from './dto/create-job.dto';
 
 @Injectable()
 export class JobService {
   constructor(private prisma: PrismaService) {}
+
+  async create(createJobDto: CreateJobDto, recruiterId: string, companyId: string) {
+    const { tagIds, skillIds, ...jobData } = createJobDto;
+
+    const job = await this.prisma.job.create({
+      data: {
+        ...jobData,
+        recruiterId,
+        companyId,
+        status: JobStatus.DRAFT, // Default to DRAFT
+        tags: tagIds && tagIds.length > 0 ? {
+          connect: tagIds.map(id => ({ id })),
+        } : undefined,
+        skills: skillIds && skillIds.length > 0 ? {
+          connect: skillIds.map(id => ({ id })),
+        } : undefined,
+      },
+      include: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logoUrl: true,
+          },
+        },
+        city: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        tags: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        skills: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return job;
+  }
 
   async findAll(params?: {
     skip?: number;

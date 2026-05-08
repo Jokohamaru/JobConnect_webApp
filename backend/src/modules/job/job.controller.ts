@@ -1,9 +1,34 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Request, UseGuards } from '@nestjs/common';
 import { JobService } from './job.service';
+import { CreateJobDto } from './dto/create-job.dto';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
 @Controller('jobs')
 export class JobController {
   constructor(private readonly jobService: JobService) {}
+
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  async create(@Body() createJobDto: CreateJobDto, @Request() req) {
+    // Get recruiter info from JWT token
+    const userId = req.user.sub;
+    
+    // Get recruiter profile to get companyId
+    const recruiter = await this.jobService['prisma'].recruiter.findUnique({
+      where: { userId },
+      select: { id: true, companyId: true },
+    });
+
+    if (!recruiter) {
+      throw new Error('Recruiter profile not found');
+    }
+
+    if (!recruiter.companyId) {
+      throw new Error('Recruiter must be associated with a company');
+    }
+
+    return this.jobService.create(createJobDto, recruiter.id, recruiter.companyId);
+  }
 
   @Get()
   async findAll(
