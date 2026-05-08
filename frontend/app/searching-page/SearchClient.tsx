@@ -98,7 +98,7 @@ export default function SearchClient({ initialJobs, initialQuery, initialLocatio
   const locations = ["Tất cả", ...cities.map(c => c.name)];
 
   return (
-    <div className="min-h-screen bg-[#F3F5F7]">
+    <div className="min-h-screen bg-white">
 
       {/* ── Top Search Bar ── */}
       <div className="bg-gradient-to-r from-[#1d5b9a] to-[#5ca8c1] py-4 px-6 shadow-md">

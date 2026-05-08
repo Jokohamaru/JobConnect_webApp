@@ -42,3 +42,14 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background-color: #94a3b8;
 }
+
+@keyframes candidatePopupIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}

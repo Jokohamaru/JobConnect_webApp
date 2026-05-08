@@ -19,7 +19,6 @@ export function middleware(request: NextRequest) {
     '/profile',
     '/dashboard',
     '/admin',
-    '/recruiter',
     '/candidate',
   ];
 
