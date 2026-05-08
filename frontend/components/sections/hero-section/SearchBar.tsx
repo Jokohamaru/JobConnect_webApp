@@ -70,7 +70,7 @@ export function SearchBar() {
     if (input.trim()) params.set("q", input.trim());
     params.set("type", searchType);
     if (location) params.set("location", location);
-    router.push(`/tim-kiem?${params.toString()}`);
+    router.push(`/searching-page?${params.toString()}`);
     setFocused(false);
   };
 
