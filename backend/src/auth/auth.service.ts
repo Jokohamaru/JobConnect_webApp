@@ -37,7 +37,12 @@ export class AuthService {
       throw new UnauthorizedException('Thông tin tài khoản không chính xác'); // Đã sửa tên cột
     }
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload = { 
+      sub: user.id, 
+      email: user.email, 
+      role: user.role,
+      avaUrl: user.avaUrl || null,
+    };
 
     return {
       access_token: await this.jwtService.signAsync(payload),
@@ -45,6 +50,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
+        avaUrl: user.avaUrl || null,
       },
     };
   }

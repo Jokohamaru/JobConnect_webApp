@@ -13,6 +13,7 @@ import {
 import { useState } from "react";
 import { ProfileEditDialog } from "./ProfileEditDialog";
 import { Button } from "@/components/ui/button";
+import { getUserAvatar } from "@/utils/avatarHelper";
 
 interface ProfileHeaderProps {
   user: {
@@ -25,7 +26,7 @@ interface ProfileHeaderProps {
 
 export default function ProfileHeader({ user }: ProfileHeaderProps) {
   const [profile, setProfile] = useState({
-    avatar: "https://i.pravatar.cc/120",
+    avatar: user.avatarUrl || "",
     id: "",
     name: user.name || "",
     email: user.email || "",
@@ -64,9 +65,9 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
           {/* Avatar */}
           <div className="relative shrink-0">
             <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-gray-100 shadow-md bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center">
-              {profile.avatar ? (
+              {profile.avatar || user.avatarUrl ? (
                 <Image
-                  src={profile.avatar}
+                  src={getUserAvatar(profile.avatar || user.avatarUrl)}
                   alt={profile.name}
                   width={80}
                   height={80}

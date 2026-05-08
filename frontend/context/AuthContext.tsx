@@ -15,6 +15,7 @@ export interface User {
   email: string;
   role: string; // "ADMIN" | "CANDIDATE" | "RECRUITER"
   fullName?: string;
+  avaUrl?: string | null; // Avatar URL
 }
 
 interface AuthContextType {
@@ -33,12 +34,13 @@ const decodeJwt = (token: string): User | null => {
     const decoded = authService.decodeToken(token);
     if (!decoded) return null;
 
-    // Backend trả về: { sub: user.id, email: user.email, role: user.role }
+    // Backend trả về: { sub: user.id, email: user.email, role: user.role, avaUrl: user.avaUrl }
     return {
       id: decoded.sub,
       email: decoded.email,
       role: decoded.role,
       fullName: decoded.name || decoded.fullName,
+      avaUrl: decoded.avaUrl || null,
     };
   } catch (error) {
     console.error("Failed to decode token", error);

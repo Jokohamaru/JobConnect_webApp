@@ -10,7 +10,7 @@ export default function DashBoard() {
                 id: String(user?.id) || "",
                 name: user?.fullName || "",
                 email: user?.email || "",
-                avatarUrl: undefined
+                avatarUrl: user?.avaUrl || undefined
             }} />
         </div>
     )

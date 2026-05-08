@@ -13,7 +13,7 @@ export default function MyFileSection() {
             id: String(user?.id) || "",
             name: user?.fullName || "",
             email: user?.email || "",
-            avatarUrl: "",
+            avatarUrl: user?.avaUrl || "",
           }}
         />
         <CVSections />

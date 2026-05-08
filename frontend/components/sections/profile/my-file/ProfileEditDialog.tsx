@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Camera, Trash2, Pencil } from "lucide-react";
 import { useState } from "react";
+import { getUserAvatar } from "@/utils/avatarHelper";
 
 function FloatingInput({
   label,
@@ -92,7 +93,7 @@ export function ProfileEditDialog({ profile, setProfile }: any) {
               <div className="relative shrink-0">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold overflow-hidden shadow-md">
                   {profile.avatar ? (
-                    <img src={profile.avatar} className="w-full h-full object-cover" alt="" />
+                    <img src={getUserAvatar(profile.avatar)} className="w-full h-full object-cover" alt="" />
                   ) : (
                     initials
                   )}

@@ -50,8 +50,10 @@ model User {
   id            String     @id @default(uuid())
   email         String     @unique
   password      String?    // Nullable cho Social Login
+  avaUrl        String?    // Avatar URL, default sẽ dùng /user.png
   role          UserRole   @default(CANDIDATE)
   status        UserStatus @default(ACTIVE)
+
   
   // Quan hệ 1:1 với các Profile chuyên biệt
   candidate     Candidate?

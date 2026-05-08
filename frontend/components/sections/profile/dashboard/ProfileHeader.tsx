@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { ChevronRight, Mail } from "lucide-react";
 import Link from "next/link";
+import { getUserAvatar } from "@/utils/avatarHelper";
 
 interface ProfileHeaderProps {
   id?: string;
@@ -22,7 +23,7 @@ export default function ProfileHeader({
         {/* Avatar */}
         <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-blue-200">
           <Image
-            src={avatarUrl || "https://i.pravatar.cc/40"}
+            src={getUserAvatar(avatarUrl)}
             alt={name}
             fill
             className="object-cover"

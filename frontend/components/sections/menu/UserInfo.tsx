@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Menu ,CircleUserRound, BriefcaseBusiness, FileText,  } from 'lucide-react';
 import MenuList from "./MenuList";
+import { getUserAvatar } from "@/utils/avatarHelper";
+
 interface UserMenuProps{
     avatarUserUrl: string,
     nameUser: string,
@@ -25,13 +27,15 @@ export default function UserInfo( {avatarUserUrl, nameUser, stateUser, idUser, e
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const avatarSrc = getUserAvatar(avatarUserUrl);
+
   return (
     <div className="relative" ref={ref}>
    
       <img
-        src="https://i.pravatar.cc/40"
+        src={avatarSrc}
         alt="avatar"
-        className="w-10 h-10 rounded-full cursor-pointer"
+        className="w-10 h-10 rounded-full cursor-pointer object-cover"
         onClick={() => setOpen(!open)}
       />
 
@@ -41,9 +45,9 @@ export default function UserInfo( {avatarUserUrl, nameUser, stateUser, idUser, e
           {/* User Info */}
           <div className="flex items-center gap-3 p-4 pb-3">
             <img
-              src="https://i.pravatar.cc/40"
+              src={avatarSrc}
               alt="avatar"
-              className="w-10 h-10 rounded-full"
+              className="w-10 h-10 rounded-full object-cover"
             />
             <div>
               <p className="font-semibold">{nameUser}</p>
