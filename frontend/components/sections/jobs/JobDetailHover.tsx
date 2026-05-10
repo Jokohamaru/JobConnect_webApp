@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { MapPinned, BriefcaseBusiness } from 'lucide-react';
 import { Hourglass } from 'lucide-react';
 import Link from "next/link";
+import { getAvatarWithFallback } from "@/utils/avatarHelper";
 interface JobDetailHoverProps {
   slugJob: string;
   slugCompany: string;
@@ -52,11 +53,11 @@ export default function JobDetailHover({
         {/* Header */}
         <div className="bg-white">
           <div className="flex gap-4">
-            <div className="w-[80px] h-[80px]">
+            <div className="w-[80px] h-[80px] shrink-0">
               <img
-                src={logoCompanyURL || "https://i.pravatar.cc/40"}
+                src={getAvatarWithFallback(nameCompany, logoCompanyURL)}
                 alt={nameCompany}
-                className="w-full h-full rounded"
+                className="w-full h-full rounded object-cover"
               />
             </div>
             <div className="flex flex-col  w-[70%]">

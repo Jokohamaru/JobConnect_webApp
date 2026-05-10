@@ -28,9 +28,9 @@ export function middleware(request: NextRequest) {
 
   // Protected routes
   const protectedRoutes = [
-    '/profile',
+    // '/profile',
     '/dashboard',
-    '/recruiter',
+    // '/recruiter',
     '/candidate',
   ];
 

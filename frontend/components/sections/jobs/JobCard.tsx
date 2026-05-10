@@ -5,6 +5,8 @@ import { useRef, useState } from "react";
 import JobDetailHover from "./JobDetailHover";
 import { Heart } from "lucide-react";
 import Link from "next/link";
+import { getAvatarWithFallback } from "@/utils/avatarHelper";
+
 export interface JobCardProps {
   slugJob: string;
   slugCompany: string;
@@ -59,11 +61,11 @@ export default function JobCard({
 
       <div className="bg-white rounded-xl shadow px-1 py-4 hover:shadow-md hover:border-blue-200 border border-transparent transition-all duration-200">
         <div className="flex gap-2 items-center justify-center">
-          <div className="w-[60px] h-[60px]">
+          <div className="w-[60px] h-[60px] shrink-0">
             <img
-              src={logoCompanyURL || "https://i.pravatar.cc/40"}
+              src={getAvatarWithFallback(nameCompany, logoCompanyURL)}
               alt={nameCompany}
-              className="w-full h-full rounded"
+              className="w-full h-full rounded object-cover"
             />
           </div>
           <div className="flex flex-col w-[70%]">

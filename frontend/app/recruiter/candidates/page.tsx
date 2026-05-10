@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Link from "next/link";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type MatchLevel = "Phù hợp cao" | "Phù hợp trung bình" | "Phù hợp thấp";
@@ -358,10 +359,10 @@ function HeroBanner() {
         <p className="text-blue-100 text-sm mb-6">
           Xem, đánh giá và quản lý tất cả ứng viên đã ứng tuyển vào tin đăng của bạn.
         </p>
-        <Button className="bg-white text-blue-600 hover:bg-blue-50 font-semibold gap-2 shadow-md">
+        <Link href="/recruiter/post-job" className="bg-white px-4 py-2 rounded-full w-fit flex items-center gap-2 text-blue-600 hover:bg-blue-50 font-semibold  shadow-md">
           <Plus className="h-4 w-4" />
           Đăng tin mới
-        </Button>
+        </Link>
       </div>
 
       {/* Illustration */}

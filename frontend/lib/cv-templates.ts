@@ -14,7 +14,7 @@ export const CV_TEMPLATES: CVTemplate[] = [
     name: "Tiêu chuẩn (ít kinh nghiệm)",
     image: "/images/cvtemplate2.jpg",
     tags: ["ATS", "Đơn giản", "Chuyên nghiệp"],
-    isNew: true,
+    isNew: false,
     downloads: 8750,
   },
   {
@@ -22,7 +22,7 @@ export const CV_TEMPLATES: CVTemplate[] = [
     name: "Thanh lịch",
     image: "/images/cvtemplate3.jpg",
     tags: ["ATS", "Hiện đại"],
-    isNew: false,
+    isNew: true,
     downloads: 9300,
   },
 ];

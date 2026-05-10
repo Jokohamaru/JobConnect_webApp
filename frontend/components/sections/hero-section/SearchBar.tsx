@@ -5,7 +5,7 @@ import { Button } from "../../ui/button";
 import { TrendingTag } from "./TrendingTag";
 import LocationSelect from "./LocationSelect";
 import { useState, useRef, useEffect } from "react";
-import { TrendingUp, Search, Briefcase, DollarSign } from "lucide-react";
+import { TrendingUp, Search, Briefcase, DollarSign, ArrowRight, User, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 // ──────────────── Mock data ────────────────
@@ -98,30 +98,45 @@ export function SearchBar() {
   const showDropdown = focused;
 
   return (
-    <div className="bg-linear-to-r from-[#1d5b9a]  to-[#5ca8c1] to-90% flex flex-col items-center gap-8 py-15">
-      <p className="text-3xl text-white font-bold text-center">
-        Job Connect - Tạo CV bằng AI, Tìm Việc Làm, Tuyển dụng hiệu quả
-      </p>
+    <div className="bg-linear-to-b from-[#1864c0] to-[#71C5EE] flex flex-col items-center gap-6 py-12 px-4 relative">
+      {/* Decorative background clouds (abstract) */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-10 -left-20 w-64 h-24 bg-white/10 blur-3xl rounded-full" />
+        <div className="absolute top-20 -right-20 w-80 h-32 bg-white/10 blur-3xl rounded-full" />
+        <div className="absolute bottom-0 left-1/4 w-96 h-40 bg-white/20 blur-3xl rounded-full" />
+      </div>
 
-      {/* Search row with dropdown */}
-      <div className="relative flex items-center gap-4 bg-transparent" ref={containerRef}>
-        <LocationSelect label="Địa điểm" options={["Hà Nội", "Hải Phòng"]} />
+      <h1 className="text-[32px] text-white font-bold text-center leading-tight z-10">
+        Job Connect - Tạo CV bằng AI,<br/>
+        Tìm Việc Làm, Tuyển dụng hiệu quả
+      </h1>
 
-        {/* Input + dropdown wrapper */}
-        <div className="relative">
+      {/* Unified Search Row */}
+      <div className="relative flex items-center bg-white rounded-full p-1.5 w-full max-w-[800px] shadow-lg z-50" ref={containerRef}>
+        
+        {/* Location Dropdown */}
+        <div className="shrink-0 w-40 z-100">
+          <LocationSelect label="Địa điểm" options={["Hà Nội", "Hải Phòng", "Hồ Chí Minh", "Đà Nẵng"]} />
+        </div>
+
+        {/* Vertical Divider */}
+        <div className="w-px h-8 bg-gray-200 mx-1 shrink-0" />
+
+        {/* Input area */}
+        <div className="relative flex-1">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onFocus={() => setFocused(true)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            className="h-12.5 w-100 rounded-full bg-white border-none px-6 text-[15px] font-semibold"
+            className="h-12 w-full bg-transparent border-none px-4 text-[15px] text-gray-700 font-medium focus-visible:ring-0 shadow-none placeholder:text-gray-400"
             placeholder={searchType === "company" ? "Tên công ty..." : "Vị trí tuyển dụng, tên công ty..."}
           />
 
           {/* ── Dropdown Panel ── */}
           {showDropdown && (
             <div
-              className="absolute top-[calc(100%+8px)] left-0 z-50 w-[740px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
+              className="absolute top-[calc(100%+16px)] left-[-20px] z-50 w-[740px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
               onMouseDown={(e) => e.preventDefault()} // prevent blur on click inside
             >
               {/* Search type selector */}
@@ -232,15 +247,66 @@ export function SearchBar() {
           )}
         </div>
 
+        {/* Search Button */}
         <Button
           onClick={handleSearch}
-          className="h-12.5 px-10 rounded-full bg-[#1f698b] hover:bg-blue-900 text-white cursor-pointer font-semibold text-xl"
+          className="h-11 px-8 rounded-full bg-[#1877F2] hover:bg-blue-700 text-white cursor-pointer font-medium text-sm shrink-0 shadow-sm ml-1 transition-colors"
         >
-          Tìm kiếm
+          Tìm Kiếm
         </Button>
       </div>
 
-      <TrendingTag />
+      <div className="z-20">
+        <TrendingTag />
+      </div>
+
+      {/* AI CV Creation Banner */}
+      <div className="mt-4 bg-white/95 backdrop-blur-sm rounded-2xl p-6 md:p-8 max-w-[800px] w-full flex flex-col md:flex-row items-center justify-between shadow-2xl z-20">
+        <div className="max-w-md">
+          <h2 className="text-[22px] font-bold text-gray-900 mb-2 flex items-center gap-3">
+            Tạo CV chuyên nghiệp bằng AI
+            <span className="bg-[#4F46E5] text-white text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full shadow-sm">Mới</span>
+          </h2>
+          <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+            CV tối ưu ATS, đẹp mắt, đúng chuẩn nhà tuyển dụng<br/>
+            Chỉ mất 1 phút để sở hữu CV ấn tượng!
+          </p>
+          <Button onClick={() => router.push('/cv-builder/ai')} className="bg-[#4F46E5] hover:bg-indigo-600 text-white rounded-lg px-6 h-11 flex items-center gap-2 font-medium shadow-md transition-colors">
+            <Sparkles size={16} /> Tạo CV ngay <ArrowRight size={16} />
+          </Button>
+        </div>
+
+        {/* Abstract Illustration */}
+        <div className="relative shrink-0 w-48 h-40 mt-8 md:mt-0 mr-4">
+           <div className="absolute inset-0 flex items-center justify-center">
+             <div className="w-[120px] h-[150px] bg-white border-4 border-blue-50 rounded-xl shadow-xl relative p-3">
+               {/* User icon */}
+               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-4 mx-auto">
+                 <User size={20} />
+               </div>
+               {/* Lines */}
+               <div className="w-full h-1.5 bg-gray-100 rounded-full mb-2"></div>
+               <div className="w-3/4 h-1.5 bg-gray-100 rounded-full mb-4"></div>
+               {/* Chart */}
+               <div className="flex gap-1.5 items-end h-8">
+                 <div className="w-3 h-3 bg-gray-200 rounded-sm"></div>
+                 <div className="w-3 h-5 bg-gray-300 rounded-sm"></div>
+                 <div className="w-3 h-4 bg-blue-300 rounded-sm"></div>
+                 <div className="w-3 h-8 bg-blue-500 rounded-sm"></div>
+               </div>
+               
+               {/* AI Badge overlay */}
+               <div className="absolute -left-5 bottom-4 bg-[#4F46E5] text-white font-bold text-sm px-3 py-1.5 rounded-lg shadow-lg shadow-indigo-200 border border-indigo-400">
+                 AI
+               </div>
+             </div>
+             {/* Sparkles */}
+             <Sparkles className="absolute text-blue-300 w-5 h-5 -top-2 right-6 opacity-70" />
+             <Sparkles className="absolute text-blue-400 w-4 h-4 bottom-4 -right-2 opacity-80" />
+             <Sparkles className="absolute text-indigo-300 w-6 h-6 top-8 -left-6 opacity-60" />
+           </div>
+        </div>
+      </div>
     </div>
   );
 }

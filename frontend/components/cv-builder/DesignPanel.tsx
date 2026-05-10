@@ -21,6 +21,7 @@ export const FONT_FAMILIES = [
 export type LayoutType = "two-column" | "one-column";
 
 interface DesignPanelProps {
+  templateId?: number;
   colorIndex: number;
   onColorChange: (i: number) => void;
   fontFamily: string;
@@ -32,6 +33,7 @@ interface DesignPanelProps {
 }
 
 export function DesignPanel({
+  templateId,
   colorIndex, onColorChange,
   fontFamily, onFontChange,
   fontSize, onFontSizeChange,
@@ -73,39 +75,41 @@ export function DesignPanel({
         </div>
 
         {/* Layout */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <Layout className="w-4 h-4 text-gray-500" />
-            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Bố cục</span>
+        {templateId !== 1 && templateId !== 2 && (
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Layout className="w-4 h-4 text-gray-500" />
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Bố cục</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {(["two-column", "one-column"] as LayoutType[]).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => onLayoutChange(l)}
+                  className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                    layout === l ? "border-blue-500 bg-blue-50" : "border-gray-100 hover:border-gray-300"
+                  }`}
+                >
+                  {l === "two-column" ? (
+                    <div className="flex gap-0.5 w-10 h-8">
+                      <div className="w-3 h-full bg-gray-700 rounded-sm" />
+                      <div className="flex-1 h-full bg-gray-200 rounded-sm" />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-8 bg-gray-200 rounded-sm flex flex-col gap-1 p-1">
+                      <div className="w-full h-2 bg-gray-400 rounded-sm" />
+                      <div className="w-3/4 h-1.5 bg-gray-300 rounded-sm" />
+                      <div className="w-full h-1.5 bg-gray-300 rounded-sm" />
+                    </div>
+                  )}
+                  <span className="text-[10px] text-gray-600 font-medium">
+                    {l === "two-column" ? "2 cột" : "1 cột"}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            {(["two-column", "one-column"] as LayoutType[]).map((l) => (
-              <button
-                key={l}
-                onClick={() => onLayoutChange(l)}
-                className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
-                  layout === l ? "border-blue-500 bg-blue-50" : "border-gray-100 hover:border-gray-300"
-                }`}
-              >
-                {l === "two-column" ? (
-                  <div className="flex gap-0.5 w-10 h-8">
-                    <div className="w-3 h-full bg-gray-700 rounded-sm" />
-                    <div className="flex-1 h-full bg-gray-200 rounded-sm" />
-                  </div>
-                ) : (
-                  <div className="w-10 h-8 bg-gray-200 rounded-sm flex flex-col gap-1 p-1">
-                    <div className="w-full h-2 bg-gray-400 rounded-sm" />
-                    <div className="w-3/4 h-1.5 bg-gray-300 rounded-sm" />
-                    <div className="w-full h-1.5 bg-gray-300 rounded-sm" />
-                  </div>
-                )}
-                <span className="text-[10px] text-gray-600 font-medium">
-                  {l === "two-column" ? "2 cột" : "1 cột"}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* Font family */}
         <div>

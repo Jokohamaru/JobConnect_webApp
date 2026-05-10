@@ -8,7 +8,7 @@ export default function ProfileMenu() {
 
   const menu = [
     { label: "Tổng quan", href: "/profile/dashboard", icon: Menu },
-    { label: "Hồ sơ của tôi", href: "/profile", icon: User },
+    { label: "Hồ sơ của tôi", href: "/profile/my-file", icon: User },
     { label: "Việc làm của tôi", href: "/profile/my-jobs", icon: Briefcase },
     { label: "Hồ sơ đính kèm", href: "/profile/cv-attachment", icon: FileText },
     { label: "Lời mời công viêc", href: "/profile/invites", icon: Mail },

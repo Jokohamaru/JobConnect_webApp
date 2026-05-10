@@ -10,7 +10,7 @@ import {
   Camera,
   BadgeCheck,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ProfileEditDialog } from "./ProfileEditDialog";
 import { Button } from "@/components/ui/button";
 import { getUserAvatar } from "@/utils/avatarHelper";
@@ -38,6 +38,17 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
     link: "",
   });
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setProfile((prev) => ({ ...prev, avatar: url }));
+      // In a real app, you would also upload this file to the server here
+    }
+  };
+
   const infoItems = [
     { icon: <Mail className="w-4 h-4" />, value: profile.email, placeholder: "Email chưa cập nhật", color: "text-blue-500" },
     { icon: <Phone className="w-4 h-4" />, value: profile.phone, placeholder: "Số điện thoại", color: "text-green-500" },
@@ -64,6 +75,13 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
         <div className="flex items-center gap-5 mb-5">
           {/* Avatar */}
           <div className="relative shrink-0">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleAvatarChange}
+              accept="image/*"
+              className="hidden"
+            />
             <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-gray-100 shadow-md bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center">
               {profile.avatar || user.avatarUrl ? (
                 <Image
@@ -81,7 +99,8 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
               type="button"
               variant="ghost"
               size="icon"
-              className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-md p-0"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-md p-0 z-10"
             >
               <Camera className="w-3 h-3" />
             </Button>

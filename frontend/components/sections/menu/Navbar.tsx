@@ -2,15 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Bell } from "lucide-react";
-import { MessageSquareMore } from "lucide-react";
-import { User } from "lucide-react";
+import { Bell, Sparkles, MessageSquareMore, User } from "lucide-react";
 
 import UserInfo from "./UserInfo";
 import { useAuth } from "@/context/AuthContext";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
+  const pathname = usePathname();
+
+  const isActive = (path: string) => {
+    if (path === "/") return pathname === "/";
+    if (path === "#") return false;
+    return pathname === path || pathname.startsWith(`${path}/`);
+  };
   
   return (
     <div className="w-full border-b font-sans sticky top-0 z-50 bg-white ">
@@ -27,33 +33,41 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center gap-6 text-black font-medium">
-            <Link href="/searching-page" className="font-semibold text-[16px] cursor-pointer hover:text-[#00e5ff] transition-colors">
+            <Link 
+              href="/searching-page" 
+              className={`font-semibold text-[16px] cursor-pointer transition-colors ${
+                isActive("/searching-page") ? "text-[#1F84C5]" : "hover:text-[#1F84C5]"
+              }`}
+            >
               Việc làm ▾
             </Link>
-            <p className="font-semibold text-[16px] cursor-pointer hover:text-[#00e5ff] transition-colors">
+            <p className="font-semibold text-[16px] cursor-pointer hover:text-[#1F84C5] transition-colors">
               Công cụ ▾
             </p>
-            <p className="font-semibold text-[16px] cursor-pointer hover:text-[#00e5ff] transition-colors">
+            <p className="font-semibold text-[16px] cursor-pointer hover:text-[#1F84C5] transition-colors">
               Cẩm nang nghề nghiệp ▾
             </p>
             <Link 
-              className="font-semibold text-[16px] cursor-pointer hover:text-[#00e5ff] transition-colors"
               href="/cv"
+              className={`font-semibold text-[16px] cursor-pointer transition-colors ${
+                isActive("/cv") || isActive("/cv-builder") ? "text-[#1F84C5]" : "hover:text-[#1F84C5]"
+              }`}
             >
               Tạo CV ▾
             </Link>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
+          <Link
+            href="/cv-builder/ai"
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-[#00E5FF] text-white px-6 py-2 rounded-full font-bold text-[15px] shadow-sm hover:shadow-md transition-all hover:opacity-90"
+          >
+            <Sparkles className="w-4 h-4" /> Tạo CV bằng AI
+          </Link>
+
           {!isAuthenticated ? (
             <div className="flex items-center gap-4">
-              <Link
-                className="bg-[#ffffff] text-blue-800 px-4 py-2 rounded-full cursor-pointer hover:bg-gray-200 font-semibold"
-                href=""
-              >
-                Đăng tuyển & tìm hồ sơ
-              </Link>
 
               <Link
                 className="bg-[#1F84C5] text-white px-4 py-2 rounded-full cursor-pointer hover:bg-blue-900 font-semibold"

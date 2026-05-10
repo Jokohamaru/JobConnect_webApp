@@ -14,30 +14,31 @@ export default function LocationSelect({ label, options }: LocationSelect) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="relative"> 
+    <div className="relative "> 
       <Button
+        variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-6 py-6 bg-white border border-gray-300 rounded-full hover:border-blue-500 transition-colors"
+        className="flex items-center justify-between w-full h-full px-6 bg-transparent hover:bg-transparent rounded-l-full focus-visible:ring-0"
       >
-        <span className="text-gray-700 font-semibold ">{choose}</span>
+        <span className="text-gray-700 font-semibold">{choose}</span>
         <ChevronDown
           className={`w-4 h-4 text-gray-600 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </Button>
 
       {isOpen && (
-         <div className="absolute top-full left-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+         <div className="absolute top-full left-0 mt-3 w-48 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden">
           {options.map((option) => (
-            <Button
+            <button
               key={option}
               onClick={() => {
                 setChoose(option);
                 setIsOpen(false);
               }}
-              className="w-full text-left px-4 py-6 hover:bg-blue-50 transition-colors font-semibold"
+              className="w-full text-left px-5 py-3 hover:bg-blue-50 transition-colors font-semibold text-gray-700"
             >
               {option}
-            </Button>
+            </button>
           ))}
         </div>
       )}

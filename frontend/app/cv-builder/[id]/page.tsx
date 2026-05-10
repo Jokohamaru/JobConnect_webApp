@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeft, FileDown, Layers, Palette, ZoomIn, ZoomOut, Save } from "lucide-react";
+import { ArrowLeft, FileDown, Layers, Palette, ZoomIn, ZoomOut, Save, AlertCircle, CheckCircle2 } from "lucide-react";
 import { CV_TEMPLATES } from "@/lib/cv-templates";
 import { SectionPanel, DEFAULT_SECTIONS, SectionConfig, SectionKey } from "@/components/cv-builder/SectionPanel";
 import { DesignPanel, FONT_FAMILIES, LayoutType } from "@/components/cv-builder/DesignPanel";
@@ -51,24 +51,30 @@ export default function CVBuilderPage() {
   const [zoom, setZoom] = useState(80);
   const [cvTitle, setCvTitle] = useState("CV cua toi");
   const [isSaving, setIsSaving] = useState(false);
+  const [toastInfo, setToastInfo] = useState<{ message: string; type: "error" | "success" } | null>(null);
+
+  const showToast = (message: string, type: "error" | "success" = "error") => {
+    setToastInfo({ message, type });
+    setTimeout(() => setToastInfo(null), 3000);
+  };
 
   const enabledSections = sections.filter((s) => s.enabled).map((s) => s.key) as SectionKey[];
 
   const handleSaveCV = async () => {
     if (!user || user.role !== 'CANDIDATE') {
-      alert('Vui lòng đăng nhập với tài khoản ứng viên để lưu CV');
-      router.push('/auth/login');
+      showToast('Vui lòng đăng nhập với tài khoản ứng viên để lưu CV', 'error');
+      setTimeout(() => router.push('/auth/login'), 1500);
       return;
     }
 
     if (!cvTitle.trim()) {
-      alert('Vui lòng nhập tên CV');
+      showToast('Vui lòng nhập tên CV', 'error');
       return;
     }
 
     if (!token) {
-      alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
-      router.push('/auth/login');
+      showToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại', 'error');
+      setTimeout(() => router.push('/auth/login'), 1500);
       return;
     }
 
@@ -144,11 +150,11 @@ export default function CVBuilderPage() {
       }
 
       const result = await response.json();
-      alert(`Lưu CV thành công!`);
-      router.push('/profile/dashboard');
+      showToast(`Lưu CV thành công!`, "success");
+      setTimeout(() => router.push('/profile/dashboard'), 1500);
     } catch (error: any) {
       console.error('Failed to save CV:', error);
-      alert(error.message || 'Có lỗi xảy ra khi lưu CV');
+      showToast(error.message || 'Có lỗi xảy ra khi lưu CV', "error");
     } finally {
       setIsSaving(false);
     }
@@ -187,7 +193,16 @@ export default function CVBuilderPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100 overflow-hidden">
+    <div className="h-screen flex flex-col bg-gray-100 overflow-hidden relative">
+      {toastInfo && (
+        <div className={`fixed bottom-6 right-6 z-[9999] px-5 py-3.5 rounded-xl shadow-2xl shadow-black/20 text-[15px] font-semibold flex items-center gap-3 animate-in slide-in-from-bottom-8 fade-in transition-all duration-300 ${
+          toastInfo.type === 'error' ? 'bg-white border-l-4 border-red-500 text-gray-800' : 'bg-white border-l-4 border-green-500 text-gray-800'
+        }`}>
+          {toastInfo.type === 'error' ? <AlertCircle className="w-5 h-5 text-red-500" /> : <CheckCircle2 className="w-5 h-5 text-green-500" />}
+          {toastInfo.message}
+        </div>
+      )}
+
       <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 shrink-0 z-50 shadow-sm print:hidden">
         <div className="flex items-center gap-3">
           <button onClick={() => router.push("/cv")} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors px-2 py-1 rounded-lg hover:bg-gray-50">
@@ -197,12 +212,12 @@ export default function CVBuilderPage() {
           <div className="h-5 w-px bg-gray-200" />
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
-              <span className="text-sm text-gray-400">Kieu CV:</span>
+              <span className="text-sm text-gray-400">Kiểu CV:</span>
               <span className="text-sm font-semibold text-blue-600">{template.name}</span>
             </div>
             <div className="h-5 w-px bg-gray-200" />
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400">Ten CV:</span>
+              <span className="text-sm text-gray-400">Tên CV:</span>
               <input
                 type="text"
                 value={cvTitle}
@@ -229,11 +244,11 @@ export default function CVBuilderPage() {
             className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm"
           >
             <Save className="w-4 h-4" />
-            <span>{isSaving ? 'Dang luu...' : 'SAVE CV'}</span>
+            <span>{isSaving ? 'Đang lưu...' : 'Lưu CV'}</span>
           </button>
           <button onClick={() => window.print()} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm">
             <FileDown className="w-4 h-4" />
-            <span>Tai PDF</span>
+            <span>Tải PDF</span>
           </button>
         </div>
       </header>
@@ -245,14 +260,14 @@ export default function CVBuilderPage() {
               <button key={tab} onClick={() => setActiveTab(tab)}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold transition-colors ${activeTab === tab ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/40" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`}>
                 {tab === "sections" ? <Layers className="w-3.5 h-3.5" /> : <Palette className="w-3.5 h-3.5" />}
-                {tab === "sections" ? "Muc CV" : "Thiet ke"}
+                {tab === "sections" ? "Mục CV" : "Thiết kế"}
               </button>
             ))}
           </div>
           <div className="flex-1 overflow-hidden">
             {activeTab === "sections"
               ? <SectionPanel sections={sections} onChange={setSections} />
-              : <DesignPanel colorIndex={colorIndex} onColorChange={setColorIndex} fontFamily={fontFamily} onFontChange={setFontFamily} fontSize={fontSize} onFontSizeChange={setFontSize} layout={layout} onLayoutChange={setLayout} />
+              : <DesignPanel templateId={template.id} colorIndex={colorIndex} onColorChange={setColorIndex} fontFamily={fontFamily} onFontChange={setFontFamily} fontSize={fontSize} onFontSizeChange={setFontSize} layout={layout} onLayoutChange={setLayout} />
             }
           </div>
         </aside>
@@ -262,7 +277,7 @@ export default function CVBuilderPage() {
             style={{ width: 794, minHeight: 1123, transform: `scale(${zoom / 100})`, transformOrigin: "top center", marginBottom: zoom < 100 ? 0 : `${(zoom / 100 - 1) * 1123}px` }}
             className="bg-white shadow-2xl print:shadow-none"
           >
-            <CVDocument data={cvData} onChange={setCvData} colorIndex={colorIndex} fontFamily={fontFamily} fontSize={fontSize} layout={layout} enabledSections={enabledSections} />
+            <CVDocument data={cvData} onChange={setCvData} templateId={template.id} colorIndex={colorIndex} fontFamily={fontFamily} fontSize={fontSize} layout={layout} enabledSections={enabledSections} />
           </div>
         </main>
       </div>

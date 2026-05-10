@@ -1,9 +1,5 @@
-import MyFileSection from "@/components/sections/profile/my-file/MyFileSection";
+import { redirect } from "next/navigation";
 
-export default function MyFile(){
-  return(
-    <div>
-      <MyFileSection />
-    </div>
-  )
+export default function ProfileDefaultPage() {
+  redirect("/profile/dashboard");
 }
