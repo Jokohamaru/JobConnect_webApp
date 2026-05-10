@@ -23,11 +23,15 @@ async function main() {
     update: {
       password: hashedPassword,
       role: UserRole.CANDIDATE,
+      firstName: 'John',
+      lastName: 'Doe',
     },
     create: {
       email: 'candidate@example.com',
       password: hashedPassword,
       role: UserRole.CANDIDATE,
+      firstName: 'John',
+      lastName: 'Doe',
     },
   });
 
@@ -37,15 +41,11 @@ async function main() {
   const candidate = await prisma.candidate.upsert({
     where: { userId: candidateUser.id },
     update: {
-      firstName: 'John',
-      lastName: 'Doe',
       phoneNumber: '0123456789',
       careerRole: 'Software Engineer',
     },
     create: {
       userId: candidateUser.id,
-      firstName: 'John',
-      lastName: 'Doe',
       phoneNumber: '0123456789',
       careerRole: 'Software Engineer',
     },
@@ -54,16 +54,8 @@ async function main() {
   console.log('✅ Candidate profile created');
 
   // Create sample CVs
-  const cv1 = await prisma.cV.upsert({
-    where: { id: '00000000-0000-0000-0000-000000000001' },
-    update: {
-      title: 'Software Engineer CV',
-      cvUrl: 'https://example.com/cv/john-doe-software-engineer.pdf',
-      status: CVStatus.DONE,
-      candidateId: candidate.id,
-    },
-    create: {
-      id: '00000000-0000-0000-0000-000000000001',
+  const cv1 = await prisma.cV.create({
+    data: {
       title: 'Software Engineer CV',
       cvUrl: 'https://example.com/cv/john-doe-software-engineer.pdf',
       status: CVStatus.DONE,
@@ -71,16 +63,8 @@ async function main() {
     },
   });
 
-  const cv2 = await prisma.cV.upsert({
-    where: { id: '00000000-0000-0000-0000-000000000002' },
-    update: {
-      title: 'Frontend Developer CV',
-      cvUrl: 'https://example.com/cv/john-doe-frontend.pdf',
-      status: CVStatus.DONE,
-      candidateId: candidate.id,
-    },
-    create: {
-      id: '00000000-0000-0000-0000-000000000002',
+  const cv2 = await prisma.cV.create({
+    data: {
       title: 'Frontend Developer CV',
       cvUrl: 'https://example.com/cv/john-doe-frontend.pdf',
       status: CVStatus.DONE,

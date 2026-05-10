@@ -23,7 +23,7 @@ export function JobsTable({ onAddUser }: JobsTableProps) {
     <Card className="shadow-sm border-none overflow-hidden bg-white">
       <CardHeader className="bg-white border-b border-gray-100 pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-bold">Kiểm duyệt ứng viên</CardTitle>
+          <CardTitle className="text-lg font-bold">Tài khoản</CardTitle>
           <Button
             onClick={onAddUser}
             className="flex items-center gap-2 bg-[#0E7BC3] hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200"
@@ -39,13 +39,13 @@ export function JobsTable({ onAddUser }: JobsTableProps) {
             <TableHeader className="bg-gray-50/50">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="font-semibold text-gray-600">
-                  Mã ứng viên
+                  Mã tài khoản
                 </TableHead>
                 <TableHead className="font-semibold text-gray-600">
-                  Tên ứng viên
+                  Tên tài khoản
                 </TableHead>
                 <TableHead className="font-semibold text-gray-600">
-                  Chuyên môn
+                  Vai trò
                 </TableHead>
                 <TableHead className="font-semibold text-gray-600">
                   Trạng thái

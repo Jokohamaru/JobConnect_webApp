@@ -9,12 +9,12 @@ export function StatusBadge({ status }: { status: JobStatus }) {
       dotClass: "bg-emerald-500",
     },
     pending: {
-      label: "Đang chờ duyệt",
+      label: "Dừng hoạt động",
       className: "bg-yellow-50 text-yellow-600 border-yellow-200",
       dotClass: "bg-yellow-500",
     },
     expired: {
-      label: "Hết hạn",
+      label: "Bị xoá",
       className: "bg-gray-100 text-gray-600 border-gray-200",
       dotClass: "bg-gray-500",
     },

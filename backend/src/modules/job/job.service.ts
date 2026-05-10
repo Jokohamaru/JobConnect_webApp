@@ -186,8 +186,12 @@ export class JobService {
         recruiter: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
           },
         },
       },

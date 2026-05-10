@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Helper function to decode JWT and get role
 function getUserRoleFromToken(token: string): string | null {
   try {
     const payload = JSON.parse(
@@ -18,19 +17,19 @@ export function middleware(request: NextRequest) {
   
   const pathname = request.nextUrl.pathname;
 
-  // Public routes that don't require authentication
+  // Public routes
   const publicRoutes = [
     '/auth/login',
     '/auth/register',
     '/auth/forgot-password',
     '/auth/reset-password',
+    '/admin/dashboard'
   ];
 
-  // Protected routes that require authentication
+  // Protected routes
   const protectedRoutes = [
     '/profile',
     '/dashboard',
-    '/admin',
     '/recruiter',
     '/candidate',
   ];

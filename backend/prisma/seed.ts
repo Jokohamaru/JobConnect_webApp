@@ -97,11 +97,8 @@ async function main() {
 
   // Create companies
   const companies = await Promise.all([
-    prisma.company.upsert({
-      where: { id: 'company-1' },
-      update: {},
-      create: {
-        id: 'company-1',
+    prisma.company.create({
+      data: {
         name: 'TechViet Solutions',
         size: '100-500',
         nation: 'Việt Nam',
@@ -110,11 +107,8 @@ async function main() {
         typeId: companyType.id,
       },
     }),
-    prisma.company.upsert({
-      where: { id: 'company-2' },
-      update: {},
-      create: {
-        id: 'company-2',
+    prisma.company.create({
+      data: {
         name: 'Digital Innovation Corp',
         size: '50-100',
         nation: 'Việt Nam',
@@ -123,11 +117,8 @@ async function main() {
         typeId: companyType.id,
       },
     }),
-    prisma.company.upsert({
-      where: { id: 'company-3' },
-      update: {},
-      create: {
-        id: 'company-3',
+    prisma.company.create({
+      data: {
         name: 'Smart Tech Vietnam',
         size: '20-50',
         nation: 'Việt Nam',
@@ -149,6 +140,8 @@ async function main() {
       email: 'recruiter@example.com',
       password: hashedPassword,
       role: UserRole.RECRUITER,
+      firstName: 'Nguyễn',
+      lastName: 'Văn A',
     },
   });
 
@@ -157,8 +150,6 @@ async function main() {
     update: {},
     create: {
       userId: recruiterUser.id,
-      firstName: 'Nguyễn',
-      lastName: 'Văn A',
       phoneNumber: '0123456789',
       companyId: companies[0].id,
     },

@@ -28,13 +28,13 @@ export class CandidateService {
         data: {
           email: createCandidateDto.email,
           password: hashedPassword,
+          firstName: createCandidateDto.firstName,
+          lastName: createCandidateDto.lastName,
         }
       })
 
       const candidate = await this.prisma.candidate.create({
         data: {
-          lastName: createCandidateDto.lastName,
-          firstName: createCandidateDto.firstName,
           userId: user.id
         }
       })

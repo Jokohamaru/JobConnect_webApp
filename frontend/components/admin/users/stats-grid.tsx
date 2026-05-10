@@ -1,18 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { StatsCard } from "./stats-card";
-import { Briefcase, Building, UserPlus, Calendar } from "lucide-react";
+import { StatsCard } from "@/components/admin/dashboard/stats-card";
+import { Users, UserPlus, Building, CheckCircle } from "lucide-react";
 
-interface DashboardStats {
-  totalJobs: string;
-  newEmployers: string;
+interface UsersStats {
+  totalUsers: string;
   newCandidates: string;
-  expiredJobs: string;
+  newRecruiters: string;
+  activeUsers: string;
 }
 
 export function StatsGrid() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [stats, setStats] = useState<UsersStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,7 +22,7 @@ export function StatsGrid() {
         const token = localStorage.getItem("access_token");
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
         
-        const response = await fetch(`${apiUrl}/admin/dashboard/stats`, {
+        const response = await fetch(`${apiUrl}/admin/users/stats`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -33,7 +33,7 @@ export function StatsGrid() {
         if (!response.ok) {
           const errorData = await response.json().catch(() => null);
           throw new Error(
-            errorData?.message || `Failed to fetch dashboard stats (${response.status})`
+            errorData?.message || `Failed to fetch users stats (${response.status})`
           );
         }
 
@@ -41,7 +41,7 @@ export function StatsGrid() {
         setStats(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
-        console.error("Error fetching dashboard stats:", err);
+        console.error("Error fetching users stats:", err);
       } finally {
         setLoading(false);
       }
@@ -63,7 +63,7 @@ export function StatsGrid() {
   if (error || !stats) {
     return (
       <div className="text-center text-red-500">
-        Error loading dashboard stats
+        Error loading users stats
       </div>
     );
   }
@@ -71,32 +71,32 @@ export function StatsGrid() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       <StatsCard
-        title={"Tổng số việc\nlàm"}
-        value={stats.totalJobs}
-        icon={Briefcase}
-        iconColorClass="text-yellow-500"
-        iconBgClass="bg-yellow-50 border border-yellow-200"
+        title={"Số tài khoản"}
+        value={stats.totalUsers}
+        icon={Users}
+        iconColorClass="text-blue-500"
+        iconBgClass="bg-blue-50 border border-blue-200"
       />
       <StatsCard
-        title={"Nhà tuyển dụng\nmới\n(tháng này)"}
-        value={stats.newEmployers}
-        icon={Building}
-        iconColorClass="text-emerald-500"
-        iconBgClass="bg-emerald-50 border border-emerald-200"
-      />
-      <StatsCard
-        title={"Ứng viên mới\n(tháng này)"}
+        title={"Số ứng viên\ntạo mới\n(tháng này)"}
         value={stats.newCandidates}
         icon={UserPlus}
-        iconColorClass="text-teal-500"
-        iconBgClass="bg-teal-50 border border-teal-200"
+        iconColorClass="text-green-500"
+        iconBgClass="bg-green-50 border border-green-200"
       />
       <StatsCard
-        title={"Tin hết hạn\n(tháng này)"}
-        value={stats.expiredJobs}
-        icon={Calendar}
-        iconColorClass="text-red-400"
-        iconBgClass="bg-red-50 border border-red-200"
+        title={"Số Recruiter\ntạo mới\n(tháng này)"}
+        value={stats.newRecruiters}
+        icon={Building}
+        iconColorClass="text-purple-500"
+        iconBgClass="bg-purple-50 border border-purple-200"
+      />
+      <StatsCard
+        title={"Tài khoản\nhoạt động"}
+        value={stats.activeUsers}
+        icon={CheckCircle}
+        iconColorClass="text-emerald-500"
+        iconBgClass="bg-emerald-50 border border-emerald-200"
       />
     </div>
   );

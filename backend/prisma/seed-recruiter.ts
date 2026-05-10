@@ -23,11 +23,15 @@ async function main() {
     update: {
       password: hashedPassword,
       role: UserRole.RECRUITER,
+      firstName: 'Recruiter',
+      lastName: 'Test',
     },
     create: {
       email: 'recruiter@example.com',
       password: hashedPassword,
       role: UserRole.RECRUITER,
+      firstName: 'Recruiter',
+      lastName: 'Test',
     },
   });
 
@@ -45,15 +49,11 @@ async function main() {
   const recruiter = await prisma.recruiter.upsert({
     where: { userId: recruiterUser.id },
     update: {
-      firstName: 'Recruiter',
-      lastName: 'Test',
       phoneNumber: '0987654321',
       companyId: company.id,
     },
     create: {
       userId: recruiterUser.id,
-      firstName: 'Recruiter',
-      lastName: 'Test',
       phoneNumber: '0987654321',
       companyId: company.id,
     },

@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prisma:seed": "ts-node prisma/seed.ts",
     "prisma:seed-recruiter": "ts-node prisma/seed-recruiter.ts",
-    "prisma:seed-candidate": "ts-node prisma/seed-candidate.ts"
+    "prisma:seed-candidate": "ts-node prisma/seed-candidate.ts",
+    "prisma:seed-admin": "ts-node prisma/seed-admin.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

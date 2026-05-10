@@ -49,28 +49,27 @@ enum Currency {
   USD
 }
 
-// --- MODELS ---
+
 
 model User {
   id            String     @id @default(uuid())
   email         String     @unique
-  password      String?    // Nullable cho Social Login
-  avaUrl        String?    // Avatar URL, default sẽ dùng /user.png
+  password      String?    
+  firstName     String?
+  lastName      String?
+  avaUrl        String?    
   role          UserRole   @default(CANDIDATE)
   status        UserStatus @default(ACTIVE)
 
-  
-  // Quan hệ 1:1 với các Profile chuyên biệt
   candidate     Candidate?
   recruiter     Recruiter?
   adminProfile  Admin?
 
-  // Hỗ trợ Social Login
   accounts      Account[]
   
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
-  deletedAt     DateTime?  // Hỗ trợ Soft Delete
+  deletedAt     DateTime?  
 
   @@map("users")
 }
@@ -78,7 +77,7 @@ model User {
 model Account {
   id                String  @id @default(uuid())
   userId            String
-  provider          String  // "google", "linkedin"
+  provider          String  
   providerAccountId String
   user              User    @relation(fields: [userId], references: [id])
 
@@ -90,8 +89,6 @@ model Candidate {
   id          String   @id @default(uuid())
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id])
-  firstName   String
-  lastName    String
   phoneNumber String?  // Cần mã hóa PII ở tầng Service
   careerRole  String?
   
@@ -108,8 +105,6 @@ model Recruiter {
   id          String   @id @default(uuid())
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id])
-  firstName   String
-  lastName    String
   phoneNumber String?
   
   companyId   String?
