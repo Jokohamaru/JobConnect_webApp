@@ -1,0 +1,190 @@
+### Company API Examples
+### Sử dụng với REST Client extension trong VS Code
+
+@baseUrl = http://localhost:3000
+@adminToken = your-admin-jwt-token-here
+
+### ============================================
+### PUBLIC ENDPOINTS (Không cần authentication)
+### ============================================
+
+### 1. Get all companies (with pagination)
+GET {{baseUrl}}/companies?page=1&pageSize=20
+Content-Type: application/json
+
+### 2. Get all companies (with search)
+GET {{baseUrl}}/companies?search=FPT
+Content-Type: application/json
+
+### 3. Get company detail by ID
+GET {{baseUrl}}/companies/company-uuid-here
+Content-Type: application/json
+
+### ============================================
+### ADMIN ENDPOINTS (Yêu cầu ADMIN role)
+### ============================================
+
+### 4. Get companies stats
+GET {{baseUrl}}/admin/companies/stats
+Authorization: Bearer {{adminToken}}
+
+### 5. Get all companies (admin view)
+GET {{baseUrl}}/admin/companies?page=1&limit=10
+Authorization: Bearer {{adminToken}}
+
+### 6. Get all companies (admin view with search)
+GET {{baseUrl}}/admin/companies?page=1&limit=10&search=FPT
+Authorization: Bearer {{adminToken}}
+
+### 7. Get company types
+GET {{baseUrl}}/admin/companies/types
+Authorization: Bearer {{adminToken}}
+
+### 8. Create new company (without logo)
+POST {{baseUrl}}/admin/companies
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "FPT Software",
+  "size": "1000+",
+  "nation": "Việt Nam",
+  "description": "Công ty phần mềm hàng đầu Việt Nam",
+  "address": "Tòa nhà FPT, Duy Tân, Cầu Giấy, Hà Nội",
+  "websiteUrl": "https://fptsoftware.com",
+  "typeId": "type-uuid-here"
+}
+
+### 9. Create new company (with logo - multipart/form-data)
+### Note: Sử dụng Postman hoặc curl cho request này
+### curl -X POST http://localhost:3000/admin/companies \
+###   -H "Authorization: Bearer your-token" \
+###   -F "name=FPT Software" \
+###   -F "size=1000+" \
+###   -F "nation=Việt Nam" \
+###   -F "description=Công ty phần mềm hàng đầu" \
+###   -F "address=Hà Nội" \
+###   -F "websiteUrl=https://fptsoftware.com" \
+###   -F "typeId=type-uuid" \
+###   -F "logo=@/path/to/logo.png"
+
+### 10. Get company by ID (admin view)
+GET {{baseUrl}}/admin/companies/company-uuid-here
+Authorization: Bearer {{adminToken}}
+
+### 11. Update company (without logo)
+PUT {{baseUrl}}/admin/companies/company-uuid-here
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "FPT Software Vietnam",
+  "size": "2000+",
+  "description": "Updated description"
+}
+
+### 12. Update company (with logo - multipart/form-data)
+### Note: Sử dụng Postman hoặc curl cho request này
+### curl -X PUT http://localhost:3000/admin/companies/company-uuid \
+###   -H "Authorization: Bearer your-token" \
+###   -F "name=FPT Software Vietnam" \
+###   -F "logo=@/path/to/new-logo.png"
+
+### 13. Delete company
+DELETE {{baseUrl}}/admin/companies/company-uuid-here
+Authorization: Bearer {{adminToken}}
+
+### ============================================
+### ERROR CASES
+### ============================================
+
+### 14. Create company with duplicate name (should return 409)
+POST {{baseUrl}}/admin/companies
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "FPT Software"
+}
+
+### 15. Create company without required fields (should return 400)
+POST {{baseUrl}}/admin/companies
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "size": "100-500"
+}
+
+### 16. Update non-existent company (should return 404)
+PUT {{baseUrl}}/admin/companies/non-existent-uuid
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Test Company"
+}
+
+### 17. Delete company with active jobs (should return 409)
+DELETE {{baseUrl}}/admin/companies/company-with-jobs-uuid
+Authorization: Bearer {{adminToken}}
+
+### 18. Access admin endpoint without token (should return 401)
+GET {{baseUrl}}/admin/companies/stats
+
+### 19. Access admin endpoint with non-admin token (should return 403)
+GET {{baseUrl}}/admin/companies/stats
+Authorization: Bearer non-admin-token-here
+
+### ============================================
+### TESTING WORKFLOW
+### ============================================
+
+### Step 1: Login as admin to get token
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin123"
+}
+
+### Step 2: Get company types
+GET {{baseUrl}}/admin/companies/types
+Authorization: Bearer {{adminToken}}
+
+### Step 3: Create a new company
+POST {{baseUrl}}/admin/companies
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Test Company",
+  "size": "50-100",
+  "nation": "Việt Nam",
+  "description": "This is a test company",
+  "address": "Hà Nội",
+  "websiteUrl": "https://testcompany.com",
+  "typeId": "type-uuid-from-step-2"
+}
+
+### Step 4: Get the created company
+GET {{baseUrl}}/companies/company-uuid-from-step-3
+Content-Type: application/json
+
+### Step 5: Update the company
+PUT {{baseUrl}}/admin/companies/company-uuid-from-step-3
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "description": "Updated description for test company"
+}
+
+### Step 6: Delete the company
+DELETE {{baseUrl}}/admin/companies/company-uuid-from-step-3
+Authorization: Bearer {{adminToken}}
+
+### Step 7: Verify company is deleted (should return 404 or null)
+GET {{baseUrl}}/companies/company-uuid-from-step-3
+Content-Type: application/json

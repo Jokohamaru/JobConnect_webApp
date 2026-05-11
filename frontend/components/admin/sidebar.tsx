@@ -11,7 +11,8 @@ import {
   BarChart3, 
   Settings, 
   LogOut,
-  ChevronLeft
+  ChevronLeft,
+  Building
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -21,6 +22,7 @@ const menuItems = [
   { title: "Bảng điều khiển", icon: LayoutDashboard, href: "/admin/dashboard" },
   { title: "Việc làm", icon: Briefcase, href: "/admin/jobs" },
   { title: "Nhà tuyển dụng", icon: Building2, href: "/admin/recruiter" },
+  { title: "Công ty", icon: Building, href: "/admin/companies" },
   { title: "Người dùng", icon: Users, href: "/admin/users" },
   { title: "Danh mục", icon: List, href: "/admin/categories" },
   { title: "Báo cáo", icon: BarChart3, href: "/admin/reports" },
