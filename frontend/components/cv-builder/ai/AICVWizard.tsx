@@ -19,8 +19,8 @@ import { useRouter } from "next/navigation";
 
 const STEPS = [
   { id: 1, label: "Thông tin" },
-  { id: 2, label: "Kinh nghiệm" },
-  { id: 3, label: "Học vấn" },
+  { id: 2, label: "Học vấn" },
+  { id: 3, label: "Kinh nghiệm" },
   { id: 4, label: "Kỹ năng" },
   { id: 5, label: "Hoàn thiện" },
 ];
@@ -126,9 +126,6 @@ export function AICVWizard() {
             </div>
           )}
           {currentStep === 2 && (
-            <Briefcase className="w-12 h-12 text-[#1877F2]" />
-          )}
-          {currentStep === 3 && (
             <div className="relative w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center">
               <svg
                 className="w-10 h-10 text-[#1877F2]"
@@ -138,6 +135,9 @@ export function AICVWizard() {
                 <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z" />
               </svg>
             </div>
+          )}
+          {currentStep === 3 && (
+            <Briefcase className="w-12 h-12 text-[#1877F2]" />
           )}
           {currentStep === 4 && (
             <div className="relative w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center">
@@ -153,8 +153,8 @@ export function AICVWizard() {
         </div>
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
           {currentStep === 1 && "Tạo CV chuyên nghiệp với AI"}
-          {currentStep === 2 && "Kinh nghiệm làm việc"}
-          {currentStep === 3 && "Học vấn"}
+          {currentStep === 2 && "Học vấn"}
+          {currentStep === 3 && "Kinh nghiệm làm việc"}
           {currentStep === 4 && "Kỹ năng của bạn"}
           {currentStep === 5 && "Hoàn thiện & Tạo CV"}
         </h1>
@@ -169,16 +169,16 @@ export function AICVWizard() {
           )}
           {currentStep === 2 && (
             <>
-              <span className="block">
-                Thêm kinh nghiệm của bạn để Job Connect
-              </span>
-              <span className="block">giúp tạo CV phù hợp hơn.</span>
+              <span className="block">Thêm học vấn của bạn để Job Connect</span>
+              <span className="block">hiểu rõ hơn về trình độ của bạn.</span>
             </>
           )}
           {currentStep === 3 && (
             <>
-              <span className="block">Thêm học vấn của bạn để Job Connect</span>
-              <span className="block">hiểu rõ hơn về trình độ của bạn.</span>
+              <span className="block">
+                Thêm kinh nghiệm của bạn để Job Connect
+              </span>
+              <span className="block">giúp tạo CV phù hợp hơn.</span>
             </>
           )}
           {currentStep === 4 && (
@@ -249,10 +249,10 @@ export function AICVWizard() {
             <InfoStep data={formData} onChange={setFormData} />
           )}
           {currentStep === 2 && (
-            <ExperienceStep data={formData} onChange={setFormData} />
+            <EducationStep data={formData} onChange={setFormData} />
           )}
           {currentStep === 3 && (
-            <EducationStep data={formData} onChange={setFormData} />
+            <ExperienceStep data={formData} onChange={setFormData} />
           )}
           {currentStep === 4 && (
             <SkillStep data={formData} onChange={setFormData} />

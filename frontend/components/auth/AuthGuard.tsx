@@ -1,61 +1,71 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  requireAuth?: boolean;
-  requireRole?: string[];
+  requiredRole?: "CANDIDATE" | "RECRUITER" | "ADMIN";
   redirectTo?: string;
 }
 
-export default function AuthGuard({
-  children,
-  requireAuth = false,
-  requireRole,
-  redirectTo = "/auth/login",
+export function AuthGuard({ 
+  children, 
+  requiredRole, 
+  redirectTo = "/auth/login" 
 }: AuthGuardProps) {
-  const router = useRouter();
-  const pathname = usePathname();
   const { isAuthenticated, user, isLoading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    // Wait for loading to finish
-    if (isLoading) return;
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        // Redirect to login with current path as redirect parameter
+        const currentPath = window.location.pathname;
+        router.push(`${redirectTo}?redirect=${encodeURIComponent(currentPath)}`);
+        return;
+      }
 
-    // If auth is required but user is not authenticated
-    if (requireAuth && !isAuthenticated) {
-      const loginUrl = `${redirectTo}?redirect=${encodeURIComponent(pathname)}`;
-      router.push(loginUrl);
-      return;
+      if (requiredRole && user?.role !== requiredRole) {
+        // User doesn't have required role
+        router.push("/");
+        return;
+      }
     }
+  }, [isAuthenticated, user, isLoading, requiredRole, redirectTo, router]);
 
-    // If specific role is required
-    if (requireRole && user && !requireRole.includes(user.role)) {
-      router.push("/unauthorized");
-      return;
-    }
-  }, [isAuthenticated, user, isLoading, requireAuth, requireRole, router, pathname, redirectTo]);
-
-  // Show loading while checking authentication
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Đang kiểm tra đăng nhập...</p>
+        </div>
       </div>
     );
   }
 
-  // If auth is required but user is not authenticated, don't render children
-  if (requireAuth && !isAuthenticated) {
-    return null;
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Đang chuyển hướng đến trang đăng nhập...</p>
+        </div>
+      </div>
+    );
   }
 
-  // If specific role is required but user doesn't have it, don't render children
-  if (requireRole && user && !requireRole.includes(user.role)) {
-    return null;
+  if (requiredRole && user?.role !== requiredRole) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="text-gray-600">Bạn không có quyền truy cập trang này.</p>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;
