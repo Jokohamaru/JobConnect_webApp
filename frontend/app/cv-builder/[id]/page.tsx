@@ -1,8 +1,8 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
-import { ArrowLeft, FileDown, Layers, Palette, ZoomIn, ZoomOut, Save, AlertCircle, CheckCircle2 } from "lucide-react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { ArrowLeft, FileDown, Layers, Palette, ZoomIn, ZoomOut, Save, AlertCircle, CheckCircle2, Sparkles } from "lucide-react";
 import { CV_TEMPLATES } from "@/lib/cv-templates";
 import { SectionPanel, DEFAULT_SECTIONS, SectionConfig, SectionKey } from "@/components/cv-builder/SectionPanel";
 import { DesignPanel, FONT_FAMILIES, LayoutType } from "@/components/cv-builder/DesignPanel";
@@ -52,6 +52,29 @@ export default function CVBuilderPage() {
   const [cvTitle, setCvTitle] = useState("CV cua toi");
   const [isSaving, setIsSaving] = useState(false);
   const [toastInfo, setToastInfo] = useState<{ message: string; type: "error" | "success" } | null>(null);
+  const [isFromAI, setIsFromAI] = useState(false);
+  const searchParams = useSearchParams();
+
+  // Đọc AI-generated data từ sessionStorage nếu đến từ wizard
+  useEffect(() => {
+    if (searchParams.get("fromAI") === "true") {
+      const raw = sessionStorage.getItem("ai-cv-data");
+      if (raw) {
+        try {
+          const aiData: CVData = JSON.parse(raw);
+          setCvData(aiData);
+          // Đặt tên CV từ vị trí công việc AI tạo
+          if (aiData.jobTitle) {
+            setCvTitle(`CV - ${aiData.jobTitle}`);
+          }
+          setIsFromAI(true);
+          sessionStorage.removeItem("ai-cv-data");
+        } catch (e) {
+          console.error("Failed to parse AI CV data", e);
+        }
+      }
+    }
+  }, [searchParams]);
 
   const showToast = (message: string, type: "error" | "success" = "error") => {
     setToastInfo({ message, type });
@@ -205,7 +228,7 @@ export default function CVBuilderPage() {
 
       <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 shrink-0 z-50 shadow-sm print:hidden">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/cv")} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors px-2 py-1 rounded-lg hover:bg-gray-50">
+          <button onClick={() => router.push(isFromAI ? "/cv-builder/ai" : "/cv")} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors px-2 py-1 rounded-lg hover:bg-gray-50">
             <ArrowLeft className="w-4 h-4" />
             <span>Quay lai</span>
           </button>
@@ -215,6 +238,15 @@ export default function CVBuilderPage() {
               <span className="text-sm text-gray-400">Kiểu CV:</span>
               <span className="text-sm font-semibold text-blue-600">{template.name}</span>
             </div>
+            {isFromAI && (
+              <>
+                <div className="h-5 w-px bg-gray-200" />
+                <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-[#1877F2] px-3 py-1 rounded-full">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span className="text-xs font-bold">Được tạo bởi AI</span>
+                </div>
+              </>
+            )}
             <div className="h-5 w-px bg-gray-200" />
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-400">Tên CV:</span>

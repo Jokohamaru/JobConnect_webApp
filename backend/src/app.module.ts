@@ -12,6 +12,7 @@ import { ApplicationModule } from './modules/application/application.module';
 import { SavedJobModule } from './modules/saved-job/saved-job.module';
 import { CVModule } from './modules/cv/cv.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { AiCVModule } from './modules/ai-cv/ai-cv.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AdminModule } from './modules/admin/admin.module';
     SavedJobModule,
     CVModule,
     AdminModule,
+    AiCVModule,
   ],
   controllers: [AppController],
   providers: [AppService],
