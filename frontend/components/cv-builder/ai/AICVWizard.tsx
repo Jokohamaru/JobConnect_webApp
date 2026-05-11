@@ -3,17 +3,26 @@
 import { useState } from "react";
 import { InfoStep } from "./steps/InfoStep";
 import { ExperienceStep } from "./steps/ExperienceStep";
+import { EducationStep } from "./steps/EducationStep";
 import { SkillStep } from "./steps/SkillStep";
 import { GenerateStep } from "./steps/GenerateStep";
 import { Button } from "@/components/ui/button";
-import { Check, ArrowRight, ArrowLeft, Briefcase, Star, Sparkles } from "lucide-react";
+import {
+  Check,
+  ArrowRight,
+  ArrowLeft,
+  Briefcase,
+  Star,
+  Sparkles,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const STEPS = [
   { id: 1, label: "Thông tin" },
   { id: 2, label: "Kinh nghiệm" },
-  { id: 3, label: "Kỹ năng" },
-  { id: 4, label: "Hoàn thiện" },
+  { id: 3, label: "Học vấn" },
+  { id: 4, label: "Kỹ năng" },
+  { id: 5, label: "Hoàn thiện" },
 ];
 
 // Interface cho experience input
@@ -28,6 +37,25 @@ export interface ExperienceInput {
   achievements: string;
 }
 
+// Interface cho education input
+export interface EducationInput {
+  school: string;
+  degree: string;
+  major: string;
+  startDate: string;
+  endDate: string;
+  isCurrent: boolean;
+  gpa: string;
+  description: string;
+}
+
+// Interface cho certificate input
+export interface CertificateInput {
+  name: string;
+  issuer: string;
+  date: string;
+}
+
 // Interface cho toàn bộ formData của wizard
 export interface WizardFormData {
   // Step 1
@@ -38,9 +66,12 @@ export interface WizardFormData {
   // Step 2
   experiences: ExperienceInput[];
   // Step 3
+  educations: EducationInput[];
+  // Step 4
   skills: string[];
   skillLevels: Record<string, string>;
   strengths: string[];
+  certificates?: CertificateInput[];
 }
 
 const defaultFormData = (): WizardFormData => ({
@@ -49,9 +80,11 @@ const defaultFormData = (): WizardFormData => ({
   level: "fresher",
   templateId: 1,
   experiences: [],
+  educations: [],
   skills: [],
   skillLevels: {},
   strengths: [],
+  certificates: [],
 });
 
 export function AICVWizard() {
@@ -60,7 +93,7 @@ export function AICVWizard() {
   const router = useRouter();
 
   const handleNext = () => {
-    if (currentStep < 4) {
+    if (currentStep < 5) {
       setCurrentStep((prev) => prev + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -73,8 +106,8 @@ export function AICVWizard() {
     }
   };
 
-  // Ẩn nút Next ở bước 4 (GenerateStep tự xử lý)
-  const showNextButton = currentStep < 4;
+  // Ẩn nút Next ở bước 5 (GenerateStep tự xử lý)
+  const showNextButton = currentStep < 5;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20">
@@ -92,14 +125,27 @@ export function AICVWizard() {
               </div>
             </div>
           )}
-          {currentStep === 2 && <Briefcase className="w-12 h-12 text-[#1877F2]" />}
+          {currentStep === 2 && (
+            <Briefcase className="w-12 h-12 text-[#1877F2]" />
+          )}
           {currentStep === 3 && (
+            <div className="relative w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center">
+              <svg
+                className="w-10 h-10 text-[#1877F2]"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z" />
+              </svg>
+            </div>
+          )}
+          {currentStep === 4 && (
             <div className="relative w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center">
               <Star className="w-8 h-8 text-[#1877F2] fill-[#1877F2]" />
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rotate-45" />
             </div>
           )}
-          {currentStep === 4 && (
+          {currentStep === 5 && (
             <div className="relative w-16 h-16 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl flex items-center justify-center">
               <Sparkles className="w-8 h-8 text-[#1877F2]" />
             </div>
@@ -108,29 +154,40 @@ export function AICVWizard() {
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
           {currentStep === 1 && "Tạo CV chuyên nghiệp với AI"}
           {currentStep === 2 && "Kinh nghiệm làm việc"}
-          {currentStep === 3 && "Kỹ năng của bạn"}
-          {currentStep === 4 && "Hoàn thiện & Tạo CV"}
+          {currentStep === 3 && "Học vấn"}
+          {currentStep === 4 && "Kỹ năng của bạn"}
+          {currentStep === 5 && "Hoàn thiện & Tạo CV"}
         </h1>
         <p className="text-gray-500">
           {currentStep === 1 && (
             <>
               <span className="block">Trả lời một vài câu hỏi ngắn,</span>
-              <span className="block">Job Connect sẽ gợi ý CV phù hợp với bạn.</span>
+              <span className="block">
+                Job Connect sẽ gợi ý CV phù hợp với bạn.
+              </span>
             </>
           )}
           {currentStep === 2 && (
             <>
-              <span className="block">Thêm kinh nghiệm của bạn để Job Connect</span>
+              <span className="block">
+                Thêm kinh nghiệm của bạn để Job Connect
+              </span>
               <span className="block">giúp tạo CV phù hợp hơn.</span>
             </>
           )}
           {currentStep === 3 && (
             <>
+              <span className="block">Thêm học vấn của bạn để Job Connect</span>
+              <span className="block">hiểu rõ hơn về trình độ của bạn.</span>
+            </>
+          )}
+          {currentStep === 4 && (
+            <>
               <span className="block">Thêm các kỹ năng để Job Connect</span>
               <span className="block">gợi ý CV phù hợp và nổi bật hơn.</span>
             </>
           )}
-          {currentStep === 4 && (
+          {currentStep === 5 && (
             <>
               <span className="block">Xem lại thông tin và để AI</span>
               <span className="block">tạo CV chuyên nghiệp cho bạn.</span>
@@ -147,7 +204,9 @@ export function AICVWizard() {
           {/* Progress line */}
           <div
             className="absolute left-0 top-1/2 -translate-y-1/2 h-[2px] bg-[#1877F2] z-0 transition-all duration-500"
-            style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
+            style={{
+              width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%`,
+            }}
           />
 
           {STEPS.map((step) => {
@@ -155,14 +214,17 @@ export function AICVWizard() {
             const isActive = currentStep === step.id;
 
             return (
-              <div key={step.id} className="flex items-center gap-3 bg-[#F8FAFC] px-2 z-10 relative">
+              <div
+                key={step.id}
+                className="flex items-center gap-3 bg-[#F8FAFC] px-2 z-10 relative"
+              >
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
                     isCompleted
                       ? "bg-[#1877F2] text-white"
                       : isActive
-                      ? "bg-[#1877F2] text-white ring-4 ring-blue-100"
-                      : "bg-white border-2 border-gray-200 text-gray-500"
+                        ? "bg-[#1877F2] text-white ring-4 ring-blue-100"
+                        : "bg-white border-2 border-gray-200 text-gray-500"
                   }`}
                 >
                   {isCompleted ? <Check className="w-4 h-4" /> : step.id}
@@ -190,11 +252,12 @@ export function AICVWizard() {
             <ExperienceStep data={formData} onChange={setFormData} />
           )}
           {currentStep === 3 && (
-            <SkillStep data={formData} onChange={setFormData} />
+            <EducationStep data={formData} onChange={setFormData} />
           )}
           {currentStep === 4 && (
-            <GenerateStep formData={formData} />
+            <SkillStep data={formData} onChange={setFormData} />
           )}
+          {currentStep === 5 && <GenerateStep formData={formData} />}
         </div>
 
         {/* Navigation Actions */}
@@ -212,7 +275,7 @@ export function AICVWizard() {
           </div>
           <div className="w-1/3 text-center">
             <span className="text-sm text-gray-500 italic">
-              {currentStep < 4
+              {currentStep < 5
                 ? "Bạn có thể bỏ qua bước này và bổ sung sau."
                 : ""}
             </span>

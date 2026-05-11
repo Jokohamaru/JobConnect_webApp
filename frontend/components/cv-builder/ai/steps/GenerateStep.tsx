@@ -22,9 +22,11 @@ interface GenerateStepProps {
     level: string;
     templateId: number;
     experiences: any[];
+    educations: any[];
     skills: string[];
     skillLevels: Record<string, string>;
     strengths: string[];
+    certificates?: any[];
   };
 }
 
@@ -96,9 +98,11 @@ export function GenerateStep({ formData }: GenerateStepProps) {
           level: formData.level,
           templateId: formData.templateId,
           experiences: formData.experiences,
+          educations: formData.educations,
           skills: formData.skills,
           skillLevels: formData.skillLevels,
           strengths: formData.strengths,
+          certificates: formData.certificates || [],
         }),
       });
 
@@ -115,9 +119,7 @@ export function GenerateStep({ formData }: GenerateStepProps) {
 
       // Chờ 1s để user thấy success state, rồi redirect
       setTimeout(() => {
-        router.push(
-          `/cv-builder/${formData.templateId}?fromAI=true`
-        );
+        router.push(`/cv-builder/${formData.templateId}?fromAI=true`);
       }, 1000);
     } catch (err: any) {
       setStatus("error");
@@ -157,6 +159,15 @@ export function GenerateStep({ formData }: GenerateStepProps) {
       filled: formData.experiences.length > 0,
     },
     {
+      icon: <CheckCircle2 className="w-4 h-4" />,
+      label: "Học vấn",
+      value:
+        formData.educations?.length > 0
+          ? `${formData.educations.length} trường đã nhập`
+          : "Chưa nhập",
+      filled: formData.educations?.length > 0,
+    },
+    {
       icon: <Star className="w-4 h-4" />,
       label: "Kỹ năng",
       value:
@@ -164,6 +175,15 @@ export function GenerateStep({ formData }: GenerateStepProps) {
           ? `${formData.skills.length} kỹ năng`
           : "Chưa nhập",
       filled: formData.skills.length > 0,
+    },
+    {
+      icon: <CheckCircle2 className="w-4 h-4" />,
+      label: "Chứng chỉ",
+      value:
+        formData.certificates && formData.certificates.length > 0
+          ? `${formData.certificates.length} chứng chỉ`
+          : "Chưa nhập",
+      filled: formData.certificates && formData.certificates.length > 0,
     },
   ];
 

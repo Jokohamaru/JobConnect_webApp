@@ -18,7 +18,6 @@ async function seedCompanyTypes() {
     { name: 'Văn phòng đại diện' },
     { name: 'Tổ chức phi lợi nhuận' },
   ];
-
   for (const type of companyTypes) {
     await prisma.companyType.upsert({
       where: { name: type.name },
@@ -26,7 +25,6 @@ async function seedCompanyTypes() {
       create: type,
     });
   }
-
   console.log('✅ Company types seeded successfully!');
 }
 

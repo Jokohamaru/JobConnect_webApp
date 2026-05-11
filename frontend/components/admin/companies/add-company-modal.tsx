@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X, Upload, Eye, Building } from "lucide-react";
+import { X, Upload, Eye, Building, Ghost } from "lucide-react";
 import Image from "next/image";
 
 interface AddCompanyModalProps {
@@ -31,7 +31,11 @@ interface CompanyFormData {
   typeId: string;
 }
 
-export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalProps) {
+export function AddCompanyModal({
+  open,
+  onClose,
+  onSuccess,
+}: AddCompanyModalProps) {
   const [formData, setFormData] = useState<CompanyFormData>({
     name: "",
     size: "",
@@ -45,26 +49,29 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [companyTypes, setCompanyTypes] = useState<Array<{ id: string; name: string }>>([]);
+  const [companyTypes, setCompanyTypes] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch company types
   useEffect(() => {
     const fetchCompanyTypes = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
         const response = await fetch(`${apiUrl}/admin/companies/types`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
         });
-        
+
         if (response.ok) {
           const types = await response.json();
           setCompanyTypes(types);
           // Set default type if available
           if (types.length > 0) {
-            setFormData(prev => ({ ...prev, typeId: types[0].id }));
+            setFormData((prev) => ({ ...prev, typeId: types[0].id }));
           }
         }
       } catch (error) {
@@ -78,7 +85,7 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
   }, [open]);
 
   const handleInputChange = (field: keyof CompanyFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     setError("");
   };
 
@@ -86,7 +93,7 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         setError("Vui lòng chọn file hình ảnh");
         return;
       }
@@ -98,7 +105,7 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
       }
 
       setLogo(file);
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -119,7 +126,7 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       setError("Vui lòng nhập tên công ty");
       return;
@@ -130,7 +137,7 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-      
+
       // Create FormData for file upload
       const submitData = new FormData();
       submitData.append("name", formData.name);
@@ -139,11 +146,11 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
       submitData.append("description", formData.description);
       submitData.append("address", formData.address);
       submitData.append("websiteUrl", formData.websiteUrl);
-      
+
       if (formData.typeId) {
         submitData.append("typeId", formData.typeId);
       }
-      
+
       if (logo) {
         submitData.append("logo", logo);
       }
@@ -172,7 +179,7 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
-        
+
         onSuccess();
         onClose();
       } else {
@@ -196,7 +203,9 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-2">
             <Building className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Thêm công ty mới</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Thêm công ty mới
+            </h2>
           </div>
           <Button
             variant="ghost"
@@ -218,7 +227,9 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
 
           {/* Logo Upload */}
           <div>
-            <Label className="text-sm font-medium text-gray-700">Logo công ty</Label>
+            <Label className="text-sm font-medium text-gray-700">
+              Logo công ty
+            </Label>
             <div className="mt-2">
               {logoPreview ? (
                 <div className="relative inline-block">
@@ -227,7 +238,7 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
                     alt="Logo preview"
                     width={120}
                     height={120}
-                    className="w-30 h-30 object-cover rounded-lg border-2 border-gray-200"
+                    className="w-30 h-30 object-contain rounded-lg border-2 border-gray-200 aspect-square"
                   />
                   <Button
                     type="button"
@@ -296,7 +307,10 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
 
           {/* Nation */}
           <div>
-            <Label htmlFor="nation" className="text-sm font-medium text-gray-700">
+            <Label
+              htmlFor="nation"
+              className="text-sm font-medium text-gray-700"
+            >
               Quốc gia
             </Label>
             <Input
@@ -311,7 +325,10 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
 
           {/* Company Type */}
           <div>
-            <Label htmlFor="typeId" className="text-sm font-medium text-gray-700">
+            <Label
+              htmlFor="typeId"
+              className="text-sm font-medium text-gray-700"
+            >
               Loại hình công ty
             </Label>
             <Select
@@ -333,7 +350,10 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
 
           {/* Address */}
           <div>
-            <Label htmlFor="address" className="text-sm font-medium text-gray-700">
+            <Label
+              htmlFor="address"
+              className="text-sm font-medium text-gray-700"
+            >
               Địa chỉ
             </Label>
             <Input
@@ -348,7 +368,10 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
 
           {/* Website URL */}
           <div>
-            <Label htmlFor="websiteUrl" className="text-sm font-medium text-gray-700">
+            <Label
+              htmlFor="websiteUrl"
+              className="text-sm font-medium text-gray-700"
+            >
               Website
             </Label>
             <Input
@@ -363,7 +386,10 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
 
           {/* Description */}
           <div>
-            <Label htmlFor="description" className="text-sm font-medium text-gray-700">
+            <Label
+              htmlFor="description"
+              className="text-sm font-medium text-gray-700"
+            >
               Mô tả công ty
             </Label>
             <Textarea
@@ -386,7 +412,11 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
             >
               Hủy
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
               {loading ? (
                 <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

@@ -16,6 +16,8 @@ export interface Job {
     id: string;
     name: string;
     logoUrl: string | null;
+    description?: string;
+    size?: string;
   };
   city: {
     id: string;

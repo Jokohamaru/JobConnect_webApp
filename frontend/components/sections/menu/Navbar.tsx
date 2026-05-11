@@ -19,7 +19,7 @@ export default function Navbar() {
   };
   
   return (
-    <div className="w-full border-b font-sans sticky top-0 z-50 bg-white ">
+    <div className="w-full border-b font-sans sticky top-0 z-100 bg-white ">
       <div className="flex items-center justify-between h-17.5 px-10">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center">
@@ -70,7 +70,7 @@ export default function Navbar() {
             <div className="flex items-center gap-4">
 
               <Link
-                className="bg-[#1F84C5] text-white px-4 py-2 rounded-full cursor-pointer hover:bg-blue-900 font-semibold"
+                className="bg-[#2c96c4] text-white px-4 py-2 rounded-full cursor-pointer hover:bg-blue-900 font-semibold"
                 href="/auth/login"
               >
                 Đăng nhập/Đăng Ký

@@ -34,13 +34,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function JobDetailPage({ params }: PageProps) {
   const { slug: jobId } = await params;
 
-  let job;
-  try {
-    job = await jobService.getJobById(jobId);
-  } catch (error) {
+  const job = await jobService.getJobById(jobId).catch((error) => {
     console.error('Failed to fetch job:', error);
-    notFound();
-  }
+    return null;
+  });
 
   if (!job) {
     notFound();
@@ -122,8 +119,7 @@ export default async function JobDetailPage({ params }: PageProps) {
       <div className="mx-auto max-w-7xl py-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
           {/* ── LEFT COLUMN ──────────────────────────────────────────────────────── */}
-          <div className="flex min-w-0 flex-1 flex-col gap-6">
-            <JobHeader job={jobDetail} />
+          <div className="flex min-w-0 flex-1 flex-col gap-6">              <JobHeader job={jobDetail} />
             <JobMeta job={jobDetail} />
             <JobReasons reasons={jobDetail.reasons} />
             <JobDescription

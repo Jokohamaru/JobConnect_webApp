@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateCVDto } from './dto/create-cv.dto';
-import { CVStatus, CVType } from '@prisma/client';
+import { CreateCVDto, CVType } from './dto/create-cv.dto';
+import { CVStatus } from '@prisma/client';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 import * as htmlPdf from 'html-pdf-node';
@@ -15,19 +15,24 @@ export class CVService {
       data: {
         title: createCVDto.title,
         cvUrl: createCVDto.cvUrl!,
-        cvType: (createCVDto.cvType as CVType) || CVType.UPLOADED,
+        cvType: createCVDto.cvType || CVType.UPLOADED,
         cvData: createCVDto.cvData || null,
         status: CVStatus.DONE,
         candidateId,
       },
     });
-
     return cv;
   }
 
-  async generatePDFFromHTML(htmlContent: string, title: string, userId: string, candidateId: string, cvData?: any) {
+  async generatePDFFromHTML(
+    htmlContent: string,
+    title: string,
+    userId: string,
+    candidateId: string,
+    cvData?: any,
+  ) {
     let cv;
-    
+
     try {
       // Tạo CV record trước để có ID
       cv = await this.prisma.cV.create({
@@ -43,7 +48,7 @@ export class CVService {
 
       // Tạo tên file: userId_cvId.pdf
       const filename = `${userId}_${cv.id}.pdf`;
-      
+
       // Fix path: uploads folder nằm ở root của project, không phải trong dist
       const uploadsDir = join(process.cwd(), 'uploads', 'cvs');
       const filePath = join(uploadsDir, filename);
@@ -59,27 +64,35 @@ export class CVService {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
 
-      // Cấu hình PDF options với lề tiêu chuẩn A4
-      const options = { 
+      // Cấu hình PDF options với lề tiêu chuẩn A4 và in màu nền
+      const options = {
         format: 'A4',
-        printBackground: true,
+        printBackground: true, // Quan trọng: in màu nền và màu sắc
+        preferCSSPageSize: true,
         margin: {
-          top: '20mm',
-          right: '20mm',
-          bottom: '20mm',
-          left: '20mm',
+          top: '0mm',
+          right: '0mm',
+          bottom: '0mm',
+          left: '0mm',
         },
+        // Thêm các options để đảm bảo màu sắc được giữ nguyên
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+        ],
       };
 
       const file = { content: htmlContent };
 
       console.log('Generating PDF with html-pdf-node...');
-      
+
       // Generate PDF buffer
       const pdfBuffer = await htmlPdf.generatePdf(file, options);
-      
+
       console.log('PDF buffer generated, writing to file...');
-      
+
       // Write buffer to file
       await require('fs').promises.writeFile(filePath, pdfBuffer);
 
@@ -104,7 +117,7 @@ export class CVService {
     } catch (error) {
       console.error('Error generating PDF:', error);
       console.error('Error stack:', error.stack);
-      
+
       // Nếu generate PDF thất bại, xóa CV record
       if (cv) {
         try {
@@ -114,7 +127,7 @@ export class CVService {
           console.error('Error cleaning up CV record:', deleteError);
         }
       }
-      
+
       throw new Error(`Failed to generate PDF: ${error.message}`);
     }
   }

@@ -156,7 +156,7 @@ model CompanyType {
   id        String    @id @default(uuid())
   name      String    @unique
   companies Company[]
-
+  
   @@map("company_types")
 }
 
@@ -165,7 +165,7 @@ model Job {
   title             String
   description       String       @db.Text
   headcount         Int          @default(1)
-  
+
   // Tách biệt lương để lọc dữ liệu
   minSalary         Int?
   maxSalary         Int?

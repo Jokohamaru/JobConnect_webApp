@@ -3,7 +3,7 @@ import FilterBar from "@/components/sections/filters/FilterBar";
 import { MarketingInfo } from "@/components/sections/marketing-info";
 import HintBar from "@/components/ui/TooltipHints";
 import { JobCardProps } from "@/components/sections/jobs/JobCard";
-import TopCareersSection from "@/components/sections/careers/TopCareersSection";
+
 import JobSlider from "@/components/sections/jobs/JobSlider";
 import { jobService } from "@/services/jobService";
 import { mapJobToJobCard } from "@/utils/jobMapper";
@@ -20,7 +20,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="bg-[#F3F5F7] ">
+    <div className="bg-[#F3F5F7] pb-10">
       <SearchBar />
       <div className="px-20">
         <MarketingInfo />
@@ -29,9 +29,7 @@ export default async function HomePage() {
         <div className="">
           <JobSlider jobs={jobs} />
         </div>
-        <div>
-          <TopCareersSection />
-        </div>
+ 
       </div>
     </div>
   );

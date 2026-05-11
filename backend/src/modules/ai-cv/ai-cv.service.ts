@@ -2,6 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GenerateCVDto } from './dto/generate-cv.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 // Mapping level sang tiếng Việt
 const LEVEL_MAP: Record<string, string> = {
@@ -30,19 +31,44 @@ const WORKTYPE_MAP: Record<string, string> = {
   intern: 'Thực tập',
 };
 
+const DEGREE_MAP: Record<string, string> = {
+  highschool: 'Trung học phổ thông',
+  diploma: 'Trung cấp / Cao đẳng',
+  bachelor: 'Đại học (Cử nhân)',
+  master: 'Thạc sĩ',
+  phd: 'Tiến sĩ',
+  other: 'Khác',
+};
+
 @Injectable()
 export class AiCVService {
   private genAI: GoogleGenerativeAI;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private prisma: PrismaService,
+  ) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (!apiKey) {
-      throw new Error('GEMINI_API_KEY is not configured in environment variables');
+      throw new Error(
+        'GEMINI_API_KEY is not configured in environment variables',
+      );
     }
     this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
-  async generateCVData(dto: GenerateCVDto): Promise<Record<string, any>> {
+  async generateCVData(
+    dto: GenerateCVDto,
+    userId: string,
+  ): Promise<Record<string, any>> {
+    // Lấy thông tin user từ database
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        candidate: true,
+      },
+    });
+
     const model = this.genAI.getGenerativeModel({
       model: 'gemini-2.5-flash',
       generationConfig: {
@@ -57,7 +83,18 @@ export class AiCVService {
     try {
       const result = await model.generateContent(prompt);
       const text = result.response.text();
-      return this.parseJsonFromResponse(text);
+      const cvData = this.parseJsonFromResponse(text);
+
+      // Điền thông tin user vào CV data
+      if (user) {
+        cvData.fullName =
+          `${user.firstName || ''} ${user.lastName || ''}`.trim() || '';
+        cvData.email = user.email || '';
+        cvData.phone = user.candidate?.phoneNumber || '';
+        cvData.avatar = user.avaUrl || '';
+      }
+
+      return cvData;
     } catch (error) {
       console.error('Gemini API error:', error);
       throw new InternalServerErrorException(
@@ -78,10 +115,9 @@ export class AiCVService {
               const workType = exp.workType
                 ? WORKTYPE_MAP[exp.workType] || exp.workType
                 : '';
-              const duration =
-                exp.isCurrent
-                  ? `${exp.startDate || ''} - Hiện tại`
-                  : `${exp.startDate || ''} - ${exp.endDate || ''}`;
+              const duration = exp.isCurrent
+                ? `${exp.startDate || ''} - Hiện tại`
+                : `${exp.startDate || ''} - ${exp.endDate || ''}`;
               return `  Kinh nghiệm ${i + 1}:
     - Công ty: ${exp.company}
     - Vị trí: ${exp.position}${workType ? ` (${workType})` : ''}
@@ -91,6 +127,25 @@ export class AiCVService {
             })
             .join('\n\n')
         : '  Chưa có kinh nghiệm làm việc (fresher/sinh viên)';
+
+    // Xây dựng phần học vấn
+    const educationSection =
+      dto.educations && dto.educations.length > 0
+        ? dto.educations
+            .map((edu, i) => {
+              const degreeText = DEGREE_MAP[edu.degree] || edu.degree;
+              const duration = edu.isCurrent
+                ? `${edu.startDate || ''} - Hiện tại`
+                : `${edu.startDate || ''} - ${edu.endDate || ''}`;
+              return `  Học vấn ${i + 1}:
+    - Trường: ${edu.school}
+    - Bằng cấp: ${degreeText}
+    - Chuyên ngành: ${edu.major}
+    - Thời gian: ${duration}${edu.gpa ? `\n    - GPA: ${edu.gpa}` : ''}
+    - Thành tích/Hoạt động: ${edu.description || 'Không có'}`;
+            })
+            .join('\n\n')
+        : '  Chưa có thông tin học vấn';
 
     // Xây dựng phần kỹ năng
     const skillsText =
@@ -108,6 +163,17 @@ export class AiCVService {
         ? dto.strengths.join(', ')
         : 'Không có';
 
+    const certificatesText =
+      dto.certificates && dto.certificates.length > 0
+        ? dto.certificates
+            .map((cert, i) => {
+              return `  Chứng chỉ ${i + 1}:
+    - Tên: ${cert.name}
+    - Tổ chức cấp: ${cert.issuer}${cert.date ? `\n    - Thời gian: ${cert.date}` : ''}`;
+            })
+            .join('\n\n')
+        : 'Không có';
+
     return `Bạn là chuyên gia viết CV chuyên nghiệp cho người Việt Nam.
 Hãy tạo nội dung CV hoàn chỉnh bằng TIẾNG VIỆT dựa trên thông tin ứng viên dưới đây.
 
@@ -119,11 +185,17 @@ Hãy tạo nội dung CV hoàn chỉnh bằng TIẾNG VIỆT dựa trên thông 
 === KINH NGHIỆM LÀM VIỆC ===
 ${experienceSection}
 
+=== HỌC VẤN ===
+${educationSection}
+
 === KỸ NĂNG ===
 ${skillsText}
 
 === ĐIỂM MẠNH ===
 ${strengthsText}
+
+=== CHỨNG CHỈ ===
+${certificatesText}
 
 === YÊU CẦU ===
 1. Viết "summary" (mục tiêu nghề nghiệp) chuyên nghiệp, 3-4 câu, phù hợp với vị trí và cấp độ
@@ -131,10 +203,12 @@ ${strengthsText}
    - Dùng bullet points (mỗi điểm bắt đầu bằng "•")
    - Dùng động từ hành động mạnh (Phát triển, Quản lý, Triển khai, Tối ưu hóa, Xây dựng...)
    - Thêm số liệu cụ thể nếu có thể suy ra từ mô tả gốc
-3. Tạo danh sách kỹ năng từ thông tin đã cung cấp
-4. Đề xuất "hobbies" phù hợp với ngành nghề (ví dụ: IT → đọc blog công nghệ, lập trình mã nguồn mở)
-5. Để trống các field cá nhân chưa có: fullName, email, phone, address, linkedin, website, dob, avatar
-6. Tất cả nội dung PHẢI bằng tiếng Việt
+3. Với mỗi học vấn: tạo entry trong mảng "education" với đầy đủ thông tin
+4. Với mỗi chứng chỉ: tạo entry trong mảng "certificates" với đầy đủ thông tin
+5. Tạo danh sách kỹ năng từ thông tin đã cung cấp
+6. Đề xuất "hobbies" phù hợp với ngành nghề (ví dụ: IT → đọc blog công nghệ, lập trình mã nguồn mở)
+7. Để trống các field cá nhân chưa có: fullName, email, phone, address, linkedin, website, dob, avatar
+8. Tất cả nội dung PHẢI bằng tiếng Việt
 
 === ĐỊNH DẠNG OUTPUT ===
 Trả về CHỈ JSON thuần túy (không có markdown, không có \`\`\`json), theo đúng interface sau:
@@ -158,12 +232,29 @@ Trả về CHỈ JSON thuần túy (không có markdown, không có \`\`\`json),
       "description": "• Điểm 1\\n• Điểm 2\\n• Điểm 3"
     }
   ],
-  "education": [],
+  "education": [
+    {
+      "id": "edu1",
+      "school": "tên trường",
+      "degree": "bằng cấp",
+      "major": "chuyên ngành",
+      "duration": "MM/YYYY - MM/YYYY hoặc MM/YYYY - Hiện tại",
+      "gpa": "điểm GPA nếu có",
+      "description": "thành tích, hoạt động nếu có"
+    }
+  ],
   "skills": [
     { "id": "sk1", "skill": "tên kỹ năng", "level": 4 }
   ],
   "projects": [],
-  "certificates": [],
+  "certificates": [
+    {
+      "id": "cert1",
+      "name": "tên chứng chỉ",
+      "issuer": "tổ chức cấp",
+      "date": "thời gian nếu có"
+    }
+  ],
   "activities": [],
   "awards": [],
   "hobbies": "sở thích phù hợp với ngành"

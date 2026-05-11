@@ -90,7 +90,7 @@ export function Footer() {
         }}
       />
 
-      <div className="relative max-w-7xl mx-auto p-6">
+      <div className="relative max-w-7xl mx-auto p-3">
         <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-10">
 
           {/* Left — Logo + tagline + socials */}

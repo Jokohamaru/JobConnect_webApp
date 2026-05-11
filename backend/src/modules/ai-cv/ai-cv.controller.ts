@@ -30,6 +30,7 @@ export class AiCVController {
     @Body() dto: GenerateCVDto,
     @Request() req: any,
   ): Promise<Record<string, any>> {
-    return this.aiCVService.generateCVData(dto);
+    const userId = req.user.userId;
+    return this.aiCVService.generateCVData(dto, userId);
   }
 }
