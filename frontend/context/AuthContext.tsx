@@ -8,6 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { authService } from "@/lib/auth-service";
+import { logoutHelper } from "@/lib/logout-helper";
 
 // Cấu trúc dữ liệu User giải mã từ Token
 export interface User {
@@ -15,6 +16,8 @@ export interface User {
   email: string;
   role: string; // "ADMIN" | "CANDIDATE" | "RECRUITER"
   fullName?: string;
+  firstName?: string | null;
+  lastName?: string | null;
   avaUrl?: string | null; // Avatar URL
 }
 
@@ -35,12 +38,18 @@ const decodeJwt = (token: string): User | null => {
     const decoded = authService.decodeToken(token);
     if (!decoded) return null;
 
-    // Backend trả về: { sub: user.id, email: user.email, role: user.role, avaUrl: user.avaUrl }
+    // Backend trả về: { sub: user.id, email: user.email, role: user.role, firstName, lastName, avaUrl }
+    const firstName = decoded.firstName || null;
+    const lastName = decoded.lastName || null;
+    const fullName = [firstName, lastName].filter(Boolean).join(' ') || decoded.name || decoded.fullName || null;
+    
     return {
       id: decoded.sub,
       email: decoded.email,
       role: decoded.role,
-      fullName: decoded.name || decoded.fullName,
+      fullName,
+      firstName,
+      lastName,
       avaUrl: decoded.avaUrl || null,
     };
   } catch (error) {
@@ -83,7 +92,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
+    // Remove token from localStorage and cookies
     authService.removeToken();
+    
+    // Clear all auth data (localStorage, sessionStorage, cookies)
+    logoutHelper.clearAllAuthData();
+    
+    // Clear auth state
     setIsAuthenticated(false);
     setUser(null);
     setToken(null);

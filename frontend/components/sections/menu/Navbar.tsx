@@ -87,7 +87,7 @@ export default function Navbar() {
               <div className="flex items-center gap-4">
                 <UserInfo
                   avatarUserUrl={user?.avaUrl || ""}
-                  nameUser={user?.fullName || "User"}
+                  nameUser={user?.lastName || user?.fullName || "User"}
                   stateUser={true}
                   idUser={String(user?.id || "N/A")}
                   emailUser={user?.email || ""}

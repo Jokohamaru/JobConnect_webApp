@@ -9,7 +9,6 @@ import {
   ChevronUp,
   ChevronDown,
   Sparkles,
-  UploadCloud,
   Plus,
   Users,
   MessageSquare,
@@ -19,7 +18,6 @@ import {
   MoreHorizontal,
   Trash2,
 } from "lucide-react";
-import { FaLinkedin } from "react-icons/fa";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -323,28 +321,6 @@ export function ExperienceStep({ data, onChange }: ExperienceStepProps) {
               Hành trình của bạn sẽ được cập nhật tại đây khi bạn nhập kinh nghiệm
             </p>
           )}
-        </div>
-
-        {/* File Upload Card */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-sm font-bold text-gray-900 mb-4 leading-relaxed">
-            Bạn có muốn tải CV cũ hoặc LinkedIn
-            <br />
-            để điền nhanh hơn?
-          </h3>
-          <div className="border-2 border-dashed border-gray-200 rounded-2xl p-5 flex flex-col items-center justify-center gap-2 hover:border-blue-300 hover:bg-blue-50/30 transition-all cursor-pointer mb-4">
-            <UploadCloud className="w-6 h-6 text-[#1877F2] mb-1" />
-            <p className="text-xs font-semibold text-gray-800">Kéo & thả file vào đây</p>
-            <p className="text-[10px] text-gray-500">Hỗ trợ: PDF, DOCX (tối đa 5MB)</p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" className="text-xs font-semibold text-gray-600 border-gray-200 hover:bg-gray-50">
-              <UploadCloud className="w-3.5 h-3.5 mr-1.5" /> Tải CV lên
-            </Button>
-            <Button variant="outline" className="text-xs font-semibold text-[#0A66C2] border-gray-200 hover:bg-blue-50">
-              <FaLinkedin className="w-4 h-4 mr-1.5" /> Nhập từ LinkedIn
-            </Button>
-          </div>
         </div>
       </div>
     </div>

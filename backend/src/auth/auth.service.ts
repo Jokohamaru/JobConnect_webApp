@@ -41,6 +41,8 @@ export class AuthService {
       sub: user.id, 
       email: user.email, 
       role: user.role,
+      firstName: user.firstName || null,
+      lastName: user.lastName || null,
       avaUrl: user.avaUrl || null,
     };
 
@@ -50,6 +52,8 @@ export class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
+        firstName: user.firstName || null,
+        lastName: user.lastName || null,
         avaUrl: user.avaUrl || null,
       },
     };

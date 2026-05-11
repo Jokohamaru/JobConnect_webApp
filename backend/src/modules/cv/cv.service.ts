@@ -25,7 +25,7 @@ export class CVService {
     return cv;
   }
 
-  async generatePDFFromHTML(htmlContent: string, title: string, userId: string, candidateId: string) {
+  async generatePDFFromHTML(htmlContent: string, title: string, userId: string, candidateId: string, cvData?: any) {
     let cv;
     
     try {
@@ -34,7 +34,8 @@ export class CVService {
         data: {
           title,
           cvUrl: 'temp', // Temporary, sẽ update sau
-          cvType: CVType.UPLOADED,
+          cvType: CVType.BUILDER,
+          cvData: cvData || null,
           status: CVStatus.DONE,
           candidateId,
         },
@@ -58,15 +59,15 @@ export class CVService {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
 
-      // Cấu hình PDF options
+      // Cấu hình PDF options với lề tiêu chuẩn A4
       const options = { 
         format: 'A4',
         printBackground: true,
         margin: {
-          top: '0mm',
-          right: '0mm',
-          bottom: '0mm',
-          left: '0mm',
+          top: '20mm',
+          right: '20mm',
+          bottom: '20mm',
+          left: '20mm',
         },
       };
 
@@ -149,8 +150,8 @@ export class CVService {
   async delete(id: string, candidateId: string) {
     const cv = await this.findOne(id, candidateId);
 
-    // Chỉ xóa file vật lý nếu là UPLOADED type và file path là local
-    if (cv.cvType === CVType.UPLOADED && cv.cvUrl.startsWith('/uploads/')) {
+    // Xóa file vật lý nếu file path là local
+    if (cv.cvUrl.startsWith('/uploads/')) {
       try {
         // Fix path: uploads folder ở root của project
         const filePath = join(process.cwd(), cv.cvUrl);

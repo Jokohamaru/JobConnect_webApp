@@ -630,5 +630,279 @@ export class AdminService {
       throw error;
     }
   }
+
+  // ==================== JOB MANAGEMENT ====================
+
+  async getJobsStats() {
+    try {
+      const now = new Date();
+      const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+      // Total jobs
+      const totalJobs = await this.prisma.job.count({
+        where: { deletedAt: null },
+      });
+
+      // New jobs this month
+      const newJobs = await this.prisma.job.count({
+        where: {
+          createdAt: {
+            gte: currentMonth,
+            lt: nextMonth,
+          },
+          deletedAt: null,
+        },
+      });
+
+      // Published jobs
+      const publishedJobs = await this.prisma.job.count({
+        where: {
+          status: 'PUBLISHED',
+          deletedAt: null,
+        },
+      });
+
+      // Pending jobs
+      const pendingJobs = await this.prisma.job.count({
+        where: {
+          status: 'PENDING',
+          deletedAt: null,
+        },
+      });
+
+      return {
+        totalJobs: totalJobs.toString(),
+        newJobs: newJobs.toString(),
+        publishedJobs: publishedJobs.toString(),
+        pendingJobs: pendingJobs.toString(),
+      };
+    } catch (error) {
+      this.logger.error(`Error fetching jobs stats: ${error}`);
+      throw error;
+    }
+  }
+
+  async getJobs(page: number = 1, limit: number = 10, search?: string, status?: string) {
+    try {
+      const skip = (page - 1) * limit;
+
+      const where: any = {
+        deletedAt: null,
+      };
+
+      if (search) {
+        where.OR = [
+          { title: { contains: search, mode: 'insensitive' } },
+          { company: { name: { contains: search, mode: 'insensitive' } } },
+          { recruiter: { user: { firstName: { contains: search, mode: 'insensitive' } } } },
+          { recruiter: { user: { lastName: { contains: search, mode: 'insensitive' } } } },
+        ];
+      }
+
+      if (status) {
+        where.status = status;
+      }
+
+      const [jobs, total] = await Promise.all([
+        this.prisma.job.findMany({
+          where,
+          skip,
+          take: limit,
+          include: {
+            company: {
+              select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+              },
+            },
+            recruiter: {
+              select: {
+                id: true,
+                user: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+            city: {
+              select: {
+                name: true,
+              },
+            },
+            _count: {
+              select: {
+                applications: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        }),
+        this.prisma.job.count({ where }),
+      ]);
+
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        data: jobs.map(job => ({
+          id: job.id,
+          title: job.title,
+          company: {
+            id: job.company.id,
+            name: job.company.name,
+            logoUrl: job.company.logoUrl,
+          },
+          recruiter: {
+            id: job.recruiter.id,
+            name: `${job.recruiter.user.firstName || ''} ${job.recruiter.user.lastName || ''}`.trim(),
+            email: job.recruiter.user.email,
+          },
+          location: job.city?.name || 'N/A',
+          salary: job.salary,
+          status: job.status,
+          applicationsCount: job._count.applications,
+          createdAt: job.createdAt,
+          expiresAt: job.expiresAt,
+        })),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+        },
+      };
+    } catch (error) {
+      this.logger.error(`Error fetching jobs: ${error}`);
+      throw error;
+    }
+  }
+
+  async getRecruiters() {
+    try {
+      const recruiters = await this.prisma.recruiter.findMany({
+        where: {
+          user: {
+            deletedAt: null,
+          },
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+          company: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      return recruiters.map(recruiter => ({
+        id: recruiter.id,
+        userId: recruiter.user.id,
+        name: `${recruiter.user.firstName || ''} ${recruiter.user.lastName || ''}`.trim() || recruiter.user.email,
+        email: recruiter.user.email,
+        company: recruiter.company ? {
+          id: recruiter.company.id,
+          name: recruiter.company.name,
+        } : null,
+      }));
+    } catch (error) {
+      this.logger.error(`Error fetching recruiters: ${error}`);
+      throw error;
+    }
+  }
+
+  async createJob(createJobDto: any) {
+    try {
+      const { recruiterId, title, description, headcount, minSalary, maxSalary, currency, cityId, tagIds, skillIds } = createJobDto;
+
+      // Get recruiter with company
+      const recruiter = await this.prisma.recruiter.findUnique({
+        where: { id: recruiterId },
+        include: { company: true },
+      });
+
+      if (!recruiter) {
+        throw new Error('Recruiter not found');
+      }
+
+      if (!recruiter.companyId) {
+        throw new Error('Recruiter must be associated with a company');
+      }
+
+      // Calculate expires date (30 days from now)
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      // Create job
+      const job = await this.prisma.job.create({
+        data: {
+          title,
+          description,
+          headcount,
+          minSalary,
+          maxSalary,
+          currency: currency || 'VND',
+          salary: minSalary && maxSalary 
+            ? `${minSalary.toLocaleString()} - ${maxSalary.toLocaleString()} ${currency || 'VND'}`
+            : 'Thỏa thuận',
+          status: 'PUBLISHED',
+          expiresAt,
+          recruiterId: recruiter.id,
+          companyId: recruiter.companyId,
+          cityId,
+          tags: tagIds && tagIds.length > 0 ? {
+            create: tagIds.map((tagId: string) => ({
+              tag: { connect: { id: tagId } },
+            })),
+          } : undefined,
+          skills: skillIds && skillIds.length > 0 ? {
+            create: skillIds.map((skillId: string) => ({
+              skill: { connect: { id: skillId } },
+            })),
+          } : undefined,
+        },
+        include: {
+          company: true,
+          recruiter: {
+            include: {
+              user: true,
+            },
+          },
+          city: true,
+        },
+      });
+
+      this.logger.log(`Job created by admin: ${job.title}`);
+
+      return {
+        id: job.id,
+        title: job.title,
+        company: job.company.name,
+        recruiter: `${job.recruiter.user.firstName || ''} ${job.recruiter.user.lastName || ''}`.trim(),
+        status: job.status,
+        createdAt: job.createdAt,
+      };
+    } catch (error) {
+      this.logger.error(`Error creating job: ${error}`);
+      throw error;
+    }
+  }
 }
 

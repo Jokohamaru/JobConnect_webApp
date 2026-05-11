@@ -7,13 +7,8 @@ import {
   Param, 
   Request, 
   UseGuards,
-  UseInterceptors,
-  UploadedFile,
   BadRequestException
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { CVService } from './cv.service';
 import { CreateCVDto, CVType } from './dto/create-cv.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -28,35 +23,8 @@ export class CVController {
 
   @Post()
   @Roles(Role.CANDIDATE)
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/cvs',
-        filename: (req, file, callback) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const ext = extname(file.originalname);
-          const filename = `cv-${uniqueSuffix}${ext}`;
-          callback(null, filename);
-        },
-      }),
-      fileFilter: (req, file, callback) => {
-        // Chỉ chấp nhận PDF files
-        if (!file.originalname.match(/\.(pdf)$/)) {
-          return callback(
-            new BadRequestException('Only PDF files are allowed!'),
-            false,
-          );
-        }
-        callback(null, true);
-      },
-      limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB
-      },
-    }),
-  )
   async create(
     @Body() createCVDto: CreateCVDto, 
-    @UploadedFile() file: Express.Multer.File,
     @Request() req: any
   ) {
     const userId = req.user.userId;
@@ -70,28 +38,17 @@ export class CVController {
       throw new Error('Candidate profile not found');
     }
 
-    let cvUrl: string;
-    let cvType: CVType = CVType.UPLOADED;
-
-    // Case 1: File upload (from profile dashboard)
-    if (file) {
-      cvUrl = `/uploads/cvs/${file.filename}`;
-      cvType = CVType.UPLOADED;
-    } 
-    // Case 2: CV URL provided (from CV builder)
-    else if (createCVDto.cvUrl) {
-      cvUrl = createCVDto.cvUrl;
-      cvType = createCVDto.cvType || CVType.BUILDER;
-    } 
-    // Case 3: No file and no URL
-    else {
-      throw new BadRequestException('Either CV file or CV URL is required');
+    // Chỉ chấp nhận CV từ builder với cvUrl và cvData
+    if (!createCVDto.cvUrl) {
+      throw new BadRequestException('CV URL is required');
     }
+
+    const cvType = createCVDto.cvType || CVType.BUILDER;
 
     return this.cvService.create(
       { 
         ...createCVDto, 
-        cvUrl,
+        cvUrl: createCVDto.cvUrl,
         cvType,
       }, 
       candidate.id
@@ -100,7 +57,7 @@ export class CVController {
 
   @Post('generate-pdf')
   @Roles(Role.CANDIDATE)
-  async generatePDF(@Body() body: { title: string; htmlContent: string }, @Request() req: any) {
+  async generatePDF(@Body() body: { title: string; htmlContent: string; cvData?: any }, @Request() req: any) {
     try {
       const userId = req.user.userId;
 
@@ -116,13 +73,15 @@ export class CVController {
       console.log('Generating PDF for user:', userId);
       console.log('Title:', body.title);
       console.log('HTML content length:', body.htmlContent?.length || 0);
+      console.log('CV Data:', body.cvData ? 'Present' : 'Not present');
 
       // Generate PDF và lưu với tên: userId_cvId.pdf
       const result = await this.cvService.generatePDFFromHTML(
         body.htmlContent,
         body.title,
         userId,
-        candidate.id
+        candidate.id,
+        body.cvData
       );
 
       console.log('PDF generated successfully:', result);

@@ -1,8 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Monitor, Megaphone, Briefcase, Paintbrush, GraduationCap, DollarSign, Users, MoreHorizontal, UploadCloud, LayoutGrid, Search, BarChart2, Sparkles } from "lucide-react";
+import { Monitor, Megaphone, Briefcase, Paintbrush, GraduationCap, DollarSign, Users, MoreHorizontal, LayoutGrid, Search, BarChart2, Sparkles } from "lucide-react";
 import { CV_TEMPLATES } from "@/lib/cv-templates";
 import Image from "next/image";
 
@@ -140,28 +139,6 @@ export function InfoStep({ data, onChange }: InfoStepProps) {
           ))}
         </div>
       </div>
-
-      {/* 5. Old CV Upload */}
-      <div className="space-y-4 relative">
-        <h3 className="font-bold text-gray-900 flex items-center gap-3">
-          <span className="w-10 h-10 rounded-xl bg-blue-50 text-[#1877F2] flex items-center justify-center shrink-0">
-            <UploadCloud className="w-5 h-5" />
-          </span>
-          5. Bạn đã có CV trước đó?
-        </h3>
-        <div className="md:ml-11">
-          <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 hover:border-blue-300 hover:bg-blue-50/30 transition-all bg-gray-50/30">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-500">
-              <UploadCloud className="w-6 h-6" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-semibold text-gray-800">Kéo thả file CV của bạn vào đây hoặc</p>
-              <p className="text-xs text-gray-500 mt-1">Hỗ trợ: PDF, DOCX (tối đa 5MB)</p>
-            </div>
-            <Button className="bg-[#1877F2] hover:bg-blue-700 text-white rounded-full px-8">Tải CV lên</Button>
-          </div>
-          </div>
-        </div>
       </div>
     </div>
   );

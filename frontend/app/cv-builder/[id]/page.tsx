@@ -53,6 +53,7 @@ export default function CVBuilderPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [toastInfo, setToastInfo] = useState<{ message: string; type: "error" | "success" } | null>(null);
   const [isFromAI, setIsFromAI] = useState(false);
+  const [editingCVId, setEditingCVId] = useState<string | null>(null);
   const searchParams = useSearchParams();
 
   // Đọc AI-generated data từ sessionStorage nếu đến từ wizard
@@ -74,7 +75,49 @@ export default function CVBuilderPage() {
         }
       }
     }
-  }, [searchParams]);
+    // Đọc CV data từ sessionStorage nếu đang edit
+    else if (searchParams.get("edit")) {
+      const raw = sessionStorage.getItem("edit-cv-data");
+      if (raw) {
+        try {
+          const editData = JSON.parse(raw);
+          setEditingCVId(editData.cvId);
+          
+          // Load CV data
+          if (editData.cvData) {
+            const savedData = editData.cvData;
+            
+            // Restore CV content
+            if (savedData.fullName) setCvData(savedData);
+            
+            // Restore design settings
+            if (savedData.templateId !== undefined && savedData.templateId === id) {
+              if (savedData.colorIndex !== undefined) setColorIndex(savedData.colorIndex);
+              if (savedData.fontFamily) setFontFamily(savedData.fontFamily);
+              if (savedData.fontSize) setFontSize(savedData.fontSize);
+              if (savedData.layout) setLayout(savedData.layout);
+              
+              // Restore sections
+              if (savedData.sections) {
+                const restoredSections = DEFAULT_SECTIONS.map(section => {
+                  const saved = savedData.sections.find((s: any) => s.key === section.key);
+                  return saved ? { ...section, enabled: saved.enabled } : section;
+                });
+                setSections(restoredSections);
+              }
+            }
+            
+            // Set CV title
+            setCvTitle(editData.cvData.jobTitle ? `CV - ${editData.cvData.jobTitle}` : 'CV của tôi');
+          }
+          
+          sessionStorage.removeItem("edit-cv-data");
+        } catch (e) {
+          console.error("Failed to parse edit CV data", e);
+        }
+      }
+    }
+  }, [searchParams, id]);
 
   const showToast = (message: string, type: "error" | "success" = "error") => {
     setToastInfo({ message, type });
@@ -139,7 +182,7 @@ export default function CVBuilderPage() {
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
-              @page { size: A4; margin: 0; }
+              @page { size: A4; margin: 20mm; }
               * { box-sizing: border-box; }
             </style>
           </head>
@@ -149,10 +192,39 @@ export default function CVBuilderPage() {
         </html>
       `;
 
+      // Chuẩn bị CV data để lưu dưới dạng JSON
+      const cvDataToSave = {
+        ...cvData,
+        templateId: template.id,
+        colorIndex,
+        fontFamily,
+        fontSize,
+        layout,
+        sections: sections.map(s => ({ key: s.key, enabled: s.enabled })),
+      };
+
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       
       console.log('Sending request...');
       console.log('HTML length:', htmlContent.length);
+      console.log('CV Data:', cvDataToSave);
+      console.log('Editing CV ID:', editingCVId);
+      
+      // Nếu đang edit CV, xóa CV cũ trước khi tạo mới
+      if (editingCVId) {
+        try {
+          await fetch(`${API_URL}/cvs/${editingCVId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          console.log('Deleted old CV:', editingCVId);
+        } catch (error) {
+          console.error('Error deleting old CV:', error);
+          // Continue anyway
+        }
+      }
       
       const response = await fetch(`${API_URL}/cvs/generate-pdf`, {
         method: 'POST',
@@ -163,6 +235,7 @@ export default function CVBuilderPage() {
         body: JSON.stringify({
           title: cvTitle,
           htmlContent: htmlContent,
+          cvData: cvDataToSave,
         }),
       });
 
@@ -173,7 +246,7 @@ export default function CVBuilderPage() {
       }
 
       const result = await response.json();
-      showToast(`Lưu CV thành công!`, "success");
+      showToast(editingCVId ? 'Cập nhật CV thành công!' : 'Lưu CV thành công!', "success");
       setTimeout(() => router.push('/profile/dashboard'), 1500);
     } catch (error: any) {
       console.error('Failed to save CV:', error);
@@ -247,6 +320,14 @@ export default function CVBuilderPage() {
                 </div>
               </>
             )}
+            {editingCVId && (
+              <>
+                <div className="h-5 w-px bg-gray-200" />
+                <div className="flex items-center gap-1.5 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 text-green-600 px-3 py-1 rounded-full">
+                  <span className="text-xs font-bold">Đang chỉnh sửa</span>
+                </div>
+              </>
+            )}
             <div className="h-5 w-px bg-gray-200" />
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-400">Tên CV:</span>
@@ -276,7 +357,7 @@ export default function CVBuilderPage() {
             className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm"
           >
             <Save className="w-4 h-4" />
-            <span>{isSaving ? 'Đang lưu...' : 'Lưu CV'}</span>
+            <span>{isSaving ? (editingCVId ? 'Đang cập nhật...' : 'Đang lưu...') : (editingCVId ? 'Cập nhật CV' : 'Lưu CV')}</span>
           </button>
           <button onClick={() => window.print()} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm">
             <FileDown className="w-4 h-4" />

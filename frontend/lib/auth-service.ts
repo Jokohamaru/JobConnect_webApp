@@ -95,10 +95,37 @@ export const authService = {
    */
   removeToken(): void {
     if (typeof window !== 'undefined') {
+      // Remove from localStorage
       localStorage.removeItem('access_token');
       
-      // Also remove from cookies
+      // Remove from sessionStorage (nếu có)
+      sessionStorage.clear();
+      
+      // Remove from cookies
       cookies.remove('access_token');
+      
+      // Clear all cookies (optional - xóa tất cả cookies của domain)
+      this.clearAllCookies();
+    }
+  },
+
+  /**
+   * Clear all cookies
+   */
+  clearAllCookies(): void {
+    if (typeof window === 'undefined') return;
+    
+    const allCookies = document.cookie.split(';');
+    
+    for (let i = 0; i < allCookies.length; i++) {
+      const cookie = allCookies[i];
+      const eqPos = cookie.indexOf('=');
+      const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
+      
+      // Remove cookie with different path variations
+      document.cookie = `${name}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      document.cookie = `${name}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=${window.location.hostname}`;
+      document.cookie = `${name}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=.${window.location.hostname}`;
     }
   },
 

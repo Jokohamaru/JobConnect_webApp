@@ -1,10 +1,17 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { X, Upload, Eye, Building } from "lucide-react";
 import Image from "next/image";
 
@@ -21,6 +28,7 @@ interface CompanyFormData {
   description: string;
   address: string;
   websiteUrl: string;
+  typeId: string;
 }
 
 export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalProps) {
@@ -31,12 +39,43 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
     description: "",
     address: "",
     websiteUrl: "",
+    typeId: "",
   });
   const [logo, setLogo] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [companyTypes, setCompanyTypes] = useState<Array<{ id: string; name: string }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch company types
+  useEffect(() => {
+    const fetchCompanyTypes = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        const response = await fetch(`${apiUrl}/admin/companies/types`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        });
+        
+        if (response.ok) {
+          const types = await response.json();
+          setCompanyTypes(types);
+          // Set default type if available
+          if (types.length > 0) {
+            setFormData(prev => ({ ...prev, typeId: types[0].id }));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching company types:", error);
+      }
+    };
+
+    if (open) {
+      fetchCompanyTypes();
+    }
+  }, [open]);
 
   const handleInputChange = (field: keyof CompanyFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -101,6 +140,10 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
       submitData.append("address", formData.address);
       submitData.append("websiteUrl", formData.websiteUrl);
       
+      if (formData.typeId) {
+        submitData.append("typeId", formData.typeId);
+      }
+      
       if (logo) {
         submitData.append("logo", logo);
       }
@@ -108,7 +151,7 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
       const response = await fetch(`${apiUrl}/admin/companies`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
         body: submitData,
       });
@@ -122,6 +165,7 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
           description: "",
           address: "",
           websiteUrl: "",
+          typeId: companyTypes.length > 0 ? companyTypes[0].id : "",
         });
         setLogo(null);
         setLogoPreview(null);
@@ -263,6 +307,28 @@ export function AddCompanyModal({ open, onClose, onSuccess }: AddCompanyModalPro
               placeholder="VD: Việt Nam"
               className="mt-1"
             />
+          </div>
+
+          {/* Company Type */}
+          <div>
+            <Label htmlFor="typeId" className="text-sm font-medium text-gray-700">
+              Loại hình công ty
+            </Label>
+            <Select
+              value={formData.typeId}
+              onValueChange={(value) => handleInputChange("typeId", value)}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Chọn loại hình công ty" />
+              </SelectTrigger>
+              <SelectContent>
+                {companyTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>
+                    {type.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Address */}

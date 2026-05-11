@@ -127,4 +127,32 @@ export class AdminController {
   async deleteCompany(@Param('id') id: string) {
     return await this.adminService.deleteCompany(id);
   }
+
+  // Job endpoints
+  @Get('jobs/stats')
+  async getJobsStats() {
+    return await this.adminService.getJobsStats();
+  }
+
+  @Get('jobs')
+  async getJobs(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+    return await this.adminService.getJobs(pageNum, limitNum, search, status);
+  }
+
+  @Get('recruiters')
+  async getRecruiters() {
+    return await this.adminService.getRecruiters();
+  }
+
+  @Post('jobs')
+  async createJob(@Body() createJobDto: any) {
+    return await this.adminService.createJob(createJobDto);
+  }
 }
