@@ -191,7 +191,7 @@ export function GenerateStep({ formData }: GenerateStepProps) {
     <div className="max-w-2xl mx-auto">
       <div className="bg-white rounded-3xl shadow-xl shadow-blue-900/5 overflow-hidden">
         {/* Header gradient */}
-        <div className="bg-gradient-to-br from-[#1877F2] to-blue-500 px-8 py-10 text-center">
+        <div className="bg-linear-to-br from-[#1877F2] to-blue-500 px-8 py-10 text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-5 shadow-lg">
             <Sparkles className="w-10 h-10 text-white" />
           </div>

@@ -14,6 +14,38 @@ const lexend = Lexend({
   weight: ["200", "400"],
   subsets: ["latin"],
 });
+
+export const metadata: Metadata = {
+  title: {
+    default: "JobConnect - Nền tảng tìm việc làm hàng đầu",
+    template: "%s | JobConnect",
+  },
+  description:
+    "Kết nối nhà tuyển dụng và ứng viên. Tìm kiếm công việc phù hợp với kỹ năng và mức lương mong muốn.",
+  keywords: [
+    "tìm việc làm",
+    "tuyển dụng",
+    "việc làm",
+    "job",
+    "career",
+    "recruitment",
+  ],
+  authors: [{ name: "JobConnect Team" }],
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  openGraph: {
+    type: "website",
+    locale: "vi_VN",
+    url: "https://jobconnect.vn",
+    siteName: "JobConnect",
+    title: "JobConnect - Nền tảng tìm việc làm hàng đầu",
+    description: "Kết nối nhà tuyển dụng và ứng viên",
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

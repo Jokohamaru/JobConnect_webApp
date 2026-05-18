@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { SearchBar } from "@/components/sections/hero-section/SearchBar";
 import FilterBar from "@/components/sections/filters/FilterBar";
 import { MarketingInfo } from "@/components/sections/marketing-info";
@@ -8,14 +9,20 @@ import JobSlider from "@/components/sections/jobs/JobSlider";
 import { jobService } from "@/services/jobService";
 import { mapJobToJobCard } from "@/utils/jobMapper";
 
+export const metadata: Metadata = {
+  title: "Trang chủ",
+  description:
+    "Tìm kiếm công việc phù hợp với kỹ năng và mức lương mong muốn. Hàng ngàn cơ hội việc làm đang chờ bạn.",
+};
+
 export default async function HomePage() {
   let jobs: JobCardProps[] = [];
-  
+
   try {
     const response = await jobService.getJobs({ pageSize: 27 });
     jobs = response.data.map(mapJobToJobCard);
   } catch (error) {
-    console.error('Failed to fetch jobs:', error);
+    console.error("Failed to fetch jobs:", error);
     // Fallback to empty array or show error message
   }
 
@@ -29,7 +36,6 @@ export default async function HomePage() {
         <div className="">
           <JobSlider jobs={jobs} />
         </div>
- 
       </div>
     </div>
   );
