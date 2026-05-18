@@ -68,9 +68,15 @@ export default function LoginFormFields() {
       // Get user role from token
       const role = authService.getUserRole() || "CANDIDATE";
 
-      // Redirect based on role
+      // Get redirect parameter from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectTo = urlParams.get('redirect');
+
+      // Redirect based on role or redirect parameter
       startTransition(() => {
-        if (role === "ADMIN") {
+        if (redirectTo) {
+          router.push(redirectTo);
+        } else if (role === "ADMIN") {
           router.push("/admin/dashboard");
         } else if (role === "RECRUITER") {
           router.push("/recruiter/dashboard");

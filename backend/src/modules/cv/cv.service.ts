@@ -34,6 +34,19 @@ export class CVService {
     let cv;
 
     try {
+      // Validate input
+      if (!htmlContent || htmlContent.trim().length === 0) {
+        throw new Error('HTML content is empty or invalid');
+      }
+
+      if (!title || title.trim().length === 0) {
+        throw new Error('Title is required');
+      }
+
+      console.log('Input validation passed');
+      console.log('HTML content length:', htmlContent.length);
+      console.log('Title:', title);
+
       // Tạo CV record trước để có ID
       cv = await this.prisma.cV.create({
         data: {
@@ -45,6 +58,8 @@ export class CVService {
           candidateId,
         },
       });
+
+      console.log('CV record created with ID:', cv.id);
 
       // Tạo tên file: userId_cvId.pdf
       const filename = `${userId}_${cv.id}.pdf`;
@@ -62,6 +77,17 @@ export class CVService {
       if (!fs.existsSync(uploadsDir)) {
         console.log('Creating uploads directory...');
         fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      // Clean HTML content - remove control characters that could cause parsing issues
+      let cleanHtmlContent = htmlContent;
+      try {
+        cleanHtmlContent = htmlContent
+          .replace(/[\u0000-\u001F\u007F-\u009F]/g, ''); // Remove control characters
+        
+        console.log('HTML content cleaned');
+      } catch (cleanError) {
+        console.warn('HTML cleaning failed, using original content:', cleanError.message);
       }
 
       // Cấu hình PDF options với lề tiêu chuẩn A4 và in màu nền
@@ -84,14 +110,19 @@ export class CVService {
         ],
       };
 
-      const file = { content: htmlContent };
+      const file = { content: cleanHtmlContent };
 
       console.log('Generating PDF with html-pdf-node...');
 
-      // Generate PDF buffer
-      const pdfBuffer = await htmlPdf.generatePdf(file, options);
+      // Generate PDF buffer với timeout
+      const pdfBuffer = await Promise.race([
+        htmlPdf.generatePdf(file, options),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('PDF generation timeout')), 30000)
+        )
+      ]);
 
-      console.log('PDF buffer generated, writing to file...');
+      console.log('PDF buffer generated, size:', pdfBuffer.length);
 
       // Write buffer to file
       await require('fs').promises.writeFile(filePath, pdfBuffer);
@@ -117,6 +148,12 @@ export class CVService {
     } catch (error) {
       console.error('Error generating PDF:', error);
       console.error('Error stack:', error.stack);
+
+      // Log more details about the error
+      if (error.message.includes('Unexpected }')) {
+        console.error('JSON parsing error detected. This might be due to malformed HTML/CSS content.');
+        console.error('HTML content preview:', htmlContent?.substring(0, 500));
+      }
 
       // Nếu generate PDF thất bại, xóa CV record
       if (cv) {

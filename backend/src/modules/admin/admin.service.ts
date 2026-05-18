@@ -666,7 +666,7 @@ export class AdminService {
       // Pending jobs
       const pendingJobs = await this.prisma.job.count({
         where: {
-          status: 'PENDING',
+          status: 'PENDING_APPROVAL',
           deletedAt: null,
         },
       });
@@ -764,11 +764,12 @@ export class AdminService {
             email: job.recruiter.user.email,
           },
           location: job.city?.name || 'N/A',
-          salary: job.salary,
+          minSalary: job.minSalary,
+          maxSalary: job.maxSalary,
+          currency: job.currency,
           status: job.status,
           applicationsCount: job._count.applications,
           createdAt: job.createdAt,
-          expiresAt: job.expiresAt,
         })),
         pagination: {
           page,
@@ -859,23 +860,15 @@ export class AdminService {
           minSalary,
           maxSalary,
           currency: currency || 'VND',
-          salary: minSalary && maxSalary 
-            ? `${minSalary.toLocaleString()} - ${maxSalary.toLocaleString()} ${currency || 'VND'}`
-            : 'Thỏa thuận',
           status: 'PUBLISHED',
-          expiresAt,
           recruiterId: recruiter.id,
           companyId: recruiter.companyId,
           cityId,
           tags: tagIds && tagIds.length > 0 ? {
-            create: tagIds.map((tagId: string) => ({
-              tag: { connect: { id: tagId } },
-            })),
+            connect: tagIds.map((tagId: string) => ({ id: tagId })),
           } : undefined,
           skills: skillIds && skillIds.length > 0 ? {
-            create: skillIds.map((skillId: string) => ({
-              skill: { connect: { id: skillId } },
-            })),
+            connect: skillIds.map((skillId: string) => ({ id: skillId })),
           } : undefined,
         },
         include: {

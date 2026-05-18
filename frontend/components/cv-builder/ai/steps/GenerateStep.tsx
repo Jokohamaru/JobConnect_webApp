@@ -69,6 +69,10 @@ export function GenerateStep({ formData }: GenerateStepProps) {
     if (!token) {
       setStatus("error");
       setErrorMsg("Vui lòng đăng nhập để sử dụng tính năng này.");
+      // Redirect to login page
+      setTimeout(() => {
+        router.push('/auth/login?redirect=/cv-builder/ai');
+      }, 2000);
       return;
     }
 
@@ -86,7 +90,7 @@ export function GenerateStep({ formData }: GenerateStepProps) {
     try {
       const API_URL =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-      const res = await fetch(`${API_URL}/cvs/generate-ai`, {
+      const res = await fetch(`${API_URL}/ai-cv/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

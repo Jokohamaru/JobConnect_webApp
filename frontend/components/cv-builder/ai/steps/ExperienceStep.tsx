@@ -46,6 +46,7 @@ const emptyExperience = (): ExperienceInput => ({
 
 export function ExperienceStep({ data, onChange }: ExperienceStepProps) {
   const [showHint, setShowHint] = useState(true);
+  const isFresher = data.level === "fresher";
 
   const experiences = data.experiences.length > 0 ? data.experiences : [emptyExperience()];
 
@@ -79,7 +80,9 @@ export function ExperienceStep({ data, onChange }: ExperienceStepProps) {
           <div key={idx} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-gray-900">
-                {idx === 0 ? "Kinh nghiệm làm việc hiện tại hoặc gần nhất" : `Kinh nghiệm ${idx + 1}`}
+                {idx === 0
+                  ? (isFresher ? "Dự án cá nhân gần nhất" : "Kinh nghiệm làm việc hiện tại hoặc gần nhất")
+                  : (isFresher ? `Dự án ${idx + 1}` : `Kinh nghiệm ${idx + 1}`)}
               </h3>
               <div className="flex items-center gap-2">
                 <button
@@ -102,9 +105,9 @@ export function ExperienceStep({ data, onChange }: ExperienceStepProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Tên công ty</label>
+                <label className="text-sm font-semibold text-gray-700">{isFresher ? "Tên dự án / Tổ chức" : "Tên công ty"}</label>
                 <Input
-                  placeholder="Ví dụ: Công ty TNHH ABC"
+                  placeholder={isFresher ? "Ví dụ: Job Connect Web App" : "Ví dụ: Công ty TNHH ABC"}
                   className="h-11 bg-gray-50/50 border-gray-200"
                   value={exp.company}
                   onChange={(e) => {
@@ -114,9 +117,9 @@ export function ExperienceStep({ data, onChange }: ExperienceStepProps) {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Vị trí công việc</label>
+                <label className="text-sm font-semibold text-gray-700">{isFresher ? "Vai trò trong dự án" : "Vị trí công việc"}</label>
                 <Input
-                  placeholder="Ví dụ: Nhân viên Marketing"
+                  placeholder={isFresher ? "Ví dụ: Frontend Developer, Team Leader" : "Ví dụ: Nhân viên Marketing"}
                   className="h-11 bg-gray-50/50 border-gray-200"
                   value={exp.position}
                   onChange={(e) => {
@@ -125,6 +128,7 @@ export function ExperienceStep({ data, onChange }: ExperienceStepProps) {
                   }}
                 />
               </div>
+              {!isFresher && (
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Hình thức làm việc</label>
                 <Select
@@ -142,6 +146,7 @@ export function ExperienceStep({ data, onChange }: ExperienceStepProps) {
                   </SelectContent>
                 </Select>
               </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
@@ -184,9 +189,9 @@ export function ExperienceStep({ data, onChange }: ExperienceStepProps) {
             </div>
 
             <div className="mb-5 space-y-2">
-              <label className="text-sm font-semibold text-gray-700">Mô tả công việc</label>
+              <label className="text-sm font-semibold text-gray-700">{isFresher ? "Mô tả dự án" : "Mô tả công việc"}</label>
               <Textarea
-                placeholder="Mô tả ngắn gọn công việc và trách nhiệm chính của bạn..."
+                placeholder={isFresher ? "Mô tả ngắn gọn dự án và vai trò của bạn..." : "Mô tả ngắn gọn công việc và trách nhiệm chính của bạn..."}
                 className="min-h-[120px] bg-gray-50/50 border-gray-200 resize-none"
                 value={exp.description}
                 onChange={(e) => updateExperience(idx, "description", e.target.value)}
@@ -248,7 +253,7 @@ export function ExperienceStep({ data, onChange }: ExperienceStepProps) {
           onClick={addExperience}
           className="w-full border-dashed border-gray-300 text-[#1877F2] hover:bg-blue-50/50 hover:text-blue-700 h-12 font-semibold rounded-2xl"
         >
-          <Plus className="w-4 h-4 mr-2" /> Thêm kinh nghiệm khác
+          <Plus className="w-4 h-4 mr-2" /> {isFresher ? "Thêm dự án khác" : "Thêm kinh nghiệm khác"}
         </Button>
       </div>
 
@@ -293,7 +298,7 @@ export function ExperienceStep({ data, onChange }: ExperienceStepProps) {
 
         {/* Timeline Card */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-sm font-bold text-gray-900 mb-5">Hành trình sự nghiệp</h3>
+          <h3 className="text-sm font-bold text-gray-900 mb-5">{isFresher ? "Hành trình dự án" : "Hành trình sự nghiệp"}</h3>
           {experiences.filter((e) => e.company || e.position).length > 0 ? (
             <div className="relative pl-4 space-y-6 before:absolute before:inset-0 before:ml-[23px] before:-translate-x-px before:h-full before:w-0.5 before:bg-gray-200">
               {experiences

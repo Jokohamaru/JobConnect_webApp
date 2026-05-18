@@ -3,6 +3,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { unlink } from 'fs/promises';
+import { join } from 'path';
 
 @Injectable()
 export class UserService {
@@ -53,6 +55,94 @@ export class UserService {
     // Xóa password_hash trước khi ném dữ liệu ra ngoài
     const { password, ...safeUser } = user;
     return safeUser;
+  }
+
+  /**
+   * Lấy thông tin đầy đủ của user bao gồm candidate profile
+   */
+  async getFullProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        candidate: true,
+      },
+    });
+    if (!user) throw new NotFoundException('Không tìm thấy người dùng!');
+
+    const { password, ...safeUser } = user;
+    return safeUser;
+  }
+
+  /**
+   * Cập nhật profile: User (firstName, lastName, avaUrl) + Candidate (phoneNumber)
+   */
+  async updateProfile(
+    userId: string,
+    data: { firstName?: string; lastName?: string; phoneNumber?: string },
+    avatarPath?: string,
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { candidate: true },
+    });
+    if (!user) throw new NotFoundException('Không tìm thấy người dùng!');
+
+    // Nếu upload avatar mới → xóa file cũ (nếu là file local)
+    if (avatarPath && user.avaUrl && user.avaUrl.startsWith('/uploads/userAvas/')) {
+      try {
+        const oldPath = join(process.cwd(), user.avaUrl);
+        await unlink(oldPath);
+        console.log('Deleted old avatar:', oldPath);
+      } catch (err) {
+        console.warn('Could not delete old avatar:', err);
+      }
+    }
+
+    // Update User model
+    const userUpdateData: any = {};
+    if (data.firstName !== undefined) userUpdateData.firstName = data.firstName;
+    if (data.lastName !== undefined) userUpdateData.lastName = data.lastName;
+    if (avatarPath) userUpdateData.avaUrl = avatarPath;
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: userUpdateData,
+    });
+
+    // Update Candidate model (phoneNumber)
+    if (data.phoneNumber !== undefined && user.candidate) {
+      await this.prisma.candidate.update({
+        where: { id: user.candidate.id },
+        data: { phoneNumber: data.phoneNumber },
+      });
+    }
+
+    // Trả về full profile
+    return this.getFullProfile(userId);
+  }
+
+  /**
+   * Xóa avatar: set avaUrl = null, xóa file
+   */
+  async removeAvatar(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Không tìm thấy người dùng!');
+
+    if (user.avaUrl && user.avaUrl.startsWith('/uploads/userAvas/')) {
+      try {
+        const filePath = join(process.cwd(), user.avaUrl);
+        await unlink(filePath);
+      } catch (err) {
+        console.warn('Could not delete avatar file:', err);
+      }
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { avaUrl: null },
+    });
+
+    return this.getFullProfile(userId);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
