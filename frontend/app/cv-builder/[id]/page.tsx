@@ -30,9 +30,16 @@ import { CVDocument, CVData } from "@/components/cv-builder/CVDocument";
 import { useAuth } from "@/context/AuthContext";
 
 const uid = () => Math.random().toString(36).slice(2);
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
-const defaultData = (): CVData => ({
-  avatar: "",
+const resolveAvatarUrl = (url?: string | null): string => {
+  if (!url) return "";
+  if (url.startsWith("/uploads/")) return `${API_BASE}${url}`;
+  return url;
+};
+
+const defaultData = (userAvaUrl?: string): CVData => ({
+  avatar: resolveAvatarUrl(userAvaUrl) || "",
   fullName: "Ho va Ten",
   jobTitle: "Vi tri ung tuyen",
   email: "email@example.com",
@@ -129,7 +136,7 @@ export default function CVBuilderPage() {
     "medium",
   );
   const [layout, setLayout] = useState<LayoutType>("two-column");
-  const [cvData, setCvData] = useState<CVData>(defaultData);
+  const [cvData, setCvData] = useState<CVData>(defaultData(user?.avaUrl || undefined));
   const [zoom, setZoom] = useState(80);
   const [cvTitle, setCvTitle] = useState("CV cua toi");
   const [isSaving, setIsSaving] = useState(false);
@@ -148,6 +155,13 @@ export default function CVBuilderPage() {
       if (raw) {
         try {
           const aiData: CVData = JSON.parse(raw);
+          // Nếu AI trả avatar là path local → resolve URL đầy đủ
+          if (aiData.avatar) {
+            aiData.avatar = resolveAvatarUrl(aiData.avatar);
+          } else if (user?.avaUrl) {
+            // Fallback: dùng avatar tài khoản nếu AI không trả avatar
+            aiData.avatar = resolveAvatarUrl(user.avaUrl);
+          }
           setCvData(aiData);
           // Đặt tên CV từ vị trí công việc AI tạo
           if (aiData.jobTitle) {
@@ -284,56 +298,22 @@ export default function CVBuilderPage() {
       // Apply inline styles to cloned element
       inlineStyles(clonedElement);
 
-      // Collect all CSS from stylesheets
-      let allCSS = "";
-      try {
-        const styleSheets = Array.from(document.styleSheets);
-        styleSheets.forEach((sheet) => {
-          try {
-            const rules = Array.from(sheet.cssRules || []);
-            rules.forEach((rule) => {
-              allCSS += rule.cssText + "\n";
-            });
-          } catch (e) {
-            // Skip external stylesheets due to CORS
-            console.warn("Could not access stylesheet:", e);
-          }
-        });
-      } catch (e) {
-        console.warn("Error collecting CSS:", e);
-      }
-
-      // Create clean HTML with embedded styles
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-              @page { 
-                size: A4; 
-                margin: 0; 
-              }
-              * { 
-                box-sizing: border-box;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-              body {
-                margin: 0;
-                padding: 0;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-              ${allCSS}
-            </style>
-          </head>
-          <body>
-            ${clonedElement.outerHTML}
-          </body>
-        </html>
-      `;
+      // Create clean HTML with inline styles only (all computed styles are already inlined)
+      const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+</style>
+</head>
+<body>
+${clonedElement.outerHTML}
+</body>
+</html>`;
 
       // Chuẩn bị CV data để lưu dưới dạng JSON
       const cvDataToSave = {

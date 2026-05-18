@@ -9,11 +9,13 @@ import {
   Globe,
   Camera,
   BadgeCheck,
+  Loader2,
 } from "lucide-react";
 import { useState, useRef } from "react";
 import { ProfileEditDialog } from "./ProfileEditDialog";
 import { Button } from "@/components/ui/button";
 import { getUserAvatar } from "@/utils/avatarHelper";
+import { useAuth } from "@/context/AuthContext";
 
 interface ProfileHeaderProps {
   user: {
@@ -21,16 +23,21 @@ interface ProfileHeaderProps {
     name: string;
     email: string;
     avatarUrl?: string;
+    phoneNumber?: string;
   };
+  onProfileUpdate?: () => void;
 }
 
-export default function ProfileHeader({ user }: ProfileHeaderProps) {
+export default function ProfileHeader({ user, onProfileUpdate }: ProfileHeaderProps) {
+  const { token } = useAuth();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
   const [profile, setProfile] = useState({
     avatar: user.avatarUrl || "",
     id: "",
     name: user.name || "",
     email: user.email || "",
-    phone: "",
+    phone: user.phoneNumber || "",
     dob: "",
     gender: "",
     address: "",
@@ -38,15 +45,58 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
     link: "",
   });
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Sync props when they change (after API refresh)
+  useState(() => {
+    setProfile((prev) => ({
+      ...prev,
+      name: user.name || prev.name,
+      email: user.email || prev.email,
+      avatar: user.avatarUrl || prev.avatar,
+      phone: user.phoneNumber || prev.phone,
+    }));
+  });
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setProfile((prev) => ({ ...prev, avatar: url }));
-      // In a real app, you would also upload this file to the server here
+    if (!file || !token) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const res = await fetch(`${API_URL}/user/profile/me`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const newAvaUrl = data.avaUrl || "";
+        setProfile((prev) => ({ ...prev, avatar: newAvaUrl }));
+        onProfileUpdate?.();
+      } else {
+        console.error("Avatar upload failed");
+      }
+    } catch (err) {
+      console.error("Avatar upload error:", err);
+    } finally {
+      setIsUploading(false);
+      // Reset input để có thể chọn cùng file
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  const getAvatarSrc = (url?: string) => {
+    if (!url) return "";
+    if (url.startsWith("/uploads/")) return `${API_URL}${url}`;
+    return url;
   };
 
   const infoItems = [
@@ -68,6 +118,8 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
   const completionCount = [profile.email, profile.phone, profile.dob, profile.gender, profile.city || profile.address, profile.link].filter(Boolean).length;
   const completionPct = Math.round((completionCount / 6) * 100);
 
+  const avatarDisplayUrl = getAvatarSrc(profile.avatar || user.avatarUrl);
+
   return (
     <div className="rounded-2xl mb-6 shadow-sm border border-gray-100">
       {/* White card body - no banner */}
@@ -83,9 +135,9 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
               className="hidden"
             />
             <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-gray-100 shadow-md bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center">
-              {profile.avatar || user.avatarUrl ? (
+              {avatarDisplayUrl ? (
                 <Image
-                  src={getUserAvatar(profile.avatar || user.avatarUrl)}
+                  src={avatarDisplayUrl}
                   alt={profile.name}
                   width={80}
                   height={80}
@@ -100,9 +152,14 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
               variant="ghost"
               size="icon"
               onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
               className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-md p-0 z-10"
             >
-              <Camera className="w-3 h-3" />
+              {isUploading ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <Camera className="w-3 h-3" />
+              )}
             </Button>
           </div>
 
@@ -123,7 +180,11 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
 
           {/* Edit button */}
           <div>
-            <ProfileEditDialog profile={profile} setProfile={setProfile} />
+            <ProfileEditDialog
+              profile={profile}
+              setProfile={setProfile}
+              onProfileUpdate={onProfileUpdate}
+            />
           </div>
         </div>
 
@@ -161,3 +222,4 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
     </div>
   );
 }
+

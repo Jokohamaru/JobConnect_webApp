@@ -10,9 +10,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Camera, Trash2, Pencil } from "lucide-react";
-import { useState } from "react";
-import { getUserAvatar } from "@/utils/avatarHelper";
+import { Camera, Trash2, Pencil, Loader2 } from "lucide-react";
+import { useState, useRef } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 function FloatingInput({
   label,
@@ -21,6 +21,7 @@ function FloatingInput({
   onChange,
   type = "text",
   icon,
+  disabled = false,
 }: {
   label: string;
   placeholder?: string;
@@ -28,9 +29,10 @@ function FloatingInput({
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   type?: string;
   icon?: React.ReactNode;
+  disabled?: boolean;
 }) {
   return (
-    <div className="relative border border-gray-200 rounded-xl px-3 pt-5 pb-2.5 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all bg-white group">
+    <div className={`relative border border-gray-200 rounded-xl px-3 pt-5 pb-2.5 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all bg-white group ${disabled ? 'opacity-60' : ''}`}>
       <label className="absolute top-1.5 left-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wide group-focus-within:text-blue-500 transition-colors">
         {label}
       </label>
@@ -41,24 +43,117 @@ function FloatingInput({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          className="w-full text-sm text-gray-800 outline-none bg-transparent placeholder-gray-300"
+          disabled={disabled}
+          className="w-full text-sm text-gray-800 outline-none bg-transparent placeholder-gray-300 disabled:cursor-not-allowed"
         />
       </div>
     </div>
   );
 }
 
-export function ProfileEditDialog({ profile, setProfile }: any) {
+export function ProfileEditDialog({ profile, setProfile, onProfileUpdate }: any) {
   const [open, setOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const { token } = useAuth();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
   const handleChange = (field: string, value: string) => {
     setProfile({ ...profile, [field]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const getAvatarSrc = (url?: string) => {
+    if (!url) return "";
+    if (url.startsWith("/uploads/")) return `${API_URL}${url}`;
+    return url;
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !token) return;
+
+    setIsUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const res = await fetch(`${API_URL}/user/profile/me`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setProfile({ ...profile, avatar: data.avaUrl || "" });
+        onProfileUpdate?.();
+      }
+    } catch (err) {
+      console.error("Avatar upload failed:", err);
+    } finally {
+      setIsUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/user/profile/me/avatar`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setProfile({ ...profile, avatar: "" });
+        onProfileUpdate?.();
+      }
+    } catch (err) {
+      console.error("Avatar removal failed:", err);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Saved:", profile);
-    setOpen(false);
+    if (!token) return;
+
+    setIsSaving(true);
+    try {
+      // Tách firstName / lastName từ name
+      const nameParts = (profile.name || "").trim().split(/\s+/);
+      const lastName = nameParts.pop() || "";
+      const firstName = nameParts.join(" ") || "";
+
+      const formData = new FormData();
+      formData.append("firstName", firstName);
+      formData.append("lastName", lastName);
+      if (profile.phone) formData.append("phoneNumber", profile.phone);
+
+      const res = await fetch(`${API_URL}/user/profile/me`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setProfile({
+          ...profile,
+          name: `${data.firstName || ""} ${data.lastName || ""}`.trim(),
+          email: data.email,
+          avatar: data.avaUrl || "",
+          phone: data.candidate?.phoneNumber || profile.phone,
+        });
+        onProfileUpdate?.();
+        setOpen(false);
+      } else {
+        console.error("Profile update failed");
+      }
+    } catch (err) {
+      console.error("Profile update error:", err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const initials = (profile.name || "U")
@@ -67,6 +162,8 @@ export function ProfileEditDialog({ profile, setProfile }: any) {
     .slice(-2)
     .join("")
     .toUpperCase();
+
+  const avatarSrc = getAvatarSrc(profile.avatar);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -92,8 +189,8 @@ export function ProfileEditDialog({ profile, setProfile }: any) {
             <div className="flex items-center gap-5 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl">
               <div className="relative shrink-0">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold overflow-hidden shadow-md">
-                  {profile.avatar ? (
-                    <img src={getUserAvatar(profile.avatar)} className="w-full h-full object-cover" alt="" />
+                  {avatarSrc ? (
+                    <img src={avatarSrc} className="w-full h-full object-cover" alt="" />
                   ) : (
                     initials
                   )}
@@ -102,16 +199,31 @@ export function ProfileEditDialog({ profile, setProfile }: any) {
               <div>
                 <p className="text-sm font-semibold text-gray-700 mb-2">Ảnh đại diện</p>
                 <div className="flex gap-2">
+                  <input
+                    type="file"
+                    ref={avatarInputRef}
+                    onChange={handleAvatarUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
                   <button
                     type="button"
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-white hover:bg-blue-50 border border-blue-200 rounded-lg transition-colors cursor-pointer"
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={isUploadingAvatar}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-white hover:bg-blue-50 border border-blue-200 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    <Camera className="w-3.5 h-3.5" />
+                    {isUploadingAvatar ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Camera className="w-3.5 h-3.5" />
+                    )}
                     Tải ảnh lên
                   </button>
                   <button
                     type="button"
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-500 bg-white hover:bg-red-50 border border-red-200 rounded-lg transition-colors cursor-pointer"
+                    onClick={handleRemoveAvatar}
+                    disabled={!profile.avatar}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-500 bg-white hover:bg-red-50 border border-red-200 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     Xoá
@@ -136,6 +248,7 @@ export function ProfileEditDialog({ profile, setProfile }: any) {
                   onChange={(e) => handleChange("email", e.target.value)}
                   placeholder="example@email.com"
                   type="email"
+                  disabled
                 />
                 <FloatingInput
                   label="Số điện thoại"
@@ -206,13 +319,21 @@ export function ProfileEditDialog({ profile, setProfile }: any) {
             </DialogClose>
             <Button
               type="submit"
-              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 text-white shadow-md cursor-pointer"
+              disabled={isSaving}
+              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 text-white shadow-md cursor-pointer disabled:opacity-50"
             >
-              Lưu thay đổi
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Đang lưu...
+                </>
+              ) : (
+                "Lưu thay đổi"
+              )}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
-}
+}

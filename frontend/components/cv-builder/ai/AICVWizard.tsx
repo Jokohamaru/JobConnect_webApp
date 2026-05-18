@@ -17,10 +17,18 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-const STEPS = [
+const STEPS_DEFAULT = [
   { id: 1, label: "Thông tin" },
   { id: 2, label: "Học vấn" },
   { id: 3, label: "Kinh nghiệm" },
+  { id: 4, label: "Kỹ năng" },
+  { id: 5, label: "Hoàn thiện" },
+];
+
+const STEPS_FRESHER = [
+  { id: 1, label: "Thông tin" },
+  { id: 2, label: "Học vấn" },
+  { id: 3, label: "Dự án" },
   { id: 4, label: "Kỹ năng" },
   { id: 5, label: "Hoàn thiện" },
 ];
@@ -90,6 +98,8 @@ const defaultFormData = (): WizardFormData => ({
 export function AICVWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<WizardFormData>(defaultFormData());
+  const isFresher = formData.level === "fresher";
+  const STEPS = isFresher ? STEPS_FRESHER : STEPS_DEFAULT;
   const router = useRouter();
 
   const handleNext = () => {
@@ -154,7 +164,7 @@ export function AICVWizard() {
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
           {currentStep === 1 && "Tạo CV chuyên nghiệp với AI"}
           {currentStep === 2 && "Học vấn"}
-          {currentStep === 3 && "Kinh nghiệm làm việc"}
+          {currentStep === 3 && (isFresher ? "Dự án cá nhân" : "Kinh nghiệm làm việc")}
           {currentStep === 4 && "Kỹ năng của bạn"}
           {currentStep === 5 && "Hoàn thiện & Tạo CV"}
         </h1>
@@ -176,9 +186,9 @@ export function AICVWizard() {
           {currentStep === 3 && (
             <>
               <span className="block">
-                Thêm kinh nghiệm của bạn để Job Connect
+                {isFresher ? "Thêm các dự án cá nhân của bạn" : "Thêm kinh nghiệm của bạn"} để Job Connect
               </span>
-              <span className="block">giúp tạo CV phù hợp hơn.</span>
+              <span className="block">{isFresher ? "hiểu rõ hơn khả năng của bạn." : "giúp tạo CV phù hợp hơn."}</span>
             </>
           )}
           {currentStep === 4 && (

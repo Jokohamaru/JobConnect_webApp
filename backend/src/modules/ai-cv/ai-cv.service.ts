@@ -108,6 +108,7 @@ export class AiCVService {
     const industryText = INDUSTRY_MAP[dto.industry] || dto.industry;
 
     // Xây dựng phần kinh nghiệm
+    const isFresher = dto.level === 'fresher';
     const experienceSection =
       dto.experiences && dto.experiences.length > 0
         ? dto.experiences
@@ -118,15 +119,20 @@ export class AiCVService {
               const duration = exp.isCurrent
                 ? `${exp.startDate || ''} - Hiện tại`
                 : `${exp.startDate || ''} - ${exp.endDate || ''}`;
-              return `  Kinh nghiệm ${i + 1}:
-    - Công ty: ${exp.company}
-    - Vị trí: ${exp.position}${workType ? ` (${workType})` : ''}
+              const label = isFresher ? `Dự án ${i + 1}` : `Kinh nghiệm ${i + 1}`;
+              const companyLabel = isFresher ? 'Tên dự án / Tổ chức' : 'Công ty';
+              const positionLabel = isFresher ? 'Vai trò' : 'Vị trí';
+              return `  ${label}:
+    - ${companyLabel}: ${exp.company}
+    - ${positionLabel}: ${exp.position}${workType ? ` (${workType})` : ''}
     - Thời gian: ${duration}
     - Mô tả công việc: ${exp.description || 'Không có'}
     - Thành tựu nổi bật: ${exp.achievements || 'Không có'}`;
             })
             .join('\n\n')
-        : '  Chưa có kinh nghiệm làm việc (fresher/sinh viên)';
+        : isFresher
+          ? '  Chưa có dự án cá nhân (fresher/sinh viên)'
+          : '  Chưa có kinh nghiệm làm việc (fresher/sinh viên)';
 
     // Xây dựng phần học vấn
     const educationSection =
@@ -182,7 +188,7 @@ Hãy tạo nội dung CV hoàn chỉnh bằng TIẾNG VIỆT dựa trên thông 
 - Vị trí ứng tuyển: ${dto.jobTitle}
 - Cấp độ kinh nghiệm: ${levelText}
 
-=== KINH NGHIỆM LÀM VIỆC ===
+=== ${isFresher ? 'DỰ ÁN CÁ NHÂN / KINH NGHIỆM' : 'KINH NGHIỆM LÀM VIỆC'} ===
 ${experienceSection}
 
 === HỌC VẤN ===
@@ -199,7 +205,7 @@ ${certificatesText}
 
 === YÊU CẦU ===
 1. Viết "summary" (mục tiêu nghề nghiệp) chuyên nghiệp, 3-4 câu, phù hợp với vị trí và cấp độ
-2. Với mỗi kinh nghiệm: viết lại "description" theo chuẩn CV chuyên nghiệp:
+2. Với mỗi ${isFresher ? 'dự án' : 'kinh nghiệm'}: viết lại "description" theo chuẩn CV chuyên nghiệp:
    - Dùng bullet points (mỗi điểm bắt đầu bằng "•")
    - Dùng động từ hành động mạnh (Phát triển, Quản lý, Triển khai, Tối ưu hóa, Xây dựng...)
    - Thêm số liệu cụ thể nếu có thể suy ra từ mô tả gốc
