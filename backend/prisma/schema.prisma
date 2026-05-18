@@ -55,8 +55,8 @@ model User {
   id            String     @id @default(uuid())
   email         String     @unique
   password      String?    
-  firstName     String?
-  lastName      String?
+  firstName     String?    @map("first_name")
+  lastName      String?    @map("last_name")
   avaUrl        String?    
   role          UserRole   @default(CANDIDATE)
   status        UserStatus @default(ACTIVE)
@@ -89,9 +89,14 @@ model Candidate {
   id          String   @id @default(uuid())
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id])
-  phoneNumber String?  // Cần mã hóa PII ở tầng Service
+  phoneNumber String?
   careerRole  String?
-  
+  dob         String?
+  gender      String?
+  address     String?
+  city        String?
+  link        String?
+
   cvs         CV[]
   savedJobs   SavedJob[]
   createdAt   DateTime @default(now())

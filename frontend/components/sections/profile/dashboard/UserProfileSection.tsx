@@ -1,28 +1,15 @@
 
-import ProfileHeader from './ProfileHeader';
+
 import CVSearchSection from './CVSearchSection';
 import UserCVSection from './UserCVSection';
 import ActivityStats from './ActivityStats';
+import ProfileHeader from '../my-file/ProfileHeader';
 
-interface UserProfileSectionProps {
-  user: {
-    name: string;
-    email: string;
-    avatarUrl?: string;
-    id: string;
-  };
-}
-
-export default function UserProfileSection({ user }: UserProfileSectionProps) {
+export default function UserProfileSection() {
   return (
     <div className="min-w-4xl mx-auto px-4">
-      {/* Profile Header */}
-      <ProfileHeader
-        name={user.name}
-        email={user.email}
-        avatarUrl={user.avatarUrl}
-        id={user.id}
-      />
+      {/* Profile Header — tự fetch data từ API */}
+      <ProfileHeader />
 
       {/* CV Search/Upload */}
       <CVSearchSection />

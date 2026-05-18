@@ -2,9 +2,17 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -13,6 +21,7 @@ import {
 import { Camera, Trash2, Pencil, Loader2 } from "lucide-react";
 import { useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { authService } from "@/lib/auth-service";
 
 function FloatingInput({
   label,
@@ -56,8 +65,11 @@ export function ProfileEditDialog({ profile, setProfile, onProfileUpdate }: any)
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const { token } = useAuth();
+  const { token: contextToken } = useAuth();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+  // Fallback: nếu context chưa load xong thì đọc thẳng từ localStorage
+  const getToken = () => contextToken || authService.getToken();
 
   const handleChange = (field: string, value: string) => {
     setProfile({ ...profile, [field]: value });
@@ -71,6 +83,7 @@ export function ProfileEditDialog({ profile, setProfile, onProfileUpdate }: any)
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    const token = getToken();
     if (!file || !token) return;
 
     setIsUploadingAvatar(true);
@@ -98,6 +111,7 @@ export function ProfileEditDialog({ profile, setProfile, onProfileUpdate }: any)
   };
 
   const handleRemoveAvatar = async () => {
+    const token = getToken();
     if (!token) return;
     try {
       const res = await fetch(`${API_URL}/user/profile/me/avatar`, {
@@ -115,6 +129,7 @@ export function ProfileEditDialog({ profile, setProfile, onProfileUpdate }: any)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const token = getToken();
     if (!token) return;
 
     setIsSaving(true);
@@ -127,7 +142,12 @@ export function ProfileEditDialog({ profile, setProfile, onProfileUpdate }: any)
       const formData = new FormData();
       formData.append("firstName", firstName);
       formData.append("lastName", lastName);
-      if (profile.phone) formData.append("phoneNumber", profile.phone);
+      if (profile.phone !== undefined) formData.append("phoneNumber", profile.phone);
+      if (profile.dob !== undefined) formData.append("dob", profile.dob);
+      if (profile.gender !== undefined) formData.append("gender", profile.gender);
+      if (profile.address !== undefined) formData.append("address", profile.address);
+      if (profile.city !== undefined) formData.append("city", profile.city);
+      if (profile.link !== undefined) formData.append("link", profile.link);
 
       const res = await fetch(`${API_URL}/user/profile/me`, {
         method: "PATCH",
@@ -143,11 +163,17 @@ export function ProfileEditDialog({ profile, setProfile, onProfileUpdate }: any)
           email: data.email,
           avatar: data.avaUrl || "",
           phone: data.candidate?.phoneNumber || profile.phone,
+          dob: data.candidate?.dob || profile.dob,
+          gender: data.candidate?.gender || profile.gender,
+          address: data.candidate?.address || profile.address,
+          city: data.candidate?.city || profile.city,
+          link: data.candidate?.link || profile.link,
         });
         onProfileUpdate?.();
         setOpen(false);
       } else {
-        console.error("Profile update failed");
+        const errBody = await res.json().catch(() => ({}));
+        console.error("Profile update failed", res.status, errBody);
       }
     } catch (err) {
       console.error("Profile update error:", err);
@@ -181,7 +207,9 @@ export function ProfileEditDialog({ profile, setProfile, onProfileUpdate }: any)
             <DialogTitle className="text-white font-bold text-lg">
               Thông tin cá nhân
             </DialogTitle>
-            <p className="text-blue-100 text-xs mt-0.5">Cập nhật thông tin để nhà tuyển dụng dễ liên hệ</p>
+            <DialogDescription className="text-blue-100 text-xs mt-0.5">
+              Cập nhật thông tin để nhà tuyển dụng dễ liên hệ
+            </DialogDescription>
           </DialogHeader>
 
           <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
@@ -266,20 +294,23 @@ export function ProfileEditDialog({ profile, setProfile, onProfileUpdate }: any)
                   value={profile.dob || ""}
                   onChange={(e) => handleChange("dob", e.target.value)}
                 />
-                <div className="relative border border-gray-200 rounded-xl px-3 pt-5 pb-2.5 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all bg-white">
+                <div className="relative border border-gray-200 rounded-xl px-3 pt-5  focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all bg-white">
                   <label className="absolute top-1.5 left-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
                     Giới tính
                   </label>
-                  <select
+                  <Select
                     value={profile.gender || ""}
-                    onChange={(e) => handleChange("gender", e.target.value)}
-                    className="w-full text-sm text-gray-800 outline-none bg-transparent"
+                    onValueChange={(val) => handleChange("gender", val)}
                   >
-                    <option value="">-- Chọn --</option>
-                    <option value="Nam">Nam</option>
-                    <option value="Nữ">Nữ</option>
-                    <option value="Khác">Khác</option>
-                  </select>
+                    <SelectTrigger className="w-full text-sm text-gray-800 border-none shadow-none bg-transparent px-0 h-auto focus:ring-0 focus:ring-offset-0">
+                      <SelectValue placeholder="-- Chọn --" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Nam">Nam</SelectItem>
+                      <SelectItem value="Nữ">Nữ</SelectItem>
+                      <SelectItem value="Khác">Khác</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -336,4 +367,4 @@ export function ProfileEditDialog({ profile, setProfile, onProfileUpdate }: any)
       </DialogContent>
     </Dialog>
   );
-}
+}

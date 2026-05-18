@@ -19,8 +19,10 @@ export interface EducationItem {
   id: string;
   degree: string;
   school: string;
+  major?: string;
   year: string;
   gpa?: string;
+  description?: string;
 }
 export interface SkillItem {
   id: string;
@@ -235,7 +237,7 @@ export function CVDocument({
             <DynamicListSection
               title=""
               items={data.education}
-              onAdd={() => set("education", [...data.education, { id: uid(), degree: "Bằng cấp", school: "Trường Đại học", year: "2020 - 2024", gpa: "3.5/4.0" }])}
+              onAdd={() => set("education", [...data.education, { id: uid(), degree: "Bằng cấp", school: "Trường Đại học", major: "Chuyên ngành", year: "2020 - 2024", gpa: "3.5/4.0", description: "" }])}
               onRemove={(id) => set("education", data.education.filter((e) => e.id !== id))}
               renderItem={(item) => {
                 if (templateId === 2) {
@@ -248,7 +250,9 @@ export function CVDocument({
                         <EditableText value={item.school} onChangeText={(v) => updEdu(item.id, "school", v)} className="font-bold text-gray-900 text-base" />
                         <div className="text-gray-800 mt-1 flex flex-col gap-1">
                           <EditableText value={item.degree} onChangeText={(v) => updEdu(item.id, "degree", v)} />
-                          {item.gpa && <EditableText value={item.gpa} onChangeText={(v) => updEdu(item.id, "gpa", v)} />}
+                          {item.major && <EditableText value={item.major} onChangeText={(v) => updEdu(item.id, "major", v)} className="text-gray-600 italic" />}
+                          {item.gpa && <EditableText value={item.gpa} onChangeText={(v) => updEdu(item.id, "gpa", v)} className="text-gray-500 text-sm" />}
+                          {item.description && <EditableText value={item.description} onChangeText={(v) => updEdu(item.id, "description", v)} className="text-gray-600 text-sm mt-1" />}
                         </div>
                       </div>
                     </div>
@@ -262,7 +266,9 @@ export function CVDocument({
                         <EditableText value={item.year} onChangeText={(v) => updEdu(item.id, "year", v)} className="font-normal text-black text-sm shrink-0" />
                       </div>
                       <EditableText value={item.degree} onChangeText={(v) => updEdu(item.id, "degree", v)} className="font-bold text-black mb-1" />
+                      {item.major && <EditableText value={item.major} onChangeText={(v) => updEdu(item.id, "major", v)} className="text-black text-sm italic mb-1" />}
                       {item.gpa && <EditableText value={item.gpa} onChangeText={(v) => updEdu(item.id, "gpa", v)} className="text-black text-sm italic" />}
+                      {item.description && <EditableText value={item.description} onChangeText={(v) => updEdu(item.id, "description", v)} className="text-black text-sm mt-1" />}
                     </div>
                   );
                 }
@@ -274,8 +280,12 @@ export function CVDocument({
                       <EditableText value={item.year} onChangeText={(v) => updEdu(item.id, "year", v)} className="text-gray-400 text-xs shrink-0" />
                     </div>
                     <EditableText value={item.school} onChangeText={(v) => updEdu(item.id, "school", v)} className={`font-medium ${fsClass}`} style={{ color: theme.primary }} />
+                    {item.major && <EditableText value={item.major} onChangeText={(v) => updEdu(item.id, "major", v)} className="text-gray-500 italic text-xs mt-0.5" />}
                     {item.gpa && (
                       <EditableText value={item.gpa} onChangeText={(v) => updEdu(item.id, "gpa", v)} className="text-gray-500 text-xs mt-1" />
+                    )}
+                    {item.description && (
+                      <EditableText value={item.description} onChangeText={(v) => updEdu(item.id, "description", v)} className="text-gray-500 text-xs mt-1" />
                     )}
                   </div>
                 );

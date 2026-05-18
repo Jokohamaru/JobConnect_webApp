@@ -78,7 +78,16 @@ export class UserService {
    */
   async updateProfile(
     userId: string,
-    data: { firstName?: string; lastName?: string; phoneNumber?: string },
+    data: {
+      firstName?: string;
+      lastName?: string;
+      phoneNumber?: string;
+      dob?: string;
+      gender?: string;
+      address?: string;
+      city?: string;
+      link?: string;
+    },
     avatarPath?: string,
   ) {
     const user = await this.prisma.user.findUnique({
@@ -104,20 +113,28 @@ export class UserService {
     if (data.lastName !== undefined) userUpdateData.lastName = data.lastName;
     if (avatarPath) userUpdateData.avaUrl = avatarPath;
 
-    const updatedUser = await this.prisma.user.update({
+    await this.prisma.user.update({
       where: { id: userId },
       data: userUpdateData,
     });
 
-    // Update Candidate model (phoneNumber)
-    if (data.phoneNumber !== undefined && user.candidate) {
-      await this.prisma.candidate.update({
-        where: { id: user.candidate.id },
-        data: { phoneNumber: data.phoneNumber },
+    // Update Candidate model — upsert để tạo mới nếu chưa tồn tại
+    const candidateData: any = {};
+    if (data.phoneNumber !== undefined) candidateData.phoneNumber = data.phoneNumber;
+    if (data.dob !== undefined) candidateData.dob = data.dob;
+    if (data.gender !== undefined) candidateData.gender = data.gender;
+    if (data.address !== undefined) candidateData.address = data.address;
+    if (data.city !== undefined) candidateData.city = data.city;
+    if (data.link !== undefined) candidateData.link = data.link;
+
+    if (Object.keys(candidateData).length > 0) {
+      await this.prisma.candidate.upsert({
+        where: { userId },
+        update: candidateData,
+        create: { userId, ...candidateData },
       });
     }
 
-    // Trả về full profile
     return this.getFullProfile(userId);
   }
 

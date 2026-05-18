@@ -162,6 +162,15 @@ export default function CVBuilderPage() {
             // Fallback: dùng avatar tài khoản nếu AI không trả avatar
             aiData.avatar = resolveAvatarUrl(user.avaUrl);
           }
+          // Normalize education: AI trả "duration" nhưng CVDocument dùng "year"
+          if (aiData.education && Array.isArray(aiData.education)) {
+            aiData.education = aiData.education.map((edu: any) => ({
+              ...edu,
+              year: edu.year || edu.duration || "",
+              major: edu.major || "",
+              description: edu.description || "",
+            }));
+          }
           setCvData(aiData);
           // Đặt tên CV từ vị trí công việc AI tạo
           if (aiData.jobTitle) {

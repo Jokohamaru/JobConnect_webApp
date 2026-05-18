@@ -117,6 +117,16 @@ export function GenerateStep({ formData }: GenerateStepProps) {
 
       const cvData = await res.json();
 
+      // Normalize education fields: AI trả "duration" nhưng CVDocument dùng "year"
+      if (cvData.education && Array.isArray(cvData.education)) {
+        cvData.education = cvData.education.map((edu: any) => ({
+          ...edu,
+          year: edu.year || edu.duration || "",
+          major: edu.major || "",
+          description: edu.description || "",
+        }));
+      }
+
       // Lưu vào sessionStorage rồi chuyển sang editor
       sessionStorage.setItem("ai-cv-data", JSON.stringify(cvData));
       setStatus("success");
