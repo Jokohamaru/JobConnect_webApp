@@ -23,15 +23,16 @@ export function middleware(request: NextRequest) {
     '/auth/register',
     '/auth/forgot-password',
     '/auth/reset-password',
-    '/admin/dashboard'
+
   ];
 
   // Protected routes
   const protectedRoutes = [
-    // '/profile',
+    '/profile',
     '/dashboard',
-    // '/recruiter',
+    '/recruiter',
     '/candidate',
+    '/admin',
   ];
 
   // Check if current route is public

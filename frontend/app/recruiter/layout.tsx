@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RecruiterNavbar } from "@/components/recruiter/RecruiterNavbar";
 
 export const metadata: Metadata = {
   title: "Nhà tuyển dụng",
@@ -11,5 +12,10 @@ export default function RecruiterLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen bg-[#f0f5fb] font-sans">
+      <RecruiterNavbar />
+      <main className="max-w-7xl mx-auto px-4 py-6">{children}</main>
+    </div>
+  );
 }
