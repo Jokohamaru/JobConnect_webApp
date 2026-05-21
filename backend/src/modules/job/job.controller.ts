@@ -39,10 +39,18 @@ export class JobController {
     @Query('minSalary') minSalary?: string,
     @Query('maxSalary') maxSalary?: string,
     @Query('search') search?: string,
+    @Query('tagName') tagName?: string | string[],
   ) {
     const pageNum = page ? parseInt(page, 10) : 1;
     const pageSizeNum = pageSize ? parseInt(pageSize, 10) : 27;
     const skip = (pageNum - 1) * pageSizeNum;
+
+    // tagName can be a single string or array
+    const tagNames = tagName
+      ? Array.isArray(tagName)
+        ? tagName
+        : [tagName]
+      : undefined;
 
     return this.jobService.findAll({
       skip,
@@ -52,6 +60,7 @@ export class JobController {
       minSalary: minSalary ? parseInt(minSalary, 10) : undefined,
       maxSalary: maxSalary ? parseInt(maxSalary, 10) : undefined,
       search,
+      tagNames,
     });
   }
 

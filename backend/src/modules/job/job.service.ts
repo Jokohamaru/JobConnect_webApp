@@ -63,6 +63,7 @@ export class JobService {
     minSalary?: number;
     maxSalary?: number;
     search?: string;
+    tagNames?: string[];
   }) {
     const {
       skip = 0,
@@ -72,6 +73,7 @@ export class JobService {
       minSalary,
       maxSalary,
       search,
+      tagNames,
     } = params || {};
 
     const where: any = {
@@ -100,6 +102,14 @@ export class JobService {
         { title: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    if (tagNames && tagNames.length > 0) {
+      where.tags = {
+        some: {
+          name: { in: tagNames, mode: 'insensitive' },
+        },
+      };
     }
 
     const [jobs, total] = await Promise.all([
