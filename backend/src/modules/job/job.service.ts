@@ -59,6 +59,7 @@ export class JobService {
     skip?: number;
     take?: number;
     cityId?: string;
+    cityName?: string;
     companyId?: string;
     minSalary?: number;
     maxSalary?: number;
@@ -69,6 +70,7 @@ export class JobService {
       skip = 0,
       take = 27,
       cityId,
+      cityName,
       companyId,
       minSalary,
       maxSalary,
@@ -83,6 +85,12 @@ export class JobService {
 
     if (cityId) {
       where.cityId = cityId;
+    }
+
+    if (cityName) {
+      where.city = {
+        name: { contains: cityName, mode: 'insensitive' },
+      };
     }
 
     if (companyId) {
