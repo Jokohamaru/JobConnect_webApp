@@ -22,7 +22,8 @@
     "prisma:seed-recruiter": "ts-node prisma/seed-recruiter.ts",
     "prisma:seed-candidate": "ts-node prisma/seed-candidate.ts",
     "prisma:seed-admin": "ts-node prisma/seed-admin.ts",
-    "prisma:seed-industry-tags": "ts-node prisma/seed-industry-tags.ts"
+    "prisma:seed-industry-tags": "ts-node prisma/seed-industry-tags.ts",
+    "prisma:seed-trending-tags": "ts-node prisma/seed-trending-tags.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

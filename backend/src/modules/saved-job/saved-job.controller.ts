@@ -13,7 +13,7 @@ export class SavedJobController {
   @Post(':jobId')
   @Roles(Role.CANDIDATE)
   async saveJob(@Param('jobId') jobId: string, @Request() req) {
-    const userId = req.user.sub;
+    const userId = req.user.userId;
     
     const candidate = await this.savedJobService['prisma'].candidate.findUnique({
       where: { userId },
@@ -30,7 +30,7 @@ export class SavedJobController {
   @Delete(':jobId')
   @Roles(Role.CANDIDATE)
   async unsaveJob(@Param('jobId') jobId: string, @Request() req) {
-    const userId = req.user.sub;
+    const userId = req.user.userId;
     
     const candidate = await this.savedJobService['prisma'].candidate.findUnique({
       where: { userId },
@@ -47,7 +47,7 @@ export class SavedJobController {
   @Get()
   @Roles(Role.CANDIDATE)
   async getMySavedJobs(@Request() req) {
-    const userId = req.user.sub;
+    const userId = req.user.userId;
     
     const candidate = await this.savedJobService['prisma'].candidate.findUnique({
       where: { userId },
@@ -64,7 +64,7 @@ export class SavedJobController {
   @Get('check/:jobId')
   @Roles(Role.CANDIDATE)
   async checkIfSaved(@Param('jobId') jobId: string, @Request() req) {
-    const userId = req.user.sub;
+    const userId = req.user.userId;
     
     const candidate = await this.savedJobService['prisma'].candidate.findUnique({
       where: { userId },

@@ -11,7 +11,7 @@ export class JobController {
   @UseGuards(JwtAuthGuard)
   async create(@Body() createJobDto: CreateJobDto, @Request() req) {
     // Get recruiter info from JWT token
-    const userId = req.user.sub;
+    const userId = req.user.userId;
     
     // Get recruiter profile to get companyId
     const recruiter = await this.jobService['prisma'].recruiter.findUnique({
@@ -40,17 +40,17 @@ export class JobController {
     @Query('minSalary') minSalary?: string,
     @Query('maxSalary') maxSalary?: string,
     @Query('search') search?: string,
-    @Query('tagName') tagName?: string | string[],
+    @Query('tagNames') tagNames?: string | string[],
   ) {
     const pageNum = page ? parseInt(page, 10) : 1;
     const pageSizeNum = pageSize ? parseInt(pageSize, 10) : 27;
     const skip = (pageNum - 1) * pageSizeNum;
 
-    // tagName can be a single string or array
-    const tagNames = tagName
-      ? Array.isArray(tagName)
-        ? tagName
-        : [tagName]
+    // tagNames can be a single string or array
+    const tagNamesArr = tagNames
+      ? Array.isArray(tagNames)
+        ? tagNames
+        : [tagNames]
       : undefined;
 
     return this.jobService.findAll({
@@ -62,7 +62,7 @@ export class JobController {
       minSalary: minSalary ? parseInt(minSalary, 10) : undefined,
       maxSalary: maxSalary ? parseInt(maxSalary, 10) : undefined,
       search,
-      tagNames,
+      tagNames: tagNamesArr,
     });
   }
 

@@ -112,10 +112,10 @@ export function SearchBar() {
       </h1>
 
       {/* Unified Search Row */}
-      <div className="relative flex items-center bg-white rounded-full p-1.5 w-full max-w-[800px] shadow-lg z-50" ref={containerRef}>
+      <div className="relative flex items-center bg-white rounded-full p-1.5 w-full max-w-[800px] shadow-lg z-40" ref={containerRef}>
         
         {/* Location Dropdown */}
-        <div className="shrink-0 w-40 z-100">
+        <div className="shrink-0 w-40 z-50">
           <LocationSelect label="Địa điểm" options={["Hà Nội", "Hải Phòng", "Hồ Chí Minh", "Đà Nẵng"]} />
         </div>
 
