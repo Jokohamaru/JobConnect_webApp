@@ -81,7 +81,12 @@ export function CompaniesTable({ onAddCompany }: CompaniesTableProps) {
   const getCompanyLogo = (logoUrl: string | null) => {
     if (!logoUrl) return "/placeholder-company.svg";
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    return `${apiUrl}${logoUrl}`;
+    
+    // Đảm bảo không bị thiếu hoặc thừa dấu "/" khi nối link
+    const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+    const cleanLogoUrl = logoUrl.startsWith('/') ? logoUrl : `/${logoUrl}`;
+    
+    return `${cleanApiUrl}${cleanLogoUrl}`;
   };
 
   return (
@@ -160,15 +165,16 @@ export function CompaniesTable({ onAddCompany }: CompaniesTableProps) {
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-12 w-12">
                         <Image
+                          unoptimized // THÊM DÒNG NÀY VÀO ĐỂ LÁCH LỖI NEXT.JS LOCAL
                           className="h-12 w-12 rounded-lg object-cover border"
                           src={getCompanyLogo(company.logoUrl)}
                           alt={company.name}
                           width={48}
                           height={48}
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = "/placeholder-company.svg";
-                          }}
+                          // onError={(e) => {
+                          //   const target = e.target as HTMLImageElement;
+                          //   target.src = "/placeholder-company.svg";
+                          // }}
                         />
                       </div>
                       <div className="ml-4">

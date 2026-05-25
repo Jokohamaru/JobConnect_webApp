@@ -25,7 +25,7 @@ export class CandidateController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.CANDIDATE)
   async getMyCVs(@Request() req) {
-    const userId = req.user.sub;
+    const userId = req.user.userId;
     return this.candidateService.getCVsByUserId(userId);
   }
 

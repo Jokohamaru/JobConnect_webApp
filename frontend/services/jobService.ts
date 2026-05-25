@@ -21,10 +21,14 @@ export const jobService = {
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.pageSize) params.append('pageSize', filters.pageSize.toString());
     if (filters?.cityId) params.append('cityId', filters.cityId);
+    if (filters?.cityName) params.append('cityName', filters.cityName);
     if (filters?.companyId) params.append('companyId', filters.companyId);
     if (filters?.minSalary) params.append('minSalary', filters.minSalary.toString());
     if (filters?.maxSalary) params.append('maxSalary', filters.maxSalary.toString());
     if (filters?.search) params.append('search', filters.search);
+    if (filters?.tagNames && filters.tagNames.length > 0) {
+      filters.tagNames.forEach(tag => params.append('tagNames', tag));
+    }
 
     const response = await fetch(`${API_URL}/jobs?${params.toString()}`, {
       method: 'GET',

@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { SearchBar } from "@/components/sections/hero-section/SearchBar";
-import FilterBar from "@/components/sections/filters/FilterBar";
 import { MarketingInfo } from "@/components/sections/marketing-info";
-import HintBar from "@/components/ui/TooltipHints";
 import { JobCardProps } from "@/components/sections/jobs/JobCard";
-
-import JobSlider from "@/components/sections/jobs/JobSlider";
+import TrendingJobsSection from "@/components/sections/jobs/TrendingJobsSection";
 import { jobService } from "@/services/jobService";
 import { mapJobToJobCard } from "@/utils/jobMapper";
 
@@ -23,7 +20,6 @@ export default async function HomePage() {
     jobs = response.data.map(mapJobToJobCard);
   } catch (error) {
     console.error("Failed to fetch jobs:", error);
-    // Fallback to empty array or show error message
   }
 
   return (
@@ -31,11 +27,7 @@ export default async function HomePage() {
       <SearchBar />
       <div className="px-20">
         <MarketingInfo />
-        <FilterBar />
-        <HintBar />
-        <div className="">
-          <JobSlider jobs={jobs} />
-        </div>
+        <TrendingJobsSection initialJobs={jobs} />
       </div>
     </div>
   );

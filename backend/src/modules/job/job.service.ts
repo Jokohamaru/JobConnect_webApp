@@ -59,19 +59,23 @@ export class JobService {
     skip?: number;
     take?: number;
     cityId?: string;
+    cityName?: string;
     companyId?: string;
     minSalary?: number;
     maxSalary?: number;
     search?: string;
+    tagNames?: string[];
   }) {
     const {
       skip = 0,
       take = 27,
       cityId,
+      cityName,
       companyId,
       minSalary,
       maxSalary,
       search,
+      tagNames,
     } = params || {};
 
     const where: any = {
@@ -81,6 +85,12 @@ export class JobService {
 
     if (cityId) {
       where.cityId = cityId;
+    }
+
+    if (cityName) {
+      where.city = {
+        name: { contains: cityName, mode: 'insensitive' },
+      };
     }
 
     if (companyId) {
@@ -100,6 +110,14 @@ export class JobService {
         { title: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    if (tagNames && tagNames.length > 0) {
+      where.tags = {
+        some: {
+          name: { in: tagNames, mode: 'insensitive' },
+        },
+      };
     }
 
     const [jobs, total] = await Promise.all([

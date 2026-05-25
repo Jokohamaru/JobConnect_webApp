@@ -38,23 +38,34 @@ export class JobController {
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
     @Query('cityId') cityId?: string,
+    @Query('cityName') cityName?: string,
     @Query('companyId') companyId?: string,
     @Query('minSalary') minSalary?: string,
     @Query('maxSalary') maxSalary?: string,
     @Query('search') search?: string,
+    @Query('tagNames') tagNames?: string | string[],
   ) {
     const pageNum = page ? parseInt(page, 10) : 1;
     const pageSizeNum = pageSize ? parseInt(pageSize, 10) : 27;
     const skip = (pageNum - 1) * pageSizeNum;
 
+    // tagNames can be a single string or array
+    const tagNamesArr = tagNames
+      ? Array.isArray(tagNames)
+        ? tagNames
+        : [tagNames]
+      : undefined;
+
     return this.jobService.findAll({
       skip,
       take: pageSizeNum,
       cityId,
+      cityName,
       companyId,
       minSalary: minSalary ? parseInt(minSalary, 10) : undefined,
       maxSalary: maxSalary ? parseInt(maxSalary, 10) : undefined,
       search,
+      tagNames: tagNamesArr,
     });
   }
 
