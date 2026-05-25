@@ -45,8 +45,10 @@ export interface JobFilters {
   page?: number;
   pageSize?: number;
   cityId?: string;
+  cityName?: string;
   companyId?: string;
   minSalary?: number;
   maxSalary?: number;
   search?: string;
+  tagNames?: string[];
 }

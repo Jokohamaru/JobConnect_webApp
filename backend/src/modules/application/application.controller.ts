@@ -14,7 +14,7 @@ export class ApplicationController {
   @Post()
   @Roles(Role.CANDIDATE)
   async create(@Body() createApplicationDto: CreateApplicationDto, @Request() req) {
-    const userId = req.user.sub;
+    const userId = req.user.userId;
     
     // Get candidate profile
     const candidate = await this.applicationService['prisma'].candidate.findUnique({
@@ -32,7 +32,7 @@ export class ApplicationController {
   @Get('my-applications')
   @Roles(Role.CANDIDATE)
   async getMyApplications(@Request() req) {
-    const userId = req.user.sub;
+    const userId = req.user.userId;
     
     const candidate = await this.applicationService['prisma'].candidate.findUnique({
       where: { userId },
@@ -49,7 +49,7 @@ export class ApplicationController {
   @Get('check/:jobId')
   @Roles(Role.CANDIDATE)
   async checkIfApplied(@Param('jobId') jobId: string, @Request() req) {
-    const userId = req.user.sub;
+    const userId = req.user.userId;
     
     const candidate = await this.applicationService['prisma'].candidate.findUnique({
       where: { userId },

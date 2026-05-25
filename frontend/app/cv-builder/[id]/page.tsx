@@ -254,7 +254,19 @@ export default function CVBuilderPage() {
       return;
     }
 
-    if (!user || user.role !== "CANDIDATE") {
+    // Fallback: decode token trực tiếp nếu AuthContext chưa load xong
+    const activeToken = token || (typeof window !== 'undefined' ? localStorage.getItem('access_token') : null);
+
+    // Lấy role từ user context hoặc decode từ token
+    let userRole = user?.role;
+    if (!userRole && activeToken) {
+      try {
+        const payload = JSON.parse(atob(activeToken.split('.')[1]));
+        userRole = payload.role;
+      } catch { /* ignore decode error */ }
+    }
+
+    if (!userRole || userRole !== "CANDIDATE") {
       showToast("Vui lòng đăng nhập với tài khoản ứng viên để lưu CV", "error");
       setTimeout(() => router.push("/auth/login"), 1500);
       return;
@@ -265,7 +277,7 @@ export default function CVBuilderPage() {
       return;
     }
 
-    if (!token) {
+    if (!activeToken) {
       showToast("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại", "error");
       setTimeout(() => router.push("/auth/login"), 1500);
       return;
@@ -349,7 +361,7 @@ ${clonedElement.outerHTML}
           await fetch(`${API_URL}/cvs/${editingCVId}`, {
             method: "DELETE",
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${activeToken}`,
             },
           });
           console.log("Deleted old CV:", editingCVId);
@@ -363,7 +375,7 @@ ${clonedElement.outerHTML}
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${activeToken}`,
         },
         body: JSON.stringify({
           title: cvTitle,
@@ -375,6 +387,15 @@ ${clonedElement.outerHTML}
       if (!response.ok) {
         const error = await response.json().catch(() => null);
         console.error("Server error:", error);
+
+        // Token hết hạn → xóa token cũ và redirect về login
+        if (response.status === 401) {
+          if (typeof window !== 'undefined') localStorage.removeItem('access_token');
+          showToast("Phiên đăng nhập đã hết hạn. Đang chuyển về trang đăng nhập...", "error");
+          setTimeout(() => router.push("/auth/login"), 1800);
+          return;
+        }
+
         throw new Error(error?.message || "Không thể lưu CV");
       }
 

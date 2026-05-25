@@ -5,15 +5,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, Loader2, PlusCircle, ExternalLink } from "lucide-react";
 import { applicationService } from "@/services/applicationService";
 import { authService } from "@/lib/auth-service";
+import { useRouter } from "next/navigation";
 
 interface CV {
   id: string;
   title: string;
   cvUrl: string;
   status: string;
+  createdAt?: string;
 }
 
 interface ApplyJobModalProps {
@@ -25,6 +27,7 @@ interface ApplyJobModalProps {
 }
 
 export function ApplyJobModal({ isOpen, onClose, jobId, jobTitle, onSuccess }: ApplyJobModalProps) {
+  const router = useRouter();
   const [cvs, setCvs] = useState<CV[]>([]);
   const [selectedCvId, setSelectedCvId] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -40,6 +43,7 @@ export function ApplyJobModal({ isOpen, onClose, jobId, jobTitle, onSuccess }: A
   const fetchCVs = async () => {
     try {
       setFetchingCvs(true);
+      setError(null);
       const token = authService.getToken();
       if (!token) {
         setError("Vui lòng đăng nhập");
@@ -47,7 +51,7 @@ export function ApplyJobModal({ isOpen, onClose, jobId, jobTitle, onSuccess }: A
       }
 
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_URL}/candidates/my-cvs`, {
+      const response = await fetch(`${API_URL}/cvs`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -58,14 +62,16 @@ export function ApplyJobModal({ isOpen, onClose, jobId, jobTitle, onSuccess }: A
       }
 
       const data = await response.json();
-      setCvs(data.filter((cv: CV) => cv.status === 'DONE'));
+      // Hiển thị tất cả CV (không lọc theo status)
+      setCvs(data);
       
+      // Tự động chọn CV đầu tiên
       if (data.length > 0) {
         setSelectedCvId(data[0].id);
       }
     } catch (err: any) {
       console.error('Failed to fetch CVs:', err);
-      setError('Không thể tải danh sách CV');
+      setError('Không thể tải danh sách CV. Vui lòng thử lại.');
     } finally {
       setFetchingCvs(false);
     }
@@ -121,13 +127,27 @@ export function ApplyJobModal({ isOpen, onClose, jobId, jobTitle, onSuccess }: A
             </div>
           ) : cvs.length === 0 ? (
             <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm text-gray-500 mb-4">
-                Bạn chưa có CV nào. Vui lòng tạo CV trước khi ứng tuyển.
+              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText className="h-8 w-8 text-blue-400" />
+              </div>
+              <h3 className="text-base font-semibold text-gray-800 mb-2">
+                Bạn chưa có CV nào
+              </h3>
+              <p className="text-sm text-gray-500 mb-5">
+                Tạo CV ngay để ứng tuyển vào vị trí này nhé!
               </p>
-              <Button variant="outline" onClick={onClose}>
-                Đóng
-              </Button>
+              <div className="flex gap-3 justify-center">
+                <Button variant="outline" onClick={onClose}>
+                  Đóng
+                </Button>
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700 gap-2"
+                  onClick={() => { onClose(); router.push('/cv'); }}
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  Tạo CV ngay
+                </Button>
+              </div>
             </div>
           ) : (
             <>
@@ -140,15 +160,38 @@ export function ApplyJobModal({ isOpen, onClose, jobId, jobTitle, onSuccess }: A
                     {cvs.map((cv) => (
                       <div
                         key={cv.id}
-                        className="flex items-center space-x-3 border border-gray-200 rounded-lg p-3 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => setSelectedCvId(cv.id)}
+                        className={`flex items-center space-x-3 border rounded-lg p-3 cursor-pointer transition-all ${
+                          selectedCvId === cv.id
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:bg-gray-50'
+                        }`}
                       >
                         <RadioGroupItem value={cv.id} id={cv.id} />
                         <Label
                           htmlFor={cv.id}
                           className="flex items-center gap-2 cursor-pointer flex-1"
                         >
-                          <FileText className="h-4 w-4 text-blue-600" />
-                          <span className="text-sm font-medium">{cv.title}</span>
+                          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
+                            selectedCvId === cv.id ? 'bg-blue-100' : 'bg-gray-100'
+                          }`}>
+                            <FileText className={`h-4 w-4 ${
+                              selectedCvId === cv.id ? 'text-blue-600' : 'text-gray-500'
+                            }`} />
+                          </div>
+                          <div className="flex-1">
+                            <span className="text-sm font-medium block">{cv.title}</span>
+                            {cv.createdAt && (
+                              <span className="text-xs text-gray-400">
+                                Tạo ngày {new Date(cv.createdAt).toLocaleDateString('vi-VN')}
+                              </span>
+                            )}
+                          </div>
+                          {cv.status === 'DONE' && (
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                              Sẵn sàng
+                            </span>
+                          )}
                         </Label>
                       </div>
                     ))}

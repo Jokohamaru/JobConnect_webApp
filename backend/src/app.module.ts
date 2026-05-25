@@ -13,6 +13,7 @@ import { SavedJobModule } from './modules/saved-job/saved-job.module';
 import { CVModule } from './modules/cv/cv.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { AiCVModule } from './modules/ai-cv/ai-cv.module';
+import { TagModule } from './modules/tag/tag.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AiCVModule } from './modules/ai-cv/ai-cv.module';
     CVModule,
     AdminModule,
     AiCVModule,
+    TagModule,
   ],
   controllers: [AppController],
   providers: [AppService],
