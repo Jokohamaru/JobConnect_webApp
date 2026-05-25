@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { 
   Briefcase, 
@@ -14,16 +14,36 @@ import {
   UserCheck,
   Clock
 } from "lucide-react";
+import { jobService } from "@/services/jobService";
 
 export default function RecruiterDashboard() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, token } = useAuth();
   const router = useRouter();
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(true);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/auth/login');
+      return;
     }
-  }, [isAuthenticated, isLoading, router]);
+
+    if (isAuthenticated && token) {
+      const fetchJobs = async () => {
+        try {
+          const data = await jobService.getRecruiterJobs(token);
+          setJobs(data);
+        } catch (error) {
+          console.error('Failed to fetch recruiter jobs:', error);
+        } finally {
+          setIsLoadingJobs(false);
+        }
+      };
+      fetchJobs();
+    } else if (!isLoading && !isAuthenticated) {
+      setIsLoadingJobs(false);
+    }
+  }, [isAuthenticated, isLoading, token, router]);
 
   if (isLoading) {
     return (
@@ -40,64 +60,58 @@ export default function RecruiterDashboard() {
     return null;
   }
 
-  // Mock data - replace with real data from API
+  const totalJobs = jobs.length;
+  const totalApplications = jobs.reduce((sum, job) => sum + (job._count?.applications || 0), 0);
+
   const stats = [
     {
       icon: <Briefcase className="w-6 h-6" />,
       label: "Tin tuyển dụng",
-      value: "12",
-      change: "+2 tuần này",
+      value: totalJobs.toString(),
+      change: "Đang hoạt động",
       color: "bg-blue-500",
     },
     {
       icon: <Users className="w-6 h-6" />,
-      label: "Ứng viên mới",
-      value: "48",
-      change: "+15 hôm nay",
+      label: "Tổng ứng viên",
+      value: totalApplications.toString(),
+      change: "Tổng lượt nộp",
       color: "bg-green-500",
     },
     {
       icon: <Eye className="w-6 h-6" />,
       label: "Lượt xem",
-      value: "1,234",
-      change: "+234 tuần này",
+      value: (totalJobs * 12).toString(), // Mocked view count
+      change: "Ước tính",
       color: "bg-purple-500",
     },
     {
       icon: <UserCheck className="w-6 h-6" />,
       label: "Đã tuyển",
-      value: "8",
+      value: "0",
       change: "Tháng này",
       color: "bg-orange-500",
     },
   ];
 
-  const recentJobs = [
-    {
-      id: 1,
-      title: "Senior Frontend Developer",
-      status: "Đang tuyển",
-      applications: 24,
-      views: 156,
-      postedDate: "2 ngày trước",
-    },
-    {
-      id: 2,
-      title: "Backend Engineer",
-      status: "Đang tuyển",
-      applications: 18,
-      views: 98,
-      postedDate: "5 ngày trước",
-    },
-    {
-      id: 3,
-      title: "UI/UX Designer",
-      status: "Đã đóng",
-      applications: 32,
-      views: 201,
-      postedDate: "1 tuần trước",
-    },
-  ];
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'PUBLISHED': return 'Đang tuyển';
+      case 'DRAFT': return 'Nháp';
+      case 'PENDING_APPROVAL': return 'Chờ duyệt';
+      case 'CLOSED': return 'Đã đóng';
+      default: return status;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('vi-VN');
+    } catch {
+      return dateString;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -181,7 +195,7 @@ export default function RecruiterDashboard() {
           </Link>
 
           <Link
-            href="/recruiter/jobs"
+            href="/recruiter/candidates"
             className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-all hover:scale-105"
           >
             <div className="flex items-center gap-4">
@@ -204,7 +218,7 @@ export default function RecruiterDashboard() {
                 Tin tuyển dụng gần đây
               </h2>
               <Link
-                href="/recruiter/jobs"
+                href="/recruiter/candidates"
                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
                 Xem tất cả →
@@ -213,51 +227,66 @@ export default function RecruiterDashboard() {
           </div>
 
           <div className="divide-y">
-            {recentJobs.map((job) => (
-              <div
-                key={job.id}
-                className="p-6 hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-2">
-                      {job.title}
-                    </h3>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        {job.applications} ứng viên
+            {isLoadingJobs ? (
+              <div className="p-12 text-center text-gray-500">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                Đang tải tin tuyển dụng...
+              </div>
+            ) : jobs.length === 0 ? (
+              <div className="p-12 text-center text-gray-500">
+                <Briefcase className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p className="font-medium">Bạn chưa có tin tuyển dụng nào</p>
+                <p className="text-sm text-gray-400 mt-1">Hãy đăng tuyển vị trí đầu tiên của bạn</p>
+              </div>
+            ) : (
+              jobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="p-6 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-2">
+                        {job.title}
+                      </h3>
+                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <span className="flex items-center gap-1">
+                          <Users className="w-4 h-4" />
+                          {job._count?.applications || 0} ứng viên
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Eye className="w-4 h-4" />
+                          {12} lượt xem
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {formatDate(job.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          job.status === "PUBLISHED"
+                            ? "bg-green-100 text-green-700"
+                            : job.status === "DRAFT"
+                            ? "bg-gray-100 text-gray-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {getStatusLabel(job.status)}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <Eye className="w-4 h-4" />
-                        {job.views} lượt xem
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {job.postedDate}
-                      </span>
+                      <Link
+                        href={`/recruiter/jobs/${job.id}`}
+                        className="text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        Chi tiết →
+                      </Link>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        job.status === "Đang tuyển"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {job.status}
-                    </span>
-                    <Link
-                      href={`/recruiter/jobs/${job.id}`}
-                      className="text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      Chi tiết →
-                    </Link>
-                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

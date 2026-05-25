@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   FileText,
   ChevronRight,
+  ChevronLeft,
   Plus,
   ArrowRight,
   Users,
   CheckCircle2,
   X,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CandidateCard } from "@/components/recruiter/CandidateCard";
@@ -24,13 +26,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Link from "next/link";
+import { jobService } from "@/services/jobService";
+import { applicationService } from "@/services/applicationService";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type MatchLevel = "Phù hợp cao" | "Phù hợp trung bình" | "Phù hợp thấp";
 
 export interface Candidate {
-  jobId?: number;
-  id: number;
+  jobId?: number | string;
+  id: number | string;
   name: string;
   role: string;
   experience: string;
@@ -43,6 +49,7 @@ export interface Candidate {
   education: string;
   skillScores: { name: string; score: number }[];
   status: "reviewing" | "matched" | "contacted" | "rejected";
+  cvUrl?: string;
 }
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
@@ -206,34 +213,190 @@ const tabsConfig: { value: TabValue; label: string; count: number }[] = [
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function RecruiterCandidatesPage() {
   const [activeTab, setActiveTab] = useState<TabValue>("all");
-  const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Real data state
+  const { isAuthenticated, isLoading: authLoading, token: authToken } = useAuth();
+  const router = useRouter();
+  const [activeJobsState, setActiveJobsState] = useState<any[]>([]);
+  const [candidatesState, setCandidatesState] = useState<Candidate[]>([]);
+  const [selectedJobId, setSelectedJobId] = useState<string | number | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const selectedJob = activeJobs.find((j) => j.id === selectedJobId) ?? null;
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedJobId, activeTab]);
 
-  const filteredCandidates = candidates.filter((c) => {
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push("/auth/login");
+      return;
+    }
+
+    if (isAuthenticated && authToken) {
+      fetchRealData(authToken);
+    }
+  }, [isAuthenticated, authLoading, authToken, router]);
+
+  const fetchRealData = async (token: string) => {
+    try {
+      setLoading(true);
+      if (!token) {
+        console.warn("No auth token available");
+        setActiveJobsState(activeJobs);
+        setCandidatesState(candidates);
+        return;
+      }
+
+      const jobsData = await jobService.getRecruiterJobs(token);
+      if (jobsData.length > 0) {
+        // Fetch applications for all jobs
+        const appsPromises = jobsData.map(job => 
+          applicationService.getApplicationsByJob(job.id, token).catch(() => [])
+        );
+        const appsArrays = await Promise.all(appsPromises);
+        const allApplications = appsArrays.flat();
+
+        // Map applications to candidates
+        const mappedCandidates = allApplications.map((app: any) => {
+          const candidateUser = app.cv?.candidate?.user;
+          const fullName = candidateUser ? `${candidateUser.firstName || ''} ${candidateUser.lastName || ''}`.trim() : "Ứng viên ẩn danh";
+          
+          let matchLevel: MatchLevel = "Phù hợp trung bình";
+          if (app.matchLevel === "HIGH") matchLevel = "Phù hợp cao";
+          else if (app.matchLevel === "LOW") matchLevel = "Phù hợp thấp";
+
+          let skills: string[] = [];
+          if (app.cv?.cvData?.skills) {
+            skills = app.cv.cvData.skills.map((s: any) => typeof s === 'string' ? s : s.skill).filter(Boolean);
+          }
+          if (skills.length === 0) {
+            skills = ["React", "JavaScript", "HTML/CSS"];
+          }
+
+          let workHistory = [];
+          if (app.cv?.cvData?.experiences) {
+            workHistory = app.cv.cvData.experiences.map((exp: any) => ({
+              company: `${exp.position} tại ${exp.company}`,
+              period: exp.duration || ""
+            }));
+          }
+          if (workHistory.length === 0) {
+            workHistory = [{ company: "Chưa cập nhật kinh nghiệm", period: "" }];
+          }
+
+          let education = "Chưa cập nhật học vấn";
+          if (app.cv?.cvData?.education?.[0]) {
+            const edu = app.cv.cvData.education[0];
+            education = `${edu.school} - ${edu.major || ''} (${edu.degree || ''})`;
+          }
+
+          const skillScores = skills.map(s => ({ name: s, score: Math.floor(Math.random() * 20) + 70 }));
+
+          return {
+            id: app.id,
+            jobId: app.jobId,
+            name: fullName,
+            role: app.cv?.cvData?.jobTitle || app.job?.title || "Ứng viên",
+            experience: app.cv?.cvData?.experiences?.[0] ? "Có kinh nghiệm" : "Dưới 1 năm kinh nghiệm",
+            skills,
+            avatar: candidateUser?.avaUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3b82f6&color=fff`,
+            matchScore: app.matchScore || 0,
+            matchLevel,
+            summary: app.aiFeedback || app.cv?.cvData?.summary || "Hồ sơ ứng viên nộp qua cổng thông tin Job Connect.",
+            workHistory,
+            education,
+            skillScores,
+            status: (app.matchScore ? (app.matchLevel === "HIGH" ? "matched" : "reviewing") : "reviewing") as "reviewing" | "matched" | "contacted" | "rejected",
+            cvUrl: app.cv?.cvUrl 
+              ? (app.cv.cvUrl.startsWith('http') ? app.cv.cvUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${app.cv.cvUrl}`)
+              : "",
+          };
+        });
+
+        // Map jobs to ActiveJob
+        const mappedJobs = jobsData.map(job => {
+          const jobApps = allApplications.filter((app: any) => app.jobId === job.id);
+          const total = jobApps.length;
+          const reviewing = jobApps.filter((a: any) => !a.matchScore).length;
+          const matched = jobApps.filter((a: any) => a.matchLevel === "HIGH").length;
+          const contacted = jobApps.filter((a: any) => a.matchLevel === "MEDIUM").length;
+          const rejected = jobApps.filter((a: any) => a.matchLevel === "LOW").length;
+
+          return {
+            id: job.id,
+            title: job.title,
+            department: `Bộ phận: ${job.company?.name || 'Nhân sự'}`,
+            type: `Hình thức: ${job.currency === 'USD' ? 'Global' : 'Toàn thời gian'}`,
+            location: `Địa điểm: ${job.city?.name || 'Hà Nội'}`,
+            postDate: `Đăng tin: ${new Date(job.createdAt).toLocaleDateString('vi-VN')}`,
+            deadline: `Hạn nộp: 30 ngày sau`,
+            stats: { total, reviewing, matched, contacted, rejected },
+          };
+        });
+
+        setCandidatesState(mappedCandidates);
+        setActiveJobsState(mappedJobs);
+      } else {
+        // Fallback to mock data if recruiter has no jobs posted yet
+        setActiveJobsState(activeJobs);
+        setCandidatesState(candidates);
+      }
+    } catch (error) {
+      console.error("Failed to load real data:", error);
+      // Fallback
+      setActiveJobsState(activeJobs);
+      setCandidatesState(candidates);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectedJob = activeJobsState.find((j) => j.id === selectedJobId) ?? null;
+
+  const filteredCandidates = candidatesState.filter((c) => {
     const matchJob = selectedJobId === null || c.jobId === selectedJobId;
     const matchTab = activeTab === "all" || c.status === activeTab;
     return matchJob && matchTab;
   });
 
+  const itemsPerPage = 8;
+  const totalPages = Math.ceil(filteredCandidates.length / itemsPerPage);
+  const currentCandidates = filteredCandidates.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   // Dynamic tab counts based on job filter
   const tabCounts = {
-    all: selectedJobId ? candidates.filter((c) => c.jobId === selectedJobId).length : candidates.length,
-    reviewing: candidates.filter((c) => (selectedJobId ? c.jobId === selectedJobId : true) && c.status === "reviewing").length,
-    matched:   candidates.filter((c) => (selectedJobId ? c.jobId === selectedJobId : true) && c.status === "matched").length,
-    contacted: candidates.filter((c) => (selectedJobId ? c.jobId === selectedJobId : true) && c.status === "contacted").length,
-    rejected:  candidates.filter((c) => (selectedJobId ? c.jobId === selectedJobId : true) && c.status === "rejected").length,
+    all: selectedJobId ? candidatesState.filter((c) => c.jobId === selectedJobId).length : candidatesState.length,
+    reviewing: candidatesState.filter((c) => (selectedJobId ? c.jobId === selectedJobId : true) && c.status === "reviewing").length,
+    matched:   candidatesState.filter((c) => (selectedJobId ? c.jobId === selectedJobId : true) && c.status === "matched").length,
+    contacted: candidatesState.filter((c) => (selectedJobId ? c.jobId === selectedJobId : true) && c.status === "contacted").length,
+    rejected:  candidatesState.filter((c) => (selectedJobId ? c.jobId === selectedJobId : true) && c.status === "rejected").length,
   };
 
-  const handleJobSelect = (jobId: number) => {
+  const handleJobSelect = (jobId: string | number) => {
     setSelectedJobId((prev) => (prev === jobId ? null : jobId));
     setActiveTab("all");
   };
 
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f0f5fb]">
+        <div className="text-center">
+          <Loader2 className="animate-spin h-12 w-12 text-blue-600 mx-auto animate-duration-1000" />
+          <p className="mt-4 text-gray-600 font-medium">Đang tải danh sách ứng viên...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <HeroBanner />
-      <ActiveJobSection jobs={activeJobs} selectedJobId={selectedJobId} onSelect={handleJobSelect} />
+      <ActiveJobSection jobs={activeJobsState} selectedJobId={selectedJobId} onSelect={handleJobSelect} />
 
       {/* Candidates Section */}
       <section>
@@ -293,10 +456,94 @@ export default function RecruiterCandidatesPage() {
 
         {/* Candidate Grid */}
         {filteredCandidates.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {filteredCandidates.map((candidate, i) => (
-              <CandidateCard key={candidate.id} candidate={candidate} index={i} />
-            ))}
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {currentCandidates.map((candidate, i) => (
+                <CandidateCard key={candidate.id} candidate={candidate} index={i} />
+              ))}
+            </div>
+            
+            {/* Pagination controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border border-gray-100 bg-white px-5 py-4 rounded-2xl mt-6 shadow-sm">
+                <div className="flex flex-1 justify-between sm:hidden">
+                  <Button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs border-gray-200"
+                  >
+                    Trước
+                  </Button>
+                  <Button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs border-gray-200"
+                  >
+                    Sau
+                  </Button>
+                </div>
+                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 font-semibold">
+                      Hiển thị <span className="font-extrabold text-blue-600">{(currentPage - 1) * itemsPerPage + 1}</span> đến{" "}
+                      <span className="font-extrabold text-blue-600">
+                        {Math.min(currentPage * itemsPerPage, filteredCandidates.length)}
+                      </span>{" "}
+                      trong số <span className="font-extrabold text-gray-700">{filteredCandidates.length}</span> ứng viên
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="isolate inline-flex -space-x-px rounded-lg shadow-sm gap-1" aria-label="Pagination">
+                      <Button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 rounded-lg hover:border-blue-300 hover:text-blue-600 transition-all border-gray-200 bg-white"
+                      >
+                        <span className="sr-only">Trang trước</span>
+                        <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                      </Button>
+                      
+                      {/* Page numbers */}
+                      {[...Array(totalPages)].map((_, idx) => {
+                        const pageNum = idx + 1;
+                        return (
+                          <Button
+                            key={pageNum}
+                            onClick={() => setCurrentPage(pageNum)}
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            className={cn(
+                              "h-8 w-8 rounded-lg text-xs font-bold transition-all",
+                              currentPage === pageNum
+                                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm border-blue-600"
+                                : "hover:border-blue-300 hover:text-blue-600 border-gray-200 bg-white text-gray-500"
+                            )}
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+
+                      <Button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 rounded-lg hover:border-blue-300 hover:text-blue-600 transition-all border-gray-200 bg-white"
+                      >
+                        <span className="sr-only">Trang sau</span>
+                        <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                      </Button>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -397,12 +644,48 @@ function ActiveJobSection({
   selectedJobId,
   onSelect,
 }: {
-  jobs: ActiveJob[];
-  selectedJobId: number | null;
-  onSelect: (id: number) => void;
+  jobs: any[];
+  selectedJobId: string | number | null;
+  onSelect: (id: string | number) => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
+
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setShowLeftArrow(scrollLeft > 10);
+      setShowRightArrow(scrollLeft + clientWidth < scrollWidth - 10);
+    }
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) {
+      el.addEventListener('scroll', checkScroll);
+      checkScroll();
+      window.addEventListener('resize', checkScroll);
+    }
+    return () => {
+      if (el) el.removeEventListener('scroll', checkScroll);
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [jobs]);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const { clientWidth } = scrollRef.current;
+      const scrollAmount = clientWidth * 0.8;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   return (
-    <div>
+    <div className="relative">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-bold text-gray-800">Tin tuyển dụng đang hoạt động</h2>
@@ -410,24 +693,65 @@ function ActiveJobSection({
             {jobs.length}
           </span>
           {selectedJobId && (
-            <span className="text-xs text-blue-600 font-medium bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5">
+            <span className="text-xs text-blue-600 font-medium bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5 animate-pulse">
               Đang lọc theo tin
             </span>
           )}
         </div>
-        <Button variant="outline" className="text-blue-600 border-blue-200 gap-1 text-sm hover:bg-blue-50">
-          Xem tất cả tin đăng <ChevronRight className="h-4 w-4" />
-        </Button>
+        <Link href="/recruiter/dashboard">
+          <Button variant="outline" className="text-blue-600 border-blue-200 gap-1 text-sm hover:bg-blue-50">
+            Xem tất cả tin đăng <ChevronRight className="h-4 w-4" />
+          </Button>
+        </Link>
       </div>
-      <div className="space-y-3">
-        {jobs.map((job) => (
-          <ActiveJobCard
-            key={job.id}
-            job={job}
-            isSelected={selectedJobId === job.id}
-            onSelect={onSelect}
-          />
-        ))}
+
+      {/* Slider Viewport Container */}
+      <div className="relative group px-1">
+        {/* Left navigation arrow */}
+        {showLeftArrow && (
+          <button
+            onClick={() => scroll('left')}
+            className="absolute left-[-15px] top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/95 border border-gray-100 flex items-center justify-center shadow-lg hover:bg-white hover:scale-105 transition-all text-gray-600 hover:text-blue-600"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+        )}
+
+        {/* Right navigation arrow */}
+        {showRightArrow && (
+          <button
+            onClick={() => scroll('right')}
+            className="absolute right-[-15px] top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/95 border border-gray-100 flex items-center justify-center shadow-lg hover:bg-white hover:scale-105 transition-all text-gray-600 hover:text-blue-600"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        )}
+
+        {/* Scrollable Track */}
+        <div
+          ref={scrollRef}
+          onScroll={checkScroll}
+          className="flex gap-4 overflow-x-auto scroll-smooth pb-4 pt-1 px-1 no-scrollbar"
+          style={{
+            scrollbarWidth: 'none', // Firefox
+            msOverflowStyle: 'none', // IE 10+
+          }}
+        >
+          <style dangerouslySetInnerHTML={{__html: `
+            .no-scrollbar::-webkit-scrollbar {
+              display: none;
+            }
+          `}} />
+
+          {jobs.map((job) => (
+            <ActiveJobCard
+              key={job.id}
+              job={job}
+              isSelected={selectedJobId === job.id}
+              onSelect={onSelect}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -439,77 +763,107 @@ function ActiveJobCard({
   isSelected,
   onSelect,
 }: {
-  job: ActiveJob;
+  job: any;
   isSelected: boolean;
-  onSelect: (id: number) => void;
+  onSelect: (id: string | number) => void;
 }) {
   return (
     <Card
       onClick={() => onSelect(job.id)}
       className={cn(
-        "border shadow-sm bg-white cursor-pointer transition-all duration-200",
+        "w-[340px] shrink-0 border shadow-sm bg-white cursor-pointer transition-all duration-200 flex flex-col justify-between hover:shadow-md",
         isSelected
           ? "border-blue-500 ring-2 ring-blue-200 shadow-md"
-          : "border-gray-200 hover:border-blue-200 hover:shadow-md"
+          : "border-gray-200 hover:border-blue-200"
       )}
     >
-      <CardContent className="p-4">
-        <div className="flex flex-wrap items-start gap-4">
-          {/* Job icon + info */}
-          <div className="flex items-start gap-3 flex-1 min-w-[200px]">
-            <div className={cn(
-              "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors",
-              isSelected ? "bg-blue-600" : "bg-blue-100"
-            )}>
-              <FileText className={cn("h-6 w-6", isSelected ? "text-white" : "text-blue-600")} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-bold text-gray-900">{job.title}</h3>
-                <Badge className="bg-green-100 text-green-700 border-green-200 text-[11px] px-2">
-                  Đang tuyển
+      <CardContent className="p-4 flex flex-col justify-between h-full space-y-4">
+        {/* Header: Icon & Title */}
+        <div className="flex items-start gap-3">
+          <div className={cn(
+            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
+            isSelected ? "bg-blue-600" : "bg-blue-100"
+          )}>
+            <FileText className={cn("h-5 w-5", isSelected ? "text-white" : "text-blue-600")} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap mb-1">
+              <Badge className="bg-green-100 text-green-700 border-green-200 text-[10px] px-1.5 py-0 font-medium">
+                Đang tuyển
+              </Badge>
+              {isSelected && (
+                <Badge className="bg-blue-600 text-white text-[10px] px-1.5 py-0 border-0 font-medium">
+                  Đang lọc
                 </Badge>
-                {isSelected && (
-                  <Badge className="bg-blue-600 text-white text-[11px] px-2 border-0">
-                    Đang xem ứng viên
-                  </Badge>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
-                {[job.department, job.type, job.location, job.postDate, job.deadline].map((item, i) => (
-                  <span key={i} className="text-xs text-gray-500">{item}</span>
-                ))}
-              </div>
+              )}
+            </div>
+            <Link
+              href={`/recruiter/jobs/${job.id}`}
+              className="font-bold text-gray-900 hover:text-blue-600 hover:underline transition-colors block text-sm truncate"
+              onClick={(e) => e.stopPropagation()}
+              title={job.title}
+            >
+              {job.title}
+            </Link>
+            <div className="text-[11px] text-gray-500 mt-0.5 truncate">
+              {job.department}
             </div>
           </div>
+        </div>
 
-          {/* Stats */}
-          <div className="flex flex-wrap gap-6 items-center">
-            {[
-              { label: "Ứng viên", value: job.stats.total, color: isSelected ? "text-blue-600" : "text-blue-600" },
-              { label: "Đang xem xét", value: job.stats.reviewing, color: "text-gray-800" },
-              { label: "Phù hợp cao", value: job.stats.matched, color: "text-gray-800" },
-              { label: "Đã liên hệ", value: job.stats.contacted, color: "text-gray-800" },
-              { label: "Đã từ chối", value: job.stats.rejected, color: "text-gray-800" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-                <div className="text-[11px] text-gray-500 whitespace-nowrap">{stat.label}</div>
-              </div>
-            ))}
-          </div>
+        {/* Metadata */}
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-500 bg-gray-50 p-2 rounded-lg">
+          <span className="truncate max-w-[120px]">{job.location}</span>
+          <span className="text-gray-300">|</span>
+          <span>{job.type}</span>
+          <span className="text-gray-300">|</span>
+          <span className="truncate">{job.postDate}</span>
+        </div>
 
-          {/* Action */}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-5 gap-1.5 text-center bg-gray-50/50 p-2 rounded-lg border border-gray-100">
+          {[
+            { label: "Tổng", value: job.stats.total, color: "text-blue-600 font-extrabold" },
+            { label: "Xét", value: job.stats.reviewing, color: "text-gray-700 font-bold" },
+            { label: "Cao", value: job.stats.matched, color: "text-emerald-600 font-bold" },
+            { label: "L.Hệ", value: job.stats.contacted, color: "text-blue-500 font-bold" },
+            { label: "Từ chối", value: job.stats.rejected, color: "text-red-500 font-bold" },
+          ].map((stat) => (
+            <div key={stat.label} className="text-center">
+              <div className={`text-sm ${stat.color}`}>{stat.value}</div>
+              <div className="text-[9px] text-gray-400 font-medium truncate w-full">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer Actions */}
+        <div className="flex items-center gap-2 pt-1">
+          <Link
+            href={`/recruiter/jobs/${job.id}`}
+            className="flex-1"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full text-xs text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-blue-600 h-8"
+            >
+              Chi tiết tin
+            </Button>
+          </Link>
           <Button
             size="sm"
             variant={isSelected ? "default" : "outline"}
             className={cn(
-              "text-xs gap-1 shrink-0 self-center",
+              "flex-1 text-xs gap-1 h-8",
               isSelected
                 ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
                 : "text-blue-600 border-blue-200 hover:bg-blue-50"
             )}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect(job.id);
+            }}
           >
             {isSelected ? "Bỏ lọc" : "Lọc ứng viên"} <ChevronRight className="h-3.5 w-3.5" />
           </Button>

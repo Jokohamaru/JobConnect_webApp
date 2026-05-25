@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { jobService } from "@/services/jobService";
-import { authService } from "@/lib/auth-service";
 
 import { StepIndicator } from "@/components/recruiter/post-job/StepIndicator";
 import { BasicInfoSection } from "@/components/recruiter/post-job/BasicInfoSection";
@@ -58,7 +57,7 @@ function FormSection({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function PostJobPage() {
   const [currentStep] = useState(1);
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -127,7 +126,6 @@ export default function PostJobPage() {
       }
 
       // Get token
-      const token = authService.getToken();
       if (!token) {
         setError('Vui lòng đăng nhập lại');
         setIsSubmitting(false);

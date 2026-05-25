@@ -1,6 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
+import { useCVReadOnly } from '@/components/cv-builder/CVReadOnlyContext';
 
 interface EditableTextProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
   value: string;
@@ -9,6 +10,16 @@ interface EditableTextProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
 }
 
 export function EditableText({ value, onChangeText, className, ...props }: EditableTextProps) {
+  const isReadOnly = useCVReadOnly();
+
+  if (isReadOnly) {
+    return (
+      <span className={cn("px-2 py-0.5 inline-block break-words max-w-full font-inherit", className)} style={props.style}>
+        {value}
+      </span>
+    );
+  }
+
   return (
     <Input
       value={value}

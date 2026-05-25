@@ -1,2 +1,2 @@
-﻿-- Initial migration with UUID
+-- Initial migration with UUID
 SELECT 1;

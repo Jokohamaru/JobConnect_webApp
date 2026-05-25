@@ -23,7 +23,7 @@ interface Job {
   };
   location: string;
   salary: string;
-  status: "PENDING" | "PUBLISHED" | "CLOSED" | "EXPIRED";
+  status: "DRAFT" | "PENDING_APPROVAL" | "PENDING" | "PUBLISHED" | "CLOSED" | "EXPIRED";
   applicationsCount: number;
   createdAt: string;
   expiresAt: string;
@@ -34,10 +34,21 @@ interface JobsTableProps {
 }
 
 const statusConfig = {
+  DRAFT: { label: "Nháp", color: "bg-gray-100 text-gray-800" },
+  PENDING_APPROVAL: { label: "Chờ duyệt", color: "bg-yellow-100 text-yellow-800" },
   PENDING: { label: "Chờ duyệt", color: "bg-yellow-100 text-yellow-800" },
   PUBLISHED: { label: "Đang tuyển", color: "bg-green-100 text-green-800" },
   CLOSED: { label: "Đã đóng", color: "bg-gray-100 text-gray-800" },
   EXPIRED: { label: "Hết hạn", color: "bg-red-100 text-red-800" },
+};
+
+const getStatusConfig = (status: string) => {
+  return (
+    statusConfig[status as keyof typeof statusConfig] || {
+      label: status || "Chưa xác định",
+      color: "bg-gray-100 text-gray-800",
+    }
+  );
 };
 
 export function JobsTable({ onAddJob }: JobsTableProps) {
@@ -218,9 +229,14 @@ export function JobsTable({ onAddJob }: JobsTableProps) {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <Badge className={statusConfig[job.status].color}>
-                      {statusConfig[job.status].label}
-                    </Badge>
+                    {(() => {
+                      const config = getStatusConfig(job.status);
+                      return (
+                        <Badge className={config.color}>
+                          {config.label}
+                        </Badge>
+                      );
+                    })()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {formatDate(job.createdAt)}

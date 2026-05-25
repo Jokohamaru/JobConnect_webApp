@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { DashboardHeader } from "@/components/admin/dashboard-header";
-import { StatsGrid } from "@/components/admin/jobs/stats-grid-new";
-import { JobsTable } from "@/components/admin/jobs/jobs-table-new";
-import { AddJobModal } from "@/components/admin/jobs/add-job-modal";
+import { StatsGrid } from "@/components/admin/Jobs/stats-grid-new";
+import { JobsTable } from "@/components/admin/Jobs/jobs-table-new";
+import { AddJobModal } from "@/components/admin/Jobs/add-job-modal";
+
+
 
 export default function AdminJobs() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);

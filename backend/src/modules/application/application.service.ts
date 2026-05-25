@@ -1,10 +1,14 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
+import { AiCVService } from '../ai-cv/ai-cv.service';
 
 @Injectable()
 export class ApplicationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private aiCVService: AiCVService,
+  ) {}
 
   async create(createApplicationDto: CreateApplicationDto, candidateId: string) {
     const { jobId, cvId } = createApplicationDto;
@@ -140,5 +144,150 @@ export class ApplicationService {
     });
 
     return !!application;
+  }
+
+  async findAllByJob(jobId: string, recruiterId: string) {
+    // Check if job belongs to recruiter
+    const job = await this.prisma.job.findUnique({
+      where: { id: jobId, deletedAt: null },
+    });
+    if (!job) {
+      throw new NotFoundException('Không tìm thấy tin tuyển dụng');
+    }
+    if (job.recruiterId !== recruiterId) {
+      throw new ForbiddenException('Bạn không có quyền xem ứng viên của tin tuyển dụng này');
+    }
+
+    return this.prisma.application.findMany({
+      where: { jobId, deletedAt: null },
+      include: {
+        cv: {
+          select: {
+            id: true,
+            title: true,
+            cvUrl: true,
+            cvType: true,
+            cvData: true,
+            candidate: {
+              include: {
+                user: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    avaUrl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { appliedAt: 'desc' },
+    });
+  }
+
+  async matchApplication(applicationId: string, recruiterId: string) {
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId, deletedAt: null },
+      include: {
+        job: true,
+      },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Không tìm thấy hồ sơ ứng tuyển');
+    }
+
+    if (application.job.recruiterId !== recruiterId) {
+      throw new ForbiddenException('Bạn không có quyền thực hiện hành động này');
+    }
+
+    // Call AiCVService to run the match
+    const aiResult = await this.aiCVService.matchCVAndJob(
+      application.cvId,
+      application.jobId,
+    );
+
+    // Save result in DB
+    return this.prisma.application.update({
+      where: { id: applicationId },
+      data: {
+        matchScore: aiResult.score,
+        matchLevel: aiResult.matchLevel,
+        aiFeedback: aiResult.feedback,
+      },
+      include: {
+        cv: {
+          select: {
+            id: true,
+            title: true,
+            cvUrl: true,
+            cvType: true,
+            cvData: true,
+            candidate: {
+              include: {
+                user: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    avaUrl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async findOneForRecruiter(applicationId: string, recruiterId: string) {
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId, deletedAt: null },
+      include: {
+        job: {
+          select: {
+            id: true,
+            title: true,
+            recruiterId: true,
+            company: { select: { id: true, name: true, logoUrl: true } },
+            city: { select: { id: true, name: true } },
+          },
+        },
+        cv: {
+          select: {
+            id: true,
+            title: true,
+            cvUrl: true,
+            cvType: true,
+            cvData: true,
+            candidate: {
+              include: {
+                user: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    avaUrl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Không tìm thấy hồ sơ ứng tuyển');
+    }
+
+    if (application.job.recruiterId !== recruiterId) {
+      throw new ForbiddenException('Bạn không có quyền xem hồ sơ này');
+    }
+
+    return application;
   }
 }

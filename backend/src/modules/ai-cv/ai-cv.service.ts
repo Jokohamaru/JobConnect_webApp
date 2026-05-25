@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GenerateCVDto } from './dto/generate-cv.dto';
@@ -96,10 +96,264 @@ export class AiCVService {
 
       return cvData;
     } catch (error) {
-      console.error('Gemini API error:', error);
-      throw new InternalServerErrorException(
-        'Không thể kết nối với AI. Vui lòng thử lại sau.',
+      console.warn('Gemini API error, using heuristic CV generator fallback:', error);
+      
+      const industryName = INDUSTRY_MAP[dto.industry] || dto.industry;
+      const levelName = LEVEL_MAP[dto.level] || dto.level;
+      
+      const summary = `Tôi là một chuyên viên trong lĩnh vực ${industryName} định hướng phát triển ở cấp độ ${levelName}. Với mục tiêu tìm kiếm cơ hội ứng tuyển vào vị trí ${dto.jobTitle}, tôi mong muốn áp dụng các kỹ năng chuyên môn và kinh nghiệm tích lũy được để đóng góp tích cực cho mục tiêu phát triển của quý công ty. (CV tự động tạo dự phòng)`;
+      
+      const experiences = (dto.experiences || []).map((exp, index) => {
+        const descBullets: string[] = [];
+        if (exp.description) {
+          const lines = exp.description.split(/\n+/).map(l => l.replace(/^[•\-\*\s]+/, '').trim()).filter(Boolean);
+          if (lines.length > 0) {
+            descBullets.push(...lines.map(l => `• ${l}`));
+          } else {
+            descBullets.push(`• Thực hiện công việc chuyên môn của vị trí ${exp.position} tại ${exp.company}`);
+          }
+        } else {
+          descBullets.push(`• Đảm nhiệm vai trò ${exp.position}, phối hợp cùng đội ngũ thực hiện các nhiệm vụ chuyên môn.`);
+          descBullets.push(`• Tham gia triển khai dự án và tối ưu hóa quy trình làm việc tại ${exp.company}.`);
+        }
+        if (exp.achievements) {
+          descBullets.push(`• Đạt thành tích nổi bật: ${exp.achievements}`);
+        }
+        
+        return {
+          id: `exp${index + 1}`,
+          position: exp.position,
+          company: exp.company,
+          duration: `${exp.startDate || ''} - ${exp.isCurrent ? 'Hiện tại' : (exp.endDate || '')}`,
+          description: descBullets.join('\n')
+        };
+      });
+
+      const education = (dto.educations || []).map((edu, index) => {
+        const degreeName = DEGREE_MAP[edu.degree] || edu.degree;
+        return {
+          id: `edu${index + 1}`,
+          school: edu.school,
+          degree: degreeName,
+          major: edu.major,
+          duration: `${edu.startDate || ''} - ${edu.isCurrent ? 'Hiện tại' : (edu.endDate || '')}`,
+          gpa: edu.gpa || '',
+          description: edu.description || ''
+        };
+      });
+
+      const skills = (dto.skills || []).map((skill, index) => {
+        const levelStr = dto.skillLevels?.[skill] || 'Khá';
+        let level = 3;
+        if (levelStr === 'Thành thạo' || levelStr === 'Xuất sắc') level = 4;
+        else if (levelStr === 'Cơ bản') level = 2;
+        return {
+          id: `sk${index + 1}`,
+          skill,
+          level
+        };
+      });
+
+      const certificates = (dto.certificates || []).map((cert, index) => ({
+        id: `cert${index + 1}`,
+        name: cert.name,
+        issuer: cert.issuer,
+        date: cert.date || ''
+      }));
+
+      const hobbies = dto.industry === 'it' 
+        ? 'Tìm hiểu công nghệ mới, lập trình mã nguồn mở, đọc sách kỹ thuật.'
+        : 'Đọc sách phát triển bản thân, học hỏi kiến thức ngành, giao tiếp kết nối.';
+
+      return {
+        fullName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '',
+        jobTitle: dto.jobTitle,
+        email: user?.email || '',
+        phone: user?.candidate?.phoneNumber || '',
+        address: user?.candidate?.address || '',
+        linkedin: '',
+        website: '',
+        dob: '',
+        avatar: user?.avaUrl || '',
+        summary,
+        experiences,
+        education,
+        skills,
+        projects: [],
+        certificates,
+        activities: [],
+        awards: [],
+        hobbies
+      };
+    }
+  }
+
+  async matchCVAndJob(
+    cvId: string,
+    jobId: string,
+  ): Promise<{ score: number; matchLevel: string; feedback: string }> {
+    const cv = await this.prisma.cV.findUnique({
+      where: { id: cvId },
+    });
+    const job = await this.prisma.job.findUnique({
+      where: { id: jobId, deletedAt: null },
+      include: {
+        skills: true,
+      },
+    });
+
+    if (!cv) {
+      throw new NotFoundException('Không tìm thấy CV');
+    }
+    if (!job) {
+      throw new NotFoundException('Không tìm thấy tin tuyển dụng');
+    }
+
+    // Chuẩn bị nội dung CV
+    let cvContent = '';
+    if (cv.cvType === 'BUILDER' && cv.cvData) {
+      cvContent = typeof cv.cvData === 'string' ? cv.cvData : JSON.stringify(cv.cvData, null, 2);
+    } else {
+      const candidate = await this.prisma.candidate.findUnique({
+        where: { id: cv.candidateId },
+        include: {
+          user: true,
+        },
+      });
+      cvContent = `
+        Tên ứng viên: ${candidate?.user?.firstName || ''} ${candidate?.user?.lastName || ''}
+        Email: ${candidate?.user?.email || ''}
+        Số điện thoại: ${candidate?.phoneNumber || ''}
+        Địa chỉ: ${candidate?.address || ''}, ${candidate?.city || ''}
+        Vị trí công việc hiện tại/mong muốn: ${candidate?.careerRole || ''}
+        Tiêu đề CV: ${cv.title}
+        Đường dẫn file CV: ${cv.cvUrl}
+      `;
+    }
+
+    // Chuẩn bị nội dung Job
+    const jobContent = `
+      Tiêu đề công việc: ${job.title}
+      Mô tả công việc: ${job.description}
+      Mức lương tối thiểu: ${job.minSalary || 'Thỏa thuận'}
+      Mức lương tối đa: ${job.maxSalary || 'Thỏa thuận'}
+      Kỹ năng yêu cầu: ${job.skills.map((s) => s.name).join(', ')}
+    `;
+
+    const model = this.genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+      generationConfig: {
+        temperature: 0.2,
+        topP: 0.95,
+        maxOutputTokens: 2048,
+      },
+    });
+
+    const prompt = `
+      Bạn là một chuyên gia tuyển dụng và đánh giá nhân sự bằng AI.
+      Hãy phân tích mức độ phù hợp giữa CV của ứng viên và Mô tả công việc (JD) dưới đây.
+
+      === MÔ TẢ CÔNG VIỆC (JD) ===
+      ${jobContent}
+
+      === CV ỨNG VIÊN ===
+      ${cvContent}
+
+      === YÊU CẦU ===
+      1. Chấm điểm độ phù hợp của ứng viên này đối với công việc theo thang điểm từ 0 đến 100 (score).
+      2. Xác định mức độ phù hợp (matchLevel):
+         - "HIGH" (Phù hợp cao - nếu điểm >= 75)
+         - "MEDIUM" (Phù hợp trung bình - nếu điểm từ 50 đến 74)
+         - "LOW" (Phù hợp thấp - nếu điểm dưới 50)
+      3. Cung cấp đánh giá nhận xét ngắn gọn (feedback) bằng tiếng Việt (khoảng 3-4 câu) chỉ rõ lý do điểm số này (ví dụ: các kỹ năng và kinh nghiệm tương đồng, những kỹ năng/yêu cầu còn thiếu so với JD).
+
+      === FORMAT OUTPUT ===
+      Trả về kết quả dưới định dạng JSON đúng theo cấu trúc sau:
+      {
+        "score": number,
+        "matchLevel": "HIGH" | "MEDIUM" | "LOW",
+        "feedback": "chuỗi nhận xét bằng tiếng Việt"
+      }
+    `;
+
+    try {
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      const matchResult = this.parseJsonFromResponse(text);
+
+      return {
+        score: typeof matchResult.score === 'number' ? matchResult.score : 0,
+        matchLevel: matchResult.matchLevel || 'LOW',
+        feedback: matchResult.feedback || 'Không có nhận xét.',
+      };
+    } catch (error) {
+      console.warn('Gemini matching API error, falling back to heuristic matching:', error);
+      
+      const jobSkills = job.skills.map((s) => s.name);
+      const cvTextLower = cvContent.toLowerCase();
+      
+      const matchedSkills = jobSkills.filter((skill) =>
+        cvTextLower.includes(skill.toLowerCase()),
       );
+      const missingSkills = jobSkills.filter(
+        (skill) => !cvTextLower.includes(skill.toLowerCase()),
+      );
+      
+      let score = 50; // Base score
+      if (jobSkills.length > 0) {
+        const matchRatio = matchedSkills.length / jobSkills.length;
+        score = Math.round(40 + matchRatio * 45); // 40 to 85
+      }
+
+      // Add score if job title is mentioned in CV
+      const jobTitleLower = job.title.toLowerCase();
+      if (cvTextLower.includes(jobTitleLower)) {
+        score += 12;
+      } else {
+        const titleWords = jobTitleLower.split(/\s+/).filter(w => w.length > 2);
+        let matchCount = 0;
+        for (const word of titleWords) {
+          if (cvTextLower.includes(word)) {
+            matchCount++;
+          }
+        }
+        if (titleWords.length > 0) {
+          score += Math.round((matchCount / titleWords.length) * 8);
+        }
+      }
+
+      score = Math.min(score, 100);
+
+      let matchLevel = 'LOW';
+      if (score >= 75) {
+        matchLevel = 'HIGH';
+      } else if (score >= 50) {
+        matchLevel = 'MEDIUM';
+      }
+
+      let feedback = '';
+      if (matchedSkills.length > 0) {
+        feedback += `Ứng viên có các kỹ năng phù hợp với yêu cầu tuyển dụng như: ${matchedSkills.join(', ')}. `;
+      }
+      if (missingSkills.length > 0) {
+        feedback += `Hồ sơ chưa thể hiện rõ một số kỹ năng yêu cầu như: ${missingSkills.join(', ')}. `;
+      } else if (jobSkills.length > 0) {
+        feedback += `Ứng viên đáp ứng đầy đủ tất cả các kỹ năng yêu cầu. `;
+      }
+
+      if (score >= 75) {
+        feedback += `Đánh giá chung: Ứng viên rất tiềm năng, trình độ chuyên môn và kỹ năng phù hợp tốt với vị trí ${job.title}. Khuyến nghị đưa vào danh sách phỏng vấn. (Kết quả được tính toán bằng bộ lọc từ khóa tự động dự phòng)`;
+      } else if (score >= 50) {
+        feedback += `Đánh giá chung: Hồ sơ ở mức khá, đáp ứng được một phần yêu cầu cốt lõi. Có thể xem xét phỏng vấn nếu muốn tìm hiểu thêm về năng lực thực tế. (Kết quả được tính toán bằng bộ lọc từ khóa tự động dự phòng)`;
+      } else {
+        feedback += `Đánh giá chung: Hồ sơ chưa thực sự phù hợp với vị trí này. Kỹ năng và kinh nghiệm còn thiếu nhiều so với mô tả công việc. (Kết quả được tính toán bằng bộ lọc từ khóa tự động dự phòng)`;
+      }
+
+      return {
+        score,
+        matchLevel,
+        feedback,
+      };
     }
   }
 

@@ -81,4 +81,56 @@ export const applicationService = {
     const data = await response.json();
     return data.applied;
   },
+
+  async getApplicationsByJob(jobId: string, token: string): Promise<any[]> {
+    const response = await fetch(`${API_URL}/applications/job/${jobId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch applications for job');
+    }
+
+    return response.json();
+  },
+
+  async matchApplication(applicationId: string, token: string): Promise<any> {
+    const response = await fetch(`${API_URL}/applications/${applicationId}/match`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(error?.message || 'Failed to match candidate CV');
+    }
+
+    return response.json();
+  },
+
+  async getApplicationById(applicationId: string, token: string): Promise<any> {
+    const response = await fetch(`${API_URL}/applications/${applicationId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      throw new Error(`Failed to fetch application (${response.status}): ${body}`);
+    }
+
+    return response.json();
+  },
 };

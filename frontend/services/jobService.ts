@@ -74,4 +74,39 @@ export const jobService = {
 
     return response.json();
   },
+
+  async getRecruiterJobs(token: string): Promise<Job[]> {
+    const response = await fetch(`${API_URL}/jobs/recruiter`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      throw new Error(`Failed to fetch recruiter jobs (${response.status}): ${body}`);
+    }
+
+    return response.json();
+  },
+
+  async getRecruiterJobById(id: string, token: string): Promise<Job> {
+    const response = await fetch(`${API_URL}/jobs/recruiter/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch recruiter job detail');
+    }
+
+    return response.json();
+  },
 };

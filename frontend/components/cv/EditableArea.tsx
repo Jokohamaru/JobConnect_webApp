@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { useCVReadOnly } from '@/components/cv-builder/CVReadOnlyContext';
 
 interface EditableAreaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange' | 'value'> {
   value: string;
@@ -9,13 +10,22 @@ interface EditableAreaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAr
 
 export function EditableArea({ value, onChangeText, className, ...props }: EditableAreaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isReadOnly = useCVReadOnly();
 
   useEffect(() => {
-    if (textareaRef.current) {
+    if (!isReadOnly && textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }, [value]);
+  }, [value, isReadOnly]);
+
+  if (isReadOnly) {
+    return (
+      <div className={cn("px-2 py-0.5 whitespace-pre-wrap break-words w-full text-sm", className)} style={props.style}>
+        {value}
+      </div>
+    );
+  }
 
   return (
     <textarea

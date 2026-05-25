@@ -1,7 +1,10 @@
-import { Controller, Get, Post, Body, Param, Query, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Request, UseGuards, ForbiddenException } from '@nestjs/common';
 import { JobService } from './job.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { Role } from '../../auth/enums/role.enum';
 
 @Controller('jobs')
 export class JobController {
@@ -11,7 +14,7 @@ export class JobController {
   @UseGuards(JwtAuthGuard)
   async create(@Body() createJobDto: CreateJobDto, @Request() req) {
     // Get recruiter info from JWT token
-    const userId = req.user.sub;
+    const userId = req.user.userId;
     
     // Get recruiter profile to get companyId
     const recruiter = await this.jobService['prisma'].recruiter.findUnique({
@@ -53,6 +56,36 @@ export class JobController {
       maxSalary: maxSalary ? parseInt(maxSalary, 10) : undefined,
       search,
     });
+  }
+
+  @Get('recruiter')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.RECRUITER)
+  async findRecruiterJobs(@Request() req) {
+    const userId = req.user.userId;
+    const recruiter = await this.jobService['prisma'].recruiter.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+    if (!recruiter) {
+      throw new ForbiddenException('Không tìm thấy thông tin nhà tuyển dụng');
+    }
+    return this.jobService.findRecruiterJobs(recruiter.id);
+  }
+
+  @Get('recruiter/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.RECRUITER)
+  async findRecruiterJobById(@Param('id') id: string, @Request() req) {
+    const userId = req.user.userId;
+    const recruiter = await this.jobService['prisma'].recruiter.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+    if (!recruiter) {
+      throw new ForbiddenException('Không tìm thấy thông tin nhà tuyển dụng');
+    }
+    return this.jobService.findOneForRecruiter(id, recruiter.id);
   }
 
   @Get(':id')

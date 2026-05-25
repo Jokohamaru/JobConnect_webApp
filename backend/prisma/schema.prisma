@@ -233,6 +233,11 @@ model Application {
   cvId        String
   cv          CV                @relation(fields: [cvId], references: [id])
   
+  // AI Matching fields
+  matchScore  Int?
+  matchLevel  String?           // "HIGH", "MEDIUM", "LOW"
+  aiFeedback  String?           @db.Text
+  
   appliedAt   DateTime          @default(now())
   deletedAt   DateTime?
 

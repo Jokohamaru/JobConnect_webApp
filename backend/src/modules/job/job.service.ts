@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JobStatus } from '@prisma/client';
 import { CreateJobDto } from './dto/create-job.dto';
@@ -196,5 +196,66 @@ export class JobService {
         },
       },
     });
+  }
+
+  async findRecruiterJobs(recruiterId: string) {
+    return this.prisma.job.findMany({
+      where: { recruiterId, deletedAt: null },
+      include: {
+        _count: {
+          select: { applications: true },
+        },
+        city: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findOneForRecruiter(id: string, recruiterId: string) {
+    const job = await this.prisma.job.findFirst({
+      where: { id, recruiterId, deletedAt: null },
+      include: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logoUrl: true,
+            description: true,
+            address: true,
+            websiteUrl: true,
+            size: true,
+          },
+        },
+        city: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        tags: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        skills: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!job) {
+      throw new NotFoundException('Không tìm thấy tin tuyển dụng hoặc bạn không sở hữu tin này');
+    }
+
+    return job;
   }
 }

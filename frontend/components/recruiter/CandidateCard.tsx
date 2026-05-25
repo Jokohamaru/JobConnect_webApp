@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { FileText, Calendar, BookmarkPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ interface CandidateCardProps {
 }
 
 export function CandidateCard({ candidate, index = 0 }: CandidateCardProps) {
+  const router = useRouter();
   const [hovered, setHovered] = useState(false);
   const match = matchConfig[candidate.matchLevel];
   // Last column (3rd of 0-indexed 4-col grid) → open popup to the LEFT
@@ -110,7 +112,13 @@ export function CandidateCard({ candidate, index = 0 }: CandidateCardProps) {
 
         {/* Action buttons */}
         <div className="flex items-center justify-around border-t border-gray-100 pt-3 mt-1">
-          <button className="flex flex-col items-center gap-1 group">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/recruiter/cv/${candidate.id}`);
+            }}
+            className="flex flex-col items-center gap-1 group"
+          >
             <div className="w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
               <FileText className="h-4 w-4 text-gray-500 group-hover:text-blue-600" />
             </div>
@@ -242,6 +250,10 @@ export function CandidateCard({ candidate, index = 0 }: CandidateCardProps) {
               size="sm"
               variant="outline"
               className="flex-1 text-xs border-gray-200 hover:bg-gray-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/recruiter/cv/${candidate.id}`);
+              }}
             >
               Xem CV
             </Button>

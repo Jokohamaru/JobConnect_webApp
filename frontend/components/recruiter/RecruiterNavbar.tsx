@@ -10,6 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 import UserInfo from "../sections/menu/UserInfo";
 
 const navItems = [
+  { label: "Bảng điều khiển", href: "/recruiter/dashboard" },
   { label: "Quản lý ứng viên", href: "/recruiter/candidates" },
   { label: "Đăng tin tuyển dụng", href: "/recruiter/post-job" },
   { label: "Báo cáo", href: "/recruiter/reports" },

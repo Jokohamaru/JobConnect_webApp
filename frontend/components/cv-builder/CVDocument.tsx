@@ -244,7 +244,7 @@ export function CVDocument({
                   return (
                     <div className="flex gap-4 mb-4">
                       <div className="w-[120px] shrink-0 text-gray-700">
-                        <EditableText value={item.year} onChangeText={(v) => updEdu(item.id, "year", v)} />
+                        <EditableText value={item.year || (item as any).duration || ""} onChangeText={(v) => updEdu(item.id, "year", v)} />
                       </div>
                       <div className="flex-1">
                         <EditableText value={item.school} onChangeText={(v) => updEdu(item.id, "school", v)} className="font-bold text-gray-900 text-base" />
@@ -263,7 +263,7 @@ export function CVDocument({
                     <div className="mb-4">
                       <div className="items-start font-bold text-black text-base">
                         <EditableText value={item.school} onChangeText={(v) => updEdu(item.id, "school", v)} />
-                        <EditableText value={item.year} onChangeText={(v) => updEdu(item.id, "year", v)} className="font-normal text-black text-sm shrink-0" />
+                        <EditableText value={item.year || (item as any).duration || ""} onChangeText={(v) => updEdu(item.id, "year", v)} className="font-normal text-black text-sm shrink-0" />
                       </div>
                       <EditableText value={item.degree} onChangeText={(v) => updEdu(item.id, "degree", v)} className="font-bold text-black mb-1" />
                       {item.major && <EditableText value={item.major} onChangeText={(v) => updEdu(item.id, "major", v)} className="text-black text-sm italic mb-1" />}
@@ -277,7 +277,7 @@ export function CVDocument({
                   <div className="mb-3">
                     <div className="flex justify-between items-start gap-2 flex-wrap">
                       <EditableText value={item.degree} onChangeText={(v) => updEdu(item.id, "degree", v)} className={`font-semibold text-gray-800 ${fsClass}`} />
-                      <EditableText value={item.year} onChangeText={(v) => updEdu(item.id, "year", v)} className="text-gray-400 text-xs shrink-0" />
+                      <EditableText value={item.year || (item as any).duration || ""} onChangeText={(v) => updEdu(item.id, "year", v)} className="text-gray-400 text-xs shrink-0" />
                     </div>
                     <EditableText value={item.school} onChangeText={(v) => updEdu(item.id, "school", v)} className={`font-medium ${fsClass}`} style={{ color: theme.primary }} />
                     {item.major && <EditableText value={item.major} onChangeText={(v) => updEdu(item.id, "major", v)} className="text-gray-500 italic text-xs mt-0.5" />}
