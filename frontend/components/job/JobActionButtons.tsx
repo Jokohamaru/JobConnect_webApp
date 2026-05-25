@@ -9,6 +9,7 @@ import { applicationService } from "@/services/applicationService";
 import { authService } from "@/lib/auth-service";
 import { ApplyJobModal } from "./ApplyJobModal";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 interface JobActionButtonsProps {
   jobId: string;
@@ -17,7 +18,7 @@ interface JobActionButtonsProps {
 }
 
 export function JobActionButtons({ jobId, jobTitle, variant = "default" }: JobActionButtonsProps) {
-  const { user } = useAuth();
+  const { user, token, isLoading } = useAuth();
   const router = useRouter();
   const [isSaved, setIsSaved] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
@@ -26,18 +27,26 @@ export function JobActionButtons({ jobId, jobTitle, variant = "default" }: JobAc
   const [showApplyModal, setShowApplyModal] = useState(false);
 
   useEffect(() => {
+    if (isLoading) {
+      setCheckingStatus(true);
+      return;
+    }
+
     if (user && user.role === 'CANDIDATE') {
       checkJobStatus();
     } else {
       setCheckingStatus(false);
     }
-  }, [user, jobId]);
+  }, [user, token, isLoading, jobId]);
 
   const checkJobStatus = async () => {
-    try {
-      const token = authService.getToken();
-      if (!token) return;
+    if (!token) {
+      setCheckingStatus(false);
+      return;
+    }
 
+    setCheckingStatus(true);
+    try {
       const [savedStatus, appliedStatus] = await Promise.all([
         savedJobService.checkIfSaved(jobId, token),
         applicationService.checkIfApplied(jobId, token),
@@ -59,7 +68,7 @@ export function JobActionButtons({ jobId, jobTitle, variant = "default" }: JobAc
     }
 
     if (user.role !== 'CANDIDATE') {
-      alert('Chỉ ứng viên mới có thể lưu công việc');
+      toast.error('Chỉ ứng viên mới có thể lưu công việc');
       return;
     }
 
@@ -80,7 +89,7 @@ export function JobActionButtons({ jobId, jobTitle, variant = "default" }: JobAc
       }
     } catch (error: any) {
       console.error('Failed to toggle save:', error);
-      alert(error.message || 'Có lỗi xảy ra');
+      toast.error(error.message || 'Có lỗi xảy ra');
     } finally {
       setSavingJob(false);
     }
@@ -93,12 +102,12 @@ export function JobActionButtons({ jobId, jobTitle, variant = "default" }: JobAc
     }
 
     if (user.role !== 'CANDIDATE') {
-      alert('Chỉ ứng viên mới có thể ứng tuyển');
+      toast.error('Chỉ ứng viên mới có thể ứng tuyển');
       return;
     }
 
     if (isApplied) {
-      alert('Bạn đã ứng tuyển công việc này rồi');
+      toast.error('Bạn đã ứng tuyển công việc này rồi');
       return;
     }
 

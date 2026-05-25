@@ -163,18 +163,18 @@ export function CompaniesTable({ onAddCompany }: CompaniesTableProps) {
                 <tr key={company.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-12 w-12">
+                      <div className="flex-shrink-0 h-16 w-16 bg-white rounded-xl border border-gray-200 shadow-sm p-1.5 flex items-center justify-center overflow-hidden">
                         <Image
                           unoptimized // THÊM DÒNG NÀY VÀO ĐỂ LÁCH LỖI NEXT.JS LOCAL
-                          className="h-12 w-12 rounded-lg object-cover border"
+                          className="h-full w-full object-contain rounded-lg"
                           src={getCompanyLogo(company.logoUrl)}
                           alt={company.name}
-                          width={48}
-                          height={48}
-                          // onError={(e) => {
-                          //   const target = e.target as HTMLImageElement;
-                          //   target.src = "/placeholder-company.svg";
-                          // }}
+                          width={64}
+                          height={64}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = "/placeholder-company.svg";
+                          }}
                         />
                       </div>
                       <div className="ml-4">

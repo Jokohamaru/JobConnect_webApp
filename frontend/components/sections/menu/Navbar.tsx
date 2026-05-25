@@ -34,9 +34,9 @@ export default function Navbar() {
 
           <div className="flex items-center gap-6 text-black font-medium">
             <Link 
-              href="/searching-page" 
+              href="/searching" 
               className={`font-semibold text-[16px] cursor-pointer transition-colors ${
-                isActive("/searching-page") ? "text-[#1F84C5]" : "hover:text-[#1F84C5]"
+                isActive("/searching") ? "text-[#1F84C5]" : "hover:text-[#1F84C5]"
               }`}
             >
               Việc làm ▾

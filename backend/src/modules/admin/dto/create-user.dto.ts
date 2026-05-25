@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateUserDto {
   @IsEmail()
@@ -21,4 +21,8 @@ export class CreateUserDto {
   @IsEnum(['CANDIDATE', 'RECRUITER', 'ADMIN'])
   @IsNotEmpty()
   role: 'CANDIDATE' | 'RECRUITER' | 'ADMIN';
+
+  @IsString()
+  @IsOptional()
+  companyId?: string;
 }

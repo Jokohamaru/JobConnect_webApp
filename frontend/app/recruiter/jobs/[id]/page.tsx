@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "react-hot-toast";
 import { jobService } from "@/services/jobService";
 import { applicationService } from "@/services/applicationService";
 import Link from "next/link";
@@ -86,7 +87,7 @@ export default function JobDetailsPage() {
       );
       setExpandedFeedbackId(appId); // Auto-expand matching feedback
     } catch (err: any) {
-      alert(err.message || "Lỗi khi chạy đánh giá AI");
+      toast.error(err.message || "Lỗi khi chạy đánh giá AI");
     } finally {
       setMatchingId(null);
     }
@@ -95,7 +96,7 @@ export default function JobDetailsPage() {
   const handleMatchAll = async () => {
     const unmatchedApps = applications.filter(app => !app.matchScore);
     if (unmatchedApps.length === 0) {
-      alert("Tất cả ứng viên đã được phân tích phù hợp!");
+      toast.success("Tất cả ứng viên đã được phân tích phù hợp!");
       return;
     }
 
@@ -113,10 +114,10 @@ export default function JobDetailsPage() {
           prev.map(a => a.id === app.id ? { ...a, ...updatedApp } : a)
         );
       }
-      alert("Đã hoàn thành đánh giá AI cho toàn bộ ứng viên!");
+      toast.success("Đã hoàn thành đánh giá AI cho toàn bộ ứng viên!");
     } catch (err: any) {
       console.error("Match all error:", err);
-      alert("Có lỗi xảy ra trong quá trình đánh giá hàng loạt.");
+      toast.error("Có lỗi xảy ra trong quá trình đánh giá hàng loạt.");
     } finally {
       setMatchingId(null);
       setIsMatchingAll(false);

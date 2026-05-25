@@ -5,6 +5,7 @@ import { CircleArrowRight, Trash2, FileText, Edit } from 'lucide-react';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "react-hot-toast";
 
 interface CV {
   id: string;
@@ -62,14 +63,14 @@ export default function UserCVSection() {
       });
 
       if (response.ok) {
-        alert('Xóa CV thành công!');
+        toast.success('Xóa CV thành công!');
         fetchCVs(); // Refresh danh sách
       } else {
-        alert('Không thể xóa CV');
+        toast.error('Không thể xóa CV');
       }
     } catch (error) {
       console.error('Error deleting CV:', error);
-      alert('Có lỗi xảy ra khi xóa CV');
+      toast.error('Có lỗi xảy ra khi xóa CV');
     }
   };
 

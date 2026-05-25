@@ -7,6 +7,7 @@ import { AccountInfoCard } from "./AccountInfoCard";
 import { PasswordCard } from "./PasswordCard";
 import { CVSearchCard } from "./CVSearchCard";
 import { DeleteAccountCard } from "./DeleteAccountCard";
+import { toast } from "react-hot-toast";
 export default function AccountSettingsPage() {
   const [cvEnabled, setCvEnabled] = useState(true);
 
@@ -27,7 +28,7 @@ export default function AccountSettingsPage() {
       />
 
       {/* 4 — Delete account */}
-      <DeleteAccountCard onDelete={() => alert("Tài khoản đã bị xoá!")} />
+      <DeleteAccountCard onDelete={() => toast.success("Tài khoản đã bị xoá!")} />
     </div>
   );
 }

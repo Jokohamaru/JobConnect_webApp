@@ -79,8 +79,9 @@ export const jobService = {
     return response.json();
   },
 
-  async getRecruiterJobs(token: string): Promise<Job[]> {
-    const response = await fetch(`${API_URL}/jobs/recruiter`, {
+  async getRecruiterJobs(token: string, scope?: 'company' | 'mine'): Promise<Job[]> {
+    const url = scope ? `${API_URL}/jobs/recruiter?scope=${scope}` : `${API_URL}/jobs/recruiter`;
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

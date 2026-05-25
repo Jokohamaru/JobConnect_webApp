@@ -88,12 +88,31 @@ async function main() {
 
   console.log('✅ Tags created');
 
-  // Create company type
-  const companyType = await prisma.companyType.upsert({
-    where: { name: 'Công ty TNHH' },
-    update: {},
-    create: { name: 'Công ty TNHH' },
-  });
+  // Create company types
+  const companyTypeNames = [
+    'Công ty TNHH',
+    'Công ty Cổ phần',
+    'Doanh nghiệp tư nhân',
+    'Công ty Đa quốc gia',
+    'Startup',
+    'Công ty Nhà nước',
+    'Công ty Liên doanh',
+    'Chi nhánh',
+    'Văn phòng đại diện',
+    'Tổ chức phi lợi nhuận',
+  ];
+
+  const companyTypes = await Promise.all(
+    companyTypeNames.map((name) =>
+      prisma.companyType.upsert({
+        where: { name },
+        update: {},
+        create: { name },
+      })
+    )
+  );
+
+  const companyType = companyTypes[0]; // dùng làm mặc định cho các công ty seed phía dưới
 
   // Create companies
   const companies = await Promise.all([

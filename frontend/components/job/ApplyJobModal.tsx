@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { FileText, Loader2, PlusCircle, ExternalLink } from "lucide-react";
-import { applicationService } from "@/services/applicationService";
-import { authService } from "@/lib/auth-service";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import { authService } from "@/lib/auth-service";
+import { applicationService } from "@/services/applicationService";
 
 interface CV {
   id: string;
@@ -98,7 +99,7 @@ export function ApplyJobModal({ isOpen, onClose, jobId, jobTitle, onSuccess }: A
         token
       );
 
-      alert("Ứng tuyển thành công!");
+      toast.success("Ứng tuyển thành công!");
       onSuccess?.();
       onClose();
     } catch (err: any) {

@@ -72,14 +72,20 @@ export class JobController {
   @Get('recruiter')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.RECRUITER)
-  async findRecruiterJobs(@Request() req) {
+  async findRecruiterJobs(@Request() req, @Query('scope') scope?: string) {
     const userId = req.user.userId;
     const recruiter = await this.jobService['prisma'].recruiter.findUnique({
       where: { userId },
-      select: { id: true },
+      select: { id: true, companyId: true },
     });
     if (!recruiter) {
       throw new ForbiddenException('Không tìm thấy thông tin nhà tuyển dụng');
+    }
+    if (scope === 'company') {
+      if (!recruiter.companyId) {
+        return [];
+      }
+      return this.jobService.findCompanyJobs(recruiter.companyId);
     }
     return this.jobService.findRecruiterJobs(recruiter.id);
   }

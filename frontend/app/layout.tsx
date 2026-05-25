@@ -9,6 +9,7 @@ import { Inter } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
 import NextTopLoader from "nextjs-toploader";
 import Navbar from "@/components/sections/menu/Navbar";
+import { Toaster } from "react-hot-toast";
 
 const lexend = Lexend({
   weight: ["200", "400"],
@@ -56,7 +57,7 @@ export default function RootLayout({
       <body className={lexend.className} suppressHydrationWarning>
         <AuthProvider>
           <NextTopLoader color="#0E7BC3" showSpinner={true} />
-
+          <Toaster position="top-center" reverseOrder={false} />
           {children}
         </AuthProvider>
       </body>

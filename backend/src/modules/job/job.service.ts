@@ -15,7 +15,7 @@ export class JobService {
         ...jobData,
         recruiterId,
         companyId,
-        status: JobStatus.DRAFT, // Default to DRAFT
+        status: JobStatus.PUBLISHED, // Default to PUBLISHED (đang tuyển)
         tags: tagIds && tagIds.length > 0 ? {
           connect: tagIds.map(id => ({ id })),
         } : undefined,
@@ -213,6 +213,24 @@ export class JobService {
           },
         },
       },
+    });
+  }
+
+  async findCompanyJobs(companyId: string) {
+    return this.prisma.job.findMany({
+      where: { companyId, deletedAt: null },
+      include: {
+        _count: {
+          select: { applications: true },
+        },
+        city: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 

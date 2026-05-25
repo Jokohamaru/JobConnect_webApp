@@ -140,6 +140,7 @@ export default function CVBuilderPage() {
   const [zoom, setZoom] = useState(80);
   const [cvTitle, setCvTitle] = useState("CV cua toi");
   const [isSaving, setIsSaving] = useState(false);
+  const [isEdited, setIsEdited] = useState(false);
   const [toastInfo, setToastInfo] = useState<{
     message: string;
     type: "error" | "success";
@@ -248,9 +249,19 @@ export default function CVBuilderPage() {
     .filter((s) => s.enabled)
     .map((s) => s.key) as SectionKey[];
 
+  const handleCvDataChange = (newData: CVData) => {
+    setCvData(newData);
+    setIsEdited(true);
+  };
+
   const handleSaveCV = async () => {
     if (!template) {
       showToast("Không tìm thấy mẫu CV", "error");
+      return;
+    }
+
+    if (!isEdited) {
+      showToast("Vui lòng chỉnh sửa nội dung hoặc thiết kế trước khi lưu CV", "error");
       return;
     }
 
@@ -509,7 +520,10 @@ ${clonedElement.outerHTML}
               <input
                 type="text"
                 value={cvTitle}
-                onChange={(e) => setCvTitle(e.target.value)}
+                onChange={(e) => {
+                  setCvTitle(e.target.value);
+                  setIsEdited(true);
+                }}
                 placeholder="Nhap ten CV..."
                 className="text-sm font-medium text-gray-700 border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-48"
               />
@@ -536,8 +550,9 @@ ${clonedElement.outerHTML}
           </div>
           <button
             onClick={handleSaveCV}
-            disabled={isSaving}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm"
+            disabled={isSaving || !isEdited}
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm cursor-pointer"
+            title={!isEdited ? "Vui lòng chỉnh sửa nội dung hoặc thiết kế trước khi lưu" : undefined}
           >
             <Save className="w-4 h-4" />
             <span>
@@ -580,18 +595,36 @@ ${clonedElement.outerHTML}
           </div>
           <div className="flex-1 overflow-hidden">
             {activeTab === "sections" ? (
-              <SectionPanel sections={sections} onChange={setSections} />
+              <SectionPanel
+                sections={sections}
+                onChange={(val) => {
+                  setSections(val);
+                  setIsEdited(true);
+                }}
+              />
             ) : (
               <DesignPanel
                 templateId={template.id}
                 colorIndex={colorIndex}
-                onColorChange={setColorIndex}
+                onColorChange={(val) => {
+                  setColorIndex(val);
+                  setIsEdited(true);
+                }}
                 fontFamily={fontFamily}
-                onFontChange={setFontFamily}
+                onFontChange={(val) => {
+                  setFontFamily(val);
+                  setIsEdited(true);
+                }}
                 fontSize={fontSize}
-                onFontSizeChange={setFontSize}
+                onFontSizeChange={(val) => {
+                  setFontSize(val);
+                  setIsEdited(true);
+                }}
                 layout={layout}
-                onLayoutChange={setLayout}
+                onLayoutChange={(val) => {
+                  setLayout(val);
+                  setIsEdited(true);
+                }}
               />
             )}
           </div>
@@ -600,7 +633,7 @@ ${clonedElement.outerHTML}
         <main className="flex-1 overflow-auto bg-gray-200 flex justify-center py-8 px-4 print:p-0 print:bg-white">
           <div
             style={{
-              width: 794,
+               width: 794,
               minHeight: 1123,
               transform: `scale(${zoom / 100})`,
               transformOrigin: "top center",
@@ -610,7 +643,7 @@ ${clonedElement.outerHTML}
           >
             <CVDocument
               data={cvData}
-              onChange={setCvData}
+              onChange={handleCvDataChange}
               templateId={template.id}
               colorIndex={colorIndex}
               fontFamily={fontFamily}

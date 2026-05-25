@@ -47,7 +47,7 @@ export function TrendingTag() {
 
       {tags.map((tag) => (
         <Link
-          href={`/searching-page?tagNames=${encodeURIComponent(tag.name)}`}
+          href={`/searching?tagNames=${encodeURIComponent(tag.name)}`}
           key={tag.id}
           className="bg-white px-4 py-1.5 rounded-full text-gray-700 hover:bg-gray-100 transition-colors font-medium whitespace-nowrap"
         >

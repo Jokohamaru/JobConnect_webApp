@@ -190,13 +190,13 @@ export function JobsTable({ onAddJob }: JobsTableProps) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-8 h-8 rounded-lg overflow-hidden border mr-3">
+                      <div className="w-12 h-12 bg-white rounded-lg border border-gray-200 shadow-sm p-1 flex items-center justify-center overflow-hidden mr-3">
                         <Image
                           src={getCompanyLogo(job.company.logoUrl)}
                           alt={job.company.name}
-                          width={32}
-                          height={32}
-                          className="object-cover"
+                          width={48}
+                          height={48}
+                          className="h-full w-full object-contain rounded-md"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.src = "/placeholder-company.svg";

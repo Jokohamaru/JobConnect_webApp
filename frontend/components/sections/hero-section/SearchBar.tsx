@@ -5,8 +5,11 @@ import { Button } from "../../ui/button";
 import { TrendingTag } from "./TrendingTag";
 import LocationSelect from "./LocationSelect";
 import { useState, useRef, useEffect } from "react";
-import { TrendingUp, Search, Briefcase, DollarSign, ArrowRight, User, Sparkles } from "lucide-react";
+import { TrendingUp, Search, Briefcase, DollarSign, ArrowRight, User, Sparkles, Building2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { jobService } from "@/services/jobService";
+import { companyService } from "@/services/companyService";
+import { getCompanyLogoUrl } from "@/utils/avatarHelper";
 
 // ──────────────── Mock data ────────────────
 const POPULAR_KEYWORDS = [
@@ -65,12 +68,54 @@ export function SearchBar() {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  const [dbJobs, setDbJobs] = useState<any[]>([]);
+  const [dbCompanies, setDbCompanies] = useState<any[]>([]);
+  const [loadingDb, setLoadingDb] = useState(false);
+
+  useEffect(() => { 
+    const fetchData = async () => {
+      try {
+        setLoadingDb(true);
+        const [jobsRes, companiesRes] = await Promise.all([
+          jobService.getJobs({ pageSize: 4 }),
+          companyService.getCompanies({ pageSize: 4 }),
+        ]);
+        setDbJobs(jobsRes.data || []);
+        setDbCompanies(companiesRes.data || []);
+      } catch (err) {
+        console.error("Failed to load suggested data:", err);
+      } finally {
+        setLoadingDb(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const formatJobSalary = (job: any) => {
+    if (!job.minSalary && !job.maxSalary) return 'Thỏa thuận';
+    
+    const format = (amount: number) => {
+      if (job.currency === 'VND') {
+        return `${(amount / 1000000).toFixed(0)} triệu`;
+      }
+      return `$${amount.toLocaleString()}`;
+    };
+
+    if (job.minSalary && job.maxSalary) {
+      return `${format(job.minSalary)} - ${format(job.maxSalary)}`;
+    } else if (job.minSalary) {
+      return `Từ ${format(job.minSalary)}`;
+    } else {
+      return `Đến ${format(job.maxSalary)}`;
+    }
+  };
+
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (input.trim()) params.set("q", input.trim());
     params.set("type", searchType);
     if (location) params.set("location", location);
-    router.push(`/searching-page?${params.toString()}`);
+    router.push(`/searching?${params.toString()}`);
     setFocused(false);
   };
 
@@ -189,45 +234,132 @@ export function SearchBar() {
                   </ul>
                 </div>
 
-                {/* RIGHT – Suggested jobs */}
+                {/* RIGHT – Suggested jobs / companies */}
                 <div className="w-[48%] px-5 py-4">
-                  <p className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                    <Briefcase size={14} className="text-[#0E7BC3]" />
-                    Việc làm có thể bạn quan tâm
-                  </p>
-                  <ul className="space-y-3">
-                    {SUGGESTED_JOBS.map((job) => (
-                      <li key={job.id}>
-                        <button
-                          className="w-full flex items-start gap-3 p-2 rounded-lg hover:bg-blue-50 transition-colors text-left group"
-                          onClick={() => {
-                            setInput(job.title);
-                            setFocused(false);
-                          }}
-                        >
-                          {/* Company logo placeholder */}
-                          <div
-                            className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-[10px] font-bold shrink-0"
-                            style={{ backgroundColor: job.color }}
-                          >
-                            {job.logo}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-semibold text-gray-800 truncate group-hover:text-[#0E7BC3] leading-tight">
-                              {job.title}
-                            </p>
-                            <p className="text-[11px] text-gray-500 truncate mt-0.5">
-                              {job.company}
-                            </p>
-                            <p className="text-[11px] font-semibold text-[#0E7BC3] mt-1 flex items-center gap-1">
-                              <DollarSign size={10} />
-                              {job.salary}
-                            </p>
-                          </div>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+                  {searchType === "job" ? (
+                    <>
+                      <p className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                        <Briefcase size={14} className="text-[#0E7BC3]" />
+                        Việc làm có thể bạn quan tâm
+                      </p>
+                      <ul className="space-y-3">
+                        {dbJobs.map((job) => {
+                          const companyInitials = job.company.name
+                            .split(' ')
+                            .map((word: string) => word[0])
+                            .join('')
+                            .toUpperCase()
+                            .slice(0, 3);
+                            
+                          return (
+                            <li key={job.id}>
+                              <button
+                                className="w-full flex items-start gap-3 p-2 rounded-lg hover:bg-blue-50 transition-colors text-left group"
+                                onClick={() => {
+                                  setInput(job.title);
+                                  setFocused(false);
+                                }}
+                              >
+                                <div
+                                  className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-[10px] font-bold shrink-0 bg-gradient-to-br from-blue-500 to-[#00E5FF] relative overflow-hidden"
+                                >
+                                  <span className="absolute inset-0 flex items-center justify-center select-none z-0">
+                                    {companyInitials}
+                                  </span>
+                                  {job.company.logoUrl && (
+                                    <img 
+                                      src={getCompanyLogoUrl(job.company.logoUrl) || undefined} 
+                                      alt={job.company.name} 
+                                      className="absolute inset-0 w-full h-full object-cover rounded-lg z-10" 
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                      }}
+                                    />
+                                  )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-semibold text-gray-800 truncate group-hover:text-[#0E7BC3] leading-tight">
+                                    {job.title}
+                                  </p>
+                                  <p className="text-[11px] text-gray-500 truncate mt-0.5">
+                                    {job.company.name}
+                                  </p>
+                                  <p className="text-[11px] font-semibold text-[#0E7BC3] mt-1 flex items-center gap-1">
+                                    <DollarSign size={10} />
+                                    {formatJobSalary(job)}
+                                  </p>
+                                </div>
+                              </button>
+                            </li>
+                          );
+                        })}
+                        {dbJobs.length === 0 && !loadingDb && (
+                          <p className="text-sm text-gray-400">Chưa có việc làm nào</p>
+                        )}
+                      </ul>
+                    </>
+                  ) : (
+                    <>
+                      <p className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                        <Building2 size={14} className="text-[#0E7BC3]" />
+                        Công ty nổi bật có thể bạn quan tâm
+                      </p>
+                      <ul className="space-y-3">
+                        {dbCompanies.map((comp) => {
+                          const companyInitials = comp.name
+                            .split(' ')
+                            .map((word: string) => word[0])
+                            .join('')
+                            .toUpperCase()
+                            .slice(0, 3);
+
+                          return (
+                            <li key={comp.id}>
+                              <button
+                                className="w-full flex items-start gap-3 p-2 rounded-lg hover:bg-blue-50 transition-colors text-left group"
+                                onClick={() => {
+                                  setInput(comp.name);
+                                  setFocused(false);
+                                }}
+                              >
+                                <div
+                                  className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-[10px] font-bold shrink-0 bg-gradient-to-br from-indigo-500 to-[#00E5FF] relative overflow-hidden"
+                                >
+                                  <span className="absolute inset-0 flex items-center justify-center select-none z-0">
+                                    {companyInitials}
+                                  </span>
+                                  {comp.logoUrl && (
+                                    <img 
+                                      src={getCompanyLogoUrl(comp.logoUrl) || undefined} 
+                                      alt={comp.name} 
+                                      className="absolute inset-0 w-full h-full object-cover rounded-lg z-10" 
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                      }}
+                                    />
+                                  )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-semibold text-gray-800 truncate group-hover:text-[#0E7BC3] leading-tight">
+                                    {comp.name}
+                                  </p>
+                                  <p className="text-[11px] text-gray-500 truncate mt-0.5">
+                                    {comp.address || 'Việt Nam'}
+                                  </p>
+                                  <p className="text-[11px] font-semibold text-[#0E7BC3] mt-1">
+                                    Quy mô: {comp.size || 'Chưa cập nhật'}
+                                  </p>
+                                </div>
+                              </button>
+                            </li>
+                          );
+                        })}
+                        {dbCompanies.length === 0 && !loadingDb && (
+                          <p className="text-sm text-gray-400">Chưa có công ty nào</p>
+                        )}
+                      </ul>
+                    </>
+                  )}
                 </div>
               </div>
 

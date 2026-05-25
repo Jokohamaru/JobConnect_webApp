@@ -8,6 +8,7 @@ import JobRequirements from "@/components/sections/jobs/detail/JobRequirements";
 import JobBenefits from "@/components/sections/jobs/detail/JobBenefits";
 import CompanyInfoCard from "@/components/sections/jobs/detail/CompanyInfoCard";
 import { jobService } from "@/services/jobService";
+import { getCompanyLogoUrl } from "@/utils/avatarHelper";
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 interface PageProps {
@@ -79,7 +80,7 @@ export default async function JobDetailPage({ params }: PageProps) {
   const company = {
     slug: job.company.id,
     name: job.company.name,
-    logo: job.company.logoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company.name)}&background=0ea5e9&color=fff&size=128&bold=true&rounded=true`,
+    logo: getCompanyLogoUrl(job.company.logoUrl) || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company.name)}&background=0ea5e9&color=fff&size=128&bold=true&rounded=true`,
     tagline: job.company.description || "Join our team",
     rating: 4.5,
     reviews: 100,
@@ -107,7 +108,7 @@ export default async function JobDetailPage({ params }: PageProps) {
             Home
           </a>
           <span>/</span>
-          <a href="/tim-kiem" className="hover:text-blue-600 transition-colors">
+          <a href="/searching" className="hover:text-blue-600 transition-colors">
             Jobs
           </a>
           <span>/</span>

@@ -11,6 +11,7 @@ import CompanyPeople from "@/components/sections/company/CompanyPeople";
 import JobList from "@/components/sections/company/JobList";
 import CompanyPageSkeleton from "@/components/sections/company/CompanyPageSkeleton";
 import { companyService } from "@/services/companyService";
+import { getCompanyLogoUrl } from "@/utils/avatarHelper";
 
 // ─── Metadata ──────────────────────────────────────────────────────────────────
 interface PageProps {
@@ -52,7 +53,7 @@ async function CompanyPageContent({ slug }: { slug: string }) {
   const companyData = {
     slug: company.id,
     name: company.name,
-    logo: company.logoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=0ea5e9&color=fff&size=128&bold=true&rounded=true`,
+    logo: getCompanyLogoUrl(company.logoUrl) || `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=0ea5e9&color=fff&size=128&bold=true&rounded=true`,
     tagline: company.description?.split('.')[0] || `Join ${company.name}`,
     rating: 4.5, // Can add this to schema later
     reviews: company.jobs.length * 10, // Estimate based on jobs

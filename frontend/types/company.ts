@@ -18,6 +18,9 @@ export interface Company {
   } | null;
   jobs: Job[];
   skills: string[];
+  _count?: {
+    jobs: number;
+  };
 }
 
 export interface CompaniesResponse {

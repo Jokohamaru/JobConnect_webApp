@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,9 +26,38 @@ export function AddUserModal({ open, onClose, onSuccess }: AddUserModalProps) {
     firstName: "",
     lastName: "",
     role: "CANDIDATE" as "CANDIDATE" | "RECRUITER" | "ADMIN",
+    companyId: "" as string | undefined,
   });
+  const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Fetch companies for dropdown selection
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        
+        const response = await fetch(`${apiUrl}/admin/companies?limit=100`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          setCompanies(result.data || []);
+        }
+      } catch (err) {
+        console.error("Error fetching companies:", err);
+      }
+    };
+
+    if (open) {
+      fetchCompanies();
+    }
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,13 +68,18 @@ export function AddUserModal({ open, onClose, onSuccess }: AddUserModalProps) {
       const token = localStorage.getItem("access_token");
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
+      const submitData = {
+        ...formData,
+        companyId: formData.role === "RECRUITER" && formData.companyId ? formData.companyId : undefined,
+      };
+
       const response = await fetch(`${apiUrl}/admin/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) {
@@ -60,6 +94,7 @@ export function AddUserModal({ open, onClose, onSuccess }: AddUserModalProps) {
         firstName: "",
         lastName: "",
         role: "CANDIDATE",
+        companyId: "",
       });
 
       // Call success callback
@@ -176,6 +211,30 @@ export function AddUserModal({ open, onClose, onSuccess }: AddUserModalProps) {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Linked Company for Recruiter role */}
+          {formData.role === "RECRUITER" && (
+            <div className="space-y-2">
+              <Label htmlFor="companyId">Công ty liên kết</Label>
+              <Select
+                value={formData.companyId || ""}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, companyId: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn công ty liên kết" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  {companies.map((company) => (
+                    <SelectItem key={company.id} value={company.id}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">

@@ -21,6 +21,8 @@ export default function RecruiterDashboard() {
   const router = useRouter();
   const [jobs, setJobs] = useState<any[]>([]);
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const jobsPerPage = 5;
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -31,8 +33,10 @@ export default function RecruiterDashboard() {
     if (isAuthenticated && token) {
       const fetchJobs = async () => {
         try {
-          const data = await jobService.getRecruiterJobs(token);
+          setIsLoadingJobs(true);
+          const data = await jobService.getRecruiterJobs(token, 'company');
           setJobs(data);
+          setCurrentPage(1);
         } catch (error) {
           console.error('Failed to fetch recruiter jobs:', error);
         } finally {
@@ -62,6 +66,9 @@ export default function RecruiterDashboard() {
 
   const totalJobs = jobs.length;
   const totalApplications = jobs.reduce((sum, job) => sum + (job._count?.applications || 0), 0);
+
+  const totalPages = Math.ceil(jobs.length / jobsPerPage);
+  const displayedJobs = jobs.slice((currentPage - 1) * jobsPerPage, currentPage * jobsPerPage);
 
   const stats = [
     {
@@ -211,19 +218,22 @@ export default function RecruiterDashboard() {
         </div>
 
         {/* Recent Jobs */}
-        <div className="bg-white rounded-xl shadow-sm">
-          <div className="p-6 border-b">
-            <div className="flex items-center justify-between">
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
               <h2 className="text-xl font-bold text-gray-900">
                 Tin tuyển dụng gần đây
               </h2>
-              <Link
-                href="/recruiter/candidates"
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-              >
-                Xem tất cả →
-              </Link>
+              <p className="text-xs text-gray-500 mt-1">
+                Tất cả tin tuyển dụng đang tuyển dụng của công ty bạn
+              </p>
             </div>
+            <Link
+              href="/recruiter/candidates"
+              className="text-blue-600 hover:text-blue-700 text-sm font-medium self-start sm:self-center"
+            >
+              Xem tất cả →
+            </Link>
           </div>
 
           <div className="divide-y">
@@ -232,14 +242,14 @@ export default function RecruiterDashboard() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 Đang tải tin tuyển dụng...
               </div>
-            ) : jobs.length === 0 ? (
+            ) : displayedJobs.length === 0 ? (
               <div className="p-12 text-center text-gray-500">
                 <Briefcase className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="font-medium">Bạn chưa có tin tuyển dụng nào</p>
-                <p className="text-sm text-gray-400 mt-1">Hãy đăng tuyển vị trí đầu tiên của bạn</p>
+                <p className="font-medium">Chưa có tin tuyển dụng nào của công ty bạn</p>
+                <p className="text-sm text-gray-400 mt-1">Hãy đăng tin tuyển dụng đầu tiên của bạn để tiếp cận ứng viên.</p>
               </div>
             ) : (
-              jobs.map((job) => (
+              displayedJobs.map((job) => (
                 <div
                   key={job.id}
                   className="p-6 hover:bg-gray-50 transition-colors"
@@ -288,6 +298,31 @@ export default function RecruiterDashboard() {
               ))
             )}
           </div>
+
+          {/* Pagination controls */}
+          {totalPages > 1 && (
+            <div className="px-6 py-4 border-t flex items-center justify-between bg-white rounded-b-xl">
+              <span className="text-sm text-gray-600 font-medium">
+                Trang {currentPage} / {totalPages} (Tổng {jobs.length} tin)
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                >
+                  Trước
+                </button>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                >
+                  Sau
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

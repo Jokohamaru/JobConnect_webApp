@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { jobService } from "@/services/jobService";
+import { toast } from "react-hot-toast";
 
 import { StepIndicator } from "@/components/recruiter/post-job/StepIndicator";
 import { BasicInfoSection } from "@/components/recruiter/post-job/BasicInfoSection";
@@ -166,7 +167,7 @@ export default function PostJobPage() {
       const newJob = await jobService.createJob(jobData, token);
 
       // Success - redirect to dashboard
-      alert('Đăng tin tuyển dụng thành công!');
+      toast.success('Đăng tin tuyển dụng thành công! Tin tuyển dụng của bạn đã hiển thị ở trạng thái Đang tuyển.');
       router.push('/recruiter/dashboard');
     } catch (err: any) {
       console.error('Failed to create job:', err);

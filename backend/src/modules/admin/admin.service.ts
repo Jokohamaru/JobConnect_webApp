@@ -250,6 +250,7 @@ export class AdminService {
         await this.prisma.recruiter.create({
           data: {
             userId: user.id,
+            companyId: createUserDto.companyId,
           },
         });
       } else if (createUserDto.role === 'ADMIN') {

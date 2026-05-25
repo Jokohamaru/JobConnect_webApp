@@ -9,33 +9,41 @@ import type { JobDetail } from "@/lib/types/company";
 import { ApplyJobModal } from "@/components/job/ApplyJobModal";
 import { useAuth } from "@/context/AuthContext";
 import { applicationService } from "@/services/applicationService";
-import { authService } from "@/lib/auth-service";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 interface JobHeaderProps {
   job: JobDetail;
 }
 
 export default function JobHeader({ job }: JobHeaderProps) {
-  const { user } = useAuth();
+  const { user, token, isLoading } = useAuth();
   const router = useRouter();
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
 
   useEffect(() => {
+    if (isLoading) {
+      setCheckingStatus(true);
+      return;
+    }
+
     if (user && user.role === 'CANDIDATE') {
       checkApplicationStatus();
     } else {
       setCheckingStatus(false);
     }
-  }, [user, job.id]);
+  }, [user, token, isLoading, job.id]);
 
   const checkApplicationStatus = async () => {
-    try {
-      const token = authService.getToken();
-      if (!token) return;
+    if (!token) {
+      setCheckingStatus(false);
+      return;
+    }
 
+    setCheckingStatus(true);
+    try {
       const applied = await applicationService.checkIfApplied(job.id, token);
       setIsApplied(applied);
     } catch (error) {
@@ -52,12 +60,12 @@ export default function JobHeader({ job }: JobHeaderProps) {
     }
 
     if (user.role !== 'CANDIDATE') {
-      alert('Chỉ ứng viên mới có thể ứng tuyển');
+      toast.error('Chỉ ứng viên mới có thể ứng tuyển');
       return;
     }
 
     if (isApplied) {
-      alert('Bạn đã ứng tuyển công việc này rồi');
+      toast.error('Bạn đã ứng tuyển công việc này rồi');
       return;
     }
 

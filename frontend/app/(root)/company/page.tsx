@@ -3,6 +3,7 @@ import { Building2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Metadata } from "next";
 import { companyService } from "@/services/companyService";
+import { getCompanyLogoUrl } from "@/utils/avatarHelper";
 
 export const metadata: Metadata = {
   title: "Top Companies",
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CompaniesPage() {
-  let companies = [];
+  let companies: any[] = [];
   
   try {
     const response = await companyService.getCompanies({ pageSize: 50 });
@@ -44,7 +45,7 @@ export default async function CompaniesPage() {
                   <div className="size-12 overflow-hidden rounded-xl border border-gray-100 bg-white flex items-center justify-center">
                     {company.logoUrl ? (
                       <img
-                        src={company.logoUrl}
+                        src={getCompanyLogoUrl(company.logoUrl) || undefined}
                         alt={company.name}
                         className="h-full w-full object-cover"
                       />

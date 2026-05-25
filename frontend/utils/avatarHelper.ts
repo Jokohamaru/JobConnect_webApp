@@ -5,6 +5,10 @@
  */
 export function getUserAvatar(avaUrl: string | null | undefined): string {
   if (avaUrl && avaUrl.trim() !== '') {
+    if (avaUrl.startsWith('/uploads')) {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      return `${API_URL}${avaUrl}`;
+    }
     return avaUrl;
   }
   return '/user.png';
@@ -33,6 +37,10 @@ export function getAvatarWithFallback(
   avaUrl: string | null | undefined
 ): string {
   if (avaUrl && avaUrl.trim() !== '') {
+    if (avaUrl.startsWith('/uploads')) {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      return `${API_URL}${avaUrl}`;
+    }
     return avaUrl;
   }
   
@@ -45,3 +53,18 @@ export function getAvatarWithFallback(
   const encodedName = encodeURIComponent(name);
   return `https://ui-avatars.com/api/?name=${encodedName}&background=0ea5e9&color=fff&size=128&bold=true&rounded=true`;
 }
+
+/**
+ * Get formatted company logo URL (prefixing with API_URL if relative /uploads)
+ * @param logoUrl - Logo URL from database
+ * @returns Fully qualified URL or null
+ */
+export function getCompanyLogoUrl(logoUrl: string | null | undefined): string | null {
+  if (!logoUrl || logoUrl.trim() === '') return null;
+  if (logoUrl.startsWith('/uploads')) {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    return `${API_URL}${logoUrl}`;
+  }
+  return logoUrl;
+}
+
