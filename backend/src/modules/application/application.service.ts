@@ -88,6 +88,10 @@ export class ApplicationService {
       },
     });
 
+    // Auto-trigger matching bất đồng bộ (fire-and-forget)
+    // Không await — trả response ngay, matching chạy nền
+    this.triggerAutoMatch(application.id, cvId, jobId);
+
     return application;
   }
 
@@ -289,5 +293,32 @@ export class ApplicationService {
     }
 
     return application;
+  }
+
+  /**
+   * Tự động trigger AI matching sau khi ứng viên nộp đơn (fire-and-forget).
+   * Không throw lỗi ra ngoài — đảm bảo việc tạo application luôn thành công.
+   */
+  private async triggerAutoMatch(applicationId: string, cvId: string, jobId: string): Promise<void> {
+    try {
+      const aiResult = await this.aiCVService.matchCVAndJob(cvId, jobId);
+      await this.prisma.application.update({
+        where: { id: applicationId },
+        data: {
+          matchScore: aiResult.score,
+          matchLevel: aiResult.matchLevel,
+          aiFeedback: aiResult.feedback,
+        },
+      });
+      console.log(
+        `✅ Auto-match hoàn thành cho application ${applicationId}: ` +
+        `score=${aiResult.score}, level=${aiResult.matchLevel}`,
+      );
+    } catch (error) {
+      console.warn(
+        `⚠️ Auto-match thất bại cho application ${applicationId}:`,
+        error?.message,
+      );
+    }
   }
 }

@@ -24,25 +24,38 @@ interface JobPreviewPanelProps {
     experience: string;
     benefits: string[];
   };
+  companyName?: string;
+  companyType?: string;
+  companySize?: string;
+  companyLogo?: string | null;
 }
-
 // ── A. Xem trước tin tuyển dụng ──────────────────────────────────────────────
-export function JobPreviewCard({ data }: JobPreviewPanelProps) {
+export function JobPreviewCard({ data, companyName, companyType, companySize, companyLogo }: JobPreviewPanelProps) {
   const hasTitle = !!data.title;
+  const displayCompany = companyName || "Tên công ty";
+  const displayMeta = [
+    companyType,
+    companySize ? `${companySize} nhân viên` : null,
+  ].filter(Boolean).join(" • ") || "Thông tin công ty";
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
       {/* Cover */}
-      <div className="h-20 bg-gradient-to-r from-blue-500 to-blue-400 relative">
+      <div className="h-20 bg-linear-to-r from-blue-500 to-blue-400 relative">
         <div className="absolute bottom-0 left-4 translate-y-1/2">
-          <div className="w-12 h-12 rounded-xl bg-white border-2 border-white shadow-md flex items-center justify-center">
-            <Building2 className="h-6 w-6 text-blue-600" />
+          <div className="w-12 h-12 rounded-xl bg-white border-2 border-white shadow-md flex items-center justify-center overflow-hidden">
+            {companyLogo ? (
+              <img src={companyLogo} alt={displayCompany} className="w-full h-full object-cover" />
+            ) : (
+              <Building2 className="h-6 w-6 text-blue-600" />
+            )}
           </div>
         </div>
       </div>
 
       <div className="pt-8 px-4 pb-4">
-        <div className="text-xs text-gray-500 mb-0.5">TechCorp Việt Nam</div>
-        <div className="text-[11px] text-gray-400 mb-3">Công nghệ thông tin • 50 – 100 nhân viên</div>
+        <div className="text-xs text-gray-500 mb-0.5">{displayCompany}</div>
+        <div className="text-[11px] text-gray-400 mb-3">{displayMeta}</div>
 
         <h3 className="font-bold text-gray-900 text-base mb-2">
           {hasTitle ? data.title : <span className="text-gray-300">Tên công việc...</span>}
@@ -74,7 +87,7 @@ export function JobPreviewCard({ data }: JobPreviewPanelProps) {
           {data.level && (
             <div className="flex items-center gap-2">
               <Briefcase className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-              {data.level} • {data.experience || "2 – 4 năm kinh nghiệm"}
+              {data.level}{data.experience ? ` • ${data.experience}` : ""}
             </div>
           )}
           {data.deadline && (
@@ -98,7 +111,51 @@ export function JobPreviewCard({ data }: JobPreviewPanelProps) {
 }
 
 // ── B. Dự đoán từ AI ─────────────────────────────────────────────────────────
-export function AIPredictionCard({ score }: { score: number }) {
+interface AIPredictionCardProps {
+  score: number;
+  data: {
+    title: string;
+    description: string;
+    skills: string[];
+    benefits: string[];
+    experience: string;
+  };
+}
+
+function getRatingLabel(score: number): string {
+  if (score >= 80) return "Xuất sắc";
+  if (score >= 60) return "Rất tốt";
+  if (score >= 40) return "Khá tốt";
+  return "Cần cải thiện";
+}
+
+function getCandidateEstimate(score: number): string {
+  if (score >= 80) return "200 – 300 ứng viên";
+  if (score >= 60) return "100 – 150 ứng viên";
+  if (score >= 40) return "50 – 100 ứng viên";
+  return "Dưới 50 ứng viên";
+}
+
+function computeTips(data: AIPredictionCardProps["data"]): string[] {
+  const tips: string[] = [];
+  if (!data.description || data.description.length < 100)
+    tips.push("Viết mô tả công việc chi tiết hơn (tối thiểu 100 ký tự)");
+  if (data.skills.length < 3)
+    tips.push("Thêm ít nhất 3 kỹ năng yêu cầu");
+  if (data.benefits.length < 2)
+    tips.push("Bổ sung thêm phúc lợi để thu hút ứng viên");
+  if (!data.experience)
+    tips.push("Ghi rõ số năm kinh nghiệm yêu cầu");
+  if (!data.title)
+    tips.push("Điền tên vị trí tuyển dụng");
+  return tips.slice(0, 3);
+}
+
+export function AIPredictionCard({ score, data }: AIPredictionCardProps) {
+  const ratingLabel = getRatingLabel(score);
+  const candidateEstimate = getCandidateEstimate(score);
+  const tips = computeTips(data);
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
@@ -125,26 +182,29 @@ export function AIPredictionCard({ score }: { score: number }) {
           </div>
         </div>
         <div>
-          <div className="text-sm font-bold text-gray-800 mb-0.5">Rất tốt</div>
+          <div className="text-sm font-bold text-gray-800 mb-0.5">{ratingLabel}</div>
           <div className="text-xs text-gray-500 leading-relaxed">
             Ước tính số ứng viên phù hợp:
           </div>
-          <div className="text-base font-bold text-blue-600">120 – 150 ứng viên</div>
+          <div className="text-base font-bold text-blue-600">{candidateEstimate}</div>
         </div>
       </div>
 
       <div className="text-xs font-semibold text-gray-500 mb-2">Gợi ý để tăng hiệu quả</div>
       <div className="space-y-1.5">
-        {[
-          "Thêm mô tả về văn hoá công ty",
-          "Bổ sung kỹ năng: Testing, Figma…",
-          "Nhấn mạnh lộ trình phát triển",
-        ].map((tip) => (
-          <div key={tip} className="flex items-start gap-2 text-xs text-gray-600">
+        {tips.length > 0 ? (
+          tips.map((tip) => (
+            <div key={tip} className="flex items-start gap-2 text-xs text-gray-600">
+              <CheckCircle2 className="h-3.5 w-3.5 text-orange-400 shrink-0 mt-0.5" />
+              {tip}
+            </div>
+          ))
+        ) : (
+          <div className="flex items-start gap-2 text-xs text-green-600">
             <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0 mt-0.5" />
-            {tip}
+            Tin tuyển dụng đã đầy đủ thông tin!
           </div>
-        ))}
+        )}
       </div>
 
       <Button
@@ -165,7 +225,6 @@ const CHECKLIST_ITEMS = [
   { label: "Mô tả công việc", field: "description" },
   { label: "Yêu cầu ứng viên", field: "requirements" },
   { label: "Phúc lợi", field: "benefits" },
-  { label: "Xem trước & đăng tin", field: "preview" },
 ];
 
 export function ChecklistCard({

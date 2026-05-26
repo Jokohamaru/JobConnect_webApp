@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Cloud, Eye, Send, X, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -88,17 +88,78 @@ export default function PostJobPage() {
 
   const [benefits, setBenefits] = useState<string[]>([]);
 
+  // Company info (tự động lấy từ profile recruiter)
+  const [companyInfo, setCompanyInfo] = useState<{
+    name: string;
+    type?: string;
+    size?: string;
+    logoUrl?: string | null;
+  } | null>(null);
+
+  // Fetch thông tin công ty của recruiter khi load trang
+  useEffect(() => {
+    if (!token) return;
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    // Lấy danh sách job của recruiter → từ đó biết company
+    fetch(`${API_URL}/jobs/recruiter`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    })
+      .then((r) => r.json())
+      .then((jobs: any[]) => {
+        const firstJobWithCompany = Array.isArray(jobs) && jobs.find((j) => j.company);
+        if (firstJobWithCompany?.company) {
+          const c = firstJobWithCompany.company;
+          setCompanyInfo({
+            name: c.name || '',
+            type: c.type?.name || undefined,
+            size: c.size || undefined,
+            logoUrl: c.logoUrl || null,
+          });
+        }
+      })
+      .catch(() => {
+        // Lỗi không tải được company — bỏ qua, hiển thị placeholder
+      });
+  }, [token]);
+
   // Computed checklist
   const completed = useMemo(() => {
     const c: string[] = [];
-    if (basicInfo.title && basicInfo.department && basicInfo.level) c.push("basic");
-    if (description.length > 30) c.push("description");
-    if (requirements.skills.length > 0 && requirements.experience) c.push("requirements");
-    if (benefits.length > 0) c.push("benefits");
+    if (
+      basicInfo.title &&
+      basicInfo.department &&
+      basicInfo.level &&
+      basicInfo.workType &&
+      basicInfo.location &&
+      basicInfo.deadline
+    ) {
+      c.push("basic");
+    }
+    if (description && description.length >= 100) {
+      c.push("description");
+    }
+    if (
+      requirements.skills &&
+      requirements.skills.length >= 3 &&
+      requirements.experience
+    ) {
+      c.push("requirements");
+    }
+    if (benefits && benefits.length >= 2) {
+      c.push("benefits");
+    }
     return c;
   }, [basicInfo, description, requirements, benefits]);
 
-  const totalScore = Math.min(95, completed.length * 20 + 15);
+  const totalScore = useMemo(() => {
+    let score = 0;
+    if (completed.includes("basic")) score += 30;
+    if (completed.includes("description")) score += 30;
+    if (completed.includes("requirements")) score += 20;
+    if (completed.includes("benefits")) score += 20;
+    return score;
+  }, [completed]);
 
   const handleBasicChange = (field: string, value: string | number) => {
     setBasicInfo((prev) => ({ ...prev, [field]: value }));
@@ -258,6 +319,10 @@ export default function PostJobPage() {
                   experience: requirements.experience,
                   benefits,
                 }}
+                companyName={companyInfo?.name}
+                companyType={companyInfo?.type}
+                companySize={companyInfo?.size}
+                companyLogo={companyInfo?.logoUrl}
               />
             </div>
 
@@ -265,7 +330,16 @@ export default function PostJobPage() {
               <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-1">
                 B. Dự đoán từ AI
               </div>
-              <AIPredictionCard score={totalScore} />
+              <AIPredictionCard
+                score={totalScore}
+                data={{
+                  title: basicInfo.title,
+                  description,
+                  skills: requirements.skills,
+                  benefits,
+                  experience: requirements.experience,
+                }}
+              />
             </div>
 
             <div>
@@ -306,22 +380,7 @@ export default function PostJobPage() {
 
             {/* Right */}
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                className="border-gray-200 text-gray-600 hover:bg-gray-50 text-sm gap-1.5"
-                disabled={isSubmitting}
-              >
-                <Cloud className="h-4 w-4" />
-                Lưu nháp
-              </Button>
-              <Button
-                variant="outline"
-                className="border-blue-200 text-blue-600 hover:bg-blue-50 text-sm gap-1.5"
-                disabled={isSubmitting}
-              >
-                <Eye className="h-4 w-4" />
-                Xem trước
-              </Button>
+             
               <Button 
                 className="bg-blue-600 hover:bg-blue-700 text-white text-sm gap-1.5 shadow-md shadow-blue-200"
                 onClick={handleSubmit}

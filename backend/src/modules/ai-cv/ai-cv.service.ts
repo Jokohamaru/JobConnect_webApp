@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GenerateCVDto } from './dto/generate-cv.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // Mapping level sang tiếng Việt
 const LEVEL_MAP: Record<string, string> = {
@@ -209,28 +211,6 @@ export class AiCVService {
       throw new NotFoundException('Không tìm thấy tin tuyển dụng');
     }
 
-    // Chuẩn bị nội dung CV
-    let cvContent = '';
-    if (cv.cvType === 'BUILDER' && cv.cvData) {
-      cvContent = typeof cv.cvData === 'string' ? cv.cvData : JSON.stringify(cv.cvData, null, 2);
-    } else {
-      const candidate = await this.prisma.candidate.findUnique({
-        where: { id: cv.candidateId },
-        include: {
-          user: true,
-        },
-      });
-      cvContent = `
-        Tên ứng viên: ${candidate?.user?.firstName || ''} ${candidate?.user?.lastName || ''}
-        Email: ${candidate?.user?.email || ''}
-        Số điện thoại: ${candidate?.phoneNumber || ''}
-        Địa chỉ: ${candidate?.address || ''}, ${candidate?.city || ''}
-        Vị trí công việc hiện tại/mong muốn: ${candidate?.careerRole || ''}
-        Tiêu đề CV: ${cv.title}
-        Đường dẫn file CV: ${cv.cvUrl}
-      `;
-    }
-
     // Chuẩn bị nội dung Job
     const jobContent = `
       Tiêu đề công việc: ${job.title}
@@ -239,6 +219,45 @@ export class AiCVService {
       Mức lương tối đa: ${job.maxSalary || 'Thỏa thuận'}
       Kỹ năng yêu cầu: ${job.skills.map((s) => s.name).join(', ')}
     `;
+
+    // Chuẩn bị nội dung CV
+    let cvContent = ''; // Luôn có metadata làm fallback cho heuristic
+    let pdfInlineData: { data: string; mimeType: string } | null = null;
+
+    if (cv.cvType === 'BUILDER' && cv.cvData) {
+      // CV dạng BUILDER: dùng JSON data có cấu trúc đầy đủ
+      cvContent = typeof cv.cvData === 'string' ? cv.cvData : JSON.stringify(cv.cvData, null, 2);
+    } else {
+      // CV dạng UPLOAD: luôn chuẩn bị metadata làm fallback
+      const candidate = await this.prisma.candidate.findUnique({
+        where: { id: cv.candidateId },
+        include: { user: true },
+      });
+
+      cvContent = `
+        Tên ứng viên: ${candidate?.user?.firstName || ''} ${candidate?.user?.lastName || ''}
+        Email: ${candidate?.user?.email || ''}
+        Số điện thoại: ${candidate?.phoneNumber || ''}
+        Địa chỉ: ${candidate?.address || ''}, ${candidate?.city || ''}
+        Vị trí công việc hiện tại/mong muốn: ${candidate?.careerRole || ''}
+        Tiêu đề CV: ${cv.title}
+      `;
+
+      // Thử đọc file PDF để gửi multimodal cho Gemini (đọc nội dung thực sự)
+      if (cv.cvUrl && cv.cvUrl.startsWith('/uploads/')) {
+        try {
+          const filePath = path.join(process.cwd(), cv.cvUrl);
+          const pdfBuffer = fs.readFileSync(filePath);
+          pdfInlineData = {
+            data: pdfBuffer.toString('base64'),
+            mimeType: 'application/pdf',
+          };
+          console.log(`📄 Đọc PDF thành công để matching: ${filePath} (${Math.round(pdfBuffer.length / 1024)}KB)`);
+        } catch (fileError) {
+          console.warn(`⚠️ Không đọc được file PDF, dùng metadata thay thế: ${fileError.message}`);
+        }
+      }
+    }
 
     const model = this.genAI.getGenerativeModel({
       model: 'gemini-2.5-flash',
@@ -249,15 +268,13 @@ export class AiCVService {
       },
     });
 
-    const prompt = `
+    // Phần hướng dẫn chung cho Gemini
+    const promptInstruction = `
       Bạn là một chuyên gia tuyển dụng và đánh giá nhân sự bằng AI.
       Hãy phân tích mức độ phù hợp giữa CV của ứng viên và Mô tả công việc (JD) dưới đây.
 
       === MÔ TẢ CÔNG VIỆC (JD) ===
       ${jobContent}
-
-      === CV ỨNG VIÊN ===
-      ${cvContent}
 
       === YÊU CẦU ===
       1. Chấm điểm độ phù hợp của ứng viên này đối với công việc theo thang điểm từ 0 đến 100 (score).
@@ -277,7 +294,32 @@ export class AiCVService {
     `;
 
     try {
-      const result = await model.generateContent(prompt);
+      let result;
+
+      if (pdfInlineData) {
+        // ✅ Multimodal: gửi file PDF trực tiếp, Gemini đọc toàn bộ nội dung CV
+        result = await model.generateContent({
+          contents: [{
+            role: 'user',
+            parts: [
+              { inlineData: pdfInlineData },
+              {
+                text: `${promptInstruction}
+
+      === CV ỨNG VIÊN ===
+      (File CV PDF đính kèm bên trên — hãy đọc toàn bộ nội dung CV từ file PDF đó để phân tích)`,
+              },
+            ],
+          }],
+        });
+      } else {
+        // Text-only: dùng cvContent (BUILDER JSON hoặc metadata fallback)
+        result = await model.generateContent(`${promptInstruction}
+
+      === CV ỨNG VIÊN ===
+      ${cvContent}`);
+      }
+
       const text = result.response.text();
       const matchResult = this.parseJsonFromResponse(text);
 

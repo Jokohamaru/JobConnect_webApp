@@ -220,6 +220,20 @@ export class JobService {
     return this.prisma.job.findMany({
       where: { companyId, deletedAt: null },
       include: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logoUrl: true,
+            description: true,
+            websiteUrl: true,
+            address: true,
+            size: true,
+            type: {
+              select: { name: true },
+            },
+          },
+        },
         _count: {
           select: { applications: true },
         },
@@ -238,6 +252,17 @@ export class JobService {
     return this.prisma.job.findMany({
       where: { recruiterId, deletedAt: null },
       include: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logoUrl: true,
+            size: true,
+            type: {
+              select: { name: true },
+            },
+          },
+        },
         _count: {
           select: { applications: true },
         },
